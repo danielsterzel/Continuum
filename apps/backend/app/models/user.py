@@ -1,12 +1,16 @@
-
 from sqlalchemy import Index, String, UniqueConstraint, func, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from app.models.libraries import Library
-from app.models.device import Device
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from app.models.libraries import Library
+    from app.models.device import Device
 
 from app.db.base import Base
 
 from app.models.mixins import TimestampMixin, UUIDMixin
+
 
 class User(Base, TimestampMixin, UUIDMixin):
     __tablename__ = "users"
@@ -38,6 +42,5 @@ class User(Base, TimestampMixin, UUIDMixin):
     )
 
     devices: Mapped[list["Device"]] = relationship(
-        back_populates="user",
-        cascade="all, delete-orphan"
+        back_populates="user", cascade="all, delete-orphan"
     )

@@ -1,6 +1,9 @@
-
 from uuid import UUID
-from app.models.user import User
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from app.models.user import User
+
 from app.models.mixins import TimestampMixin, UUIDMixin
 
 from sqlalchemy import (
@@ -29,7 +32,6 @@ class Library(Base, UUIDMixin, TimestampMixin):
             "user_id",
         ),
     )
-
 
     user_id: Mapped[UUID] = mapped_column(
         ForeignKey(

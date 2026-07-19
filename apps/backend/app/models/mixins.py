@@ -1,4 +1,3 @@
-
 from sqlalchemy import DateTime, func
 from sqlalchemy.orm import mapped_column, Mapped
 from uuid import UUID, uuid4
@@ -12,6 +11,7 @@ class TimestampMixin:
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
+
 
 class UUIDMixin:
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
