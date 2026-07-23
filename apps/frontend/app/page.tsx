@@ -1,65 +1,76 @@
-import Image from "next/image";
+"use client";
+
+import { MediaCell } from "./_home_components/MediaCell";
+import { RecentlyUsedList } from "./_home_components/RecentlyUsedList";
+
+import { HomeTitle } from "./_home_components/HomeTitle";
+
+import type { RecentlyUsedMediaItem } from "./_home_components/RecentlyUsedItem";
+import { PrimaryButton } from "./_buttons/PrimaryButton";
+import { SlideMenu } from "./_home_components/SlideMenu";
+import { useState } from "react";
+
+
+const list: RecentlyUsedMediaItem[] = [
+  {
+    id: 1,
+    text: "Test1",
+    createdAt: new Date(Date.now()).toLocaleDateString("pl-PL"),
+    updatedAt: new Date(Date.now()).toLocaleDateString("pl-PL"),
+    fileSize: 100,
+  },
+  {
+    id: 2,
+    text: "Test2",
+    createdAt: new Date(Date.now()).toLocaleDateString("pl-PL"),
+    updatedAt: new Date(Date.now()).toLocaleDateString("pl-PL"),
+    fileSize: 200,
+  },
+  {
+    id: 3,
+    text: "Test3",
+    createdAt: new Date(Date.now()).toLocaleDateString("pl-PL"),
+    updatedAt: new Date(Date.now()).toLocaleDateString("pl-PL"),
+    fileSize: 300,
+  },
+];
 
 export default function Home() {
+
+
+  const [uploadVisible, setUploadVisible] = useState(false);
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="relative min-h-screen w-full px-4 py-6">
+      <SlideMenu />
+
+      <div className="" style={{ color: "var(--color-primary)" }}>
+        <HomeTitle />
+      </div>
+      <div className="">
+        <p className="text-2xl mb-4">Recently Used:</p>
+        <RecentlyUsedList recentlyUsedList={list} />
+      </div>
+
+      <div className="mt-4 flex flex-col gap-4">
+        <div className="flex flex-col gap-2 sm:gap-0 w-full sm:items-center sm:flex-row justify-between ">
+          <p className="text-2xl">My media</p>
+          <PrimaryButton onClick={() => setUploadVisible(true)}>+ Add Media</PrimaryButton>
+          {uploadVisible}
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 items-center justify-center gap-4"
+        style={{ gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))" }}
+        >
+          <MediaCell> Media 1</MediaCell>
+          <MediaCell> Media 2</MediaCell>
+          <MediaCell> Media 3</MediaCell>
+          <MediaCell> Media 4</MediaCell>
+          <MediaCell> Media 5</MediaCell>
+          <MediaCell> Media 6</MediaCell>
+          <MediaCell> Media 7</MediaCell>
+          <MediaCell> Media 8</MediaCell>
         </div>
-      </main>
+      </div>
     </div>
   );
 }
