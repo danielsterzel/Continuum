@@ -1,19 +1,36 @@
 from typing import Annotated
 
 from fastapi import Depends, FastAPI
-from sqlalchemy import text
+from sqlalchemy import text, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.dependencies import get_db
+from app.api.media_api import router as media_router
+from app.models.user import User
 
 app = FastAPI()
 
 DbSession = Annotated[AsyncSession, Depends(get_db)]
 
+app.include_router(media_router)
+
+OWNER_EMAIL = "owner@continuum.local"
+
 
 @app.get("/")
-async def root():
-    return {"message": "Continuum API is running"}
+async def root(db: DbSession):
+    user = await db.scalar(select(User).where(User.email == OWNER_EMAIL))
+
+    if user is None:
+        user = User(email=OWNER_EMAIL, display_name="Owner")
+        db.add(user)
+        await db.commit()
+        await db.refresh(user)
+
+    return {
+        "message": "Continuum API is running",
+        "user_id": str(user.id),
+    }
 
 
 @app.get("/health")

@@ -40,7 +40,7 @@ class Media(Base, UUIDMixin, TimestampMixin):
     filepath: Mapped[str] = mapped_column(String(256))
     file_size: Mapped[int] = mapped_column(BigInteger)
 
-    duration: Mapped[timedelta] = mapped_column(Interval)
+    duration: Mapped[timedelta | None] = mapped_column(Interval, nullable=False)
     thumbnail_url: Mapped[str | None] = mapped_column(String(256))
 
     media_type: Mapped["MediaType"] = mapped_column(
