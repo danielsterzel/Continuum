@@ -9,6 +9,7 @@ import type { RecentlyUsedMediaItem } from "./_home_components/RecentlyUsedItem"
 import { PrimaryButton } from "./_buttons/PrimaryButton";
 import { SlideMenu } from "./_home_components/SlideMenu";
 import { useState } from "react";
+import { UploadModal } from "./_home_components/UploadModal";
 
 
 const list: RecentlyUsedMediaItem[] = [
@@ -44,7 +45,7 @@ export default function Home() {
     <div className="relative min-h-screen w-full px-4 py-6">
       <SlideMenu />
 
-      <div className="" style={{ color: "var(--color-primary)" }}>
+      <div className="text-primary">
         <HomeTitle />
       </div>
       <div className="">
@@ -56,7 +57,7 @@ export default function Home() {
         <div className="flex flex-col gap-2 sm:gap-0 w-full sm:items-center sm:flex-row justify-between ">
           <p className="text-2xl">My media</p>
           <PrimaryButton onClick={() => setUploadVisible(true)}>+ Add Media</PrimaryButton>
-          {uploadVisible}
+          {uploadVisible && (<UploadModal show={uploadVisible} onClose={() => setUploadVisible(false)}/>)}
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 items-center justify-center gap-4"
         style={{ gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))" }}
