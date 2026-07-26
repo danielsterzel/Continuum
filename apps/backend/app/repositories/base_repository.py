@@ -20,10 +20,11 @@ class BaseRepository[T]:
         await self.db.commit()
         await self.db.refresh(obj)
 
-    async def fetch(self, id: UUID) -> T:
+    async def fetch(self, id: UUID) -> T | None:
 
         query = select(self.model).where(self.model.id == id)
 
         result = await self.db.execute(query)
 
-        return result.scalar_one()
+    
+        return result.scalar_one_or_none()
