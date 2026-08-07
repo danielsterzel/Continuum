@@ -2,6 +2,7 @@
 
 import { Upload, X, File } from "lucide-react";
 import { useRef, useState } from "react";
+import { PrimaryButton } from "@/components/_buttons/PrimaryButton";
 
 export function DropZone() {
   const [files, setFiles] = useState<File[]>([]);
@@ -39,6 +40,7 @@ export function DropZone() {
         className={`mt-4 p-4 rounded-2xl border border-dashed 
             flex items-center justify-center
          transition-colors duration-200
+         mb-4
         ${isDragging ? "text-primary border-primary" : "text-neutral-300 border-neutral-300"}
         flex flex-col items-center`}
       >
@@ -80,6 +82,9 @@ export function DropZone() {
         className="hidden"
         onChange={(e) => addFiles(e.target.files)}
       />
+
+      {files.length === 0 ? (<div></div>) : <PrimaryButton onClick={() => {}}>Upload</PrimaryButton>} 
+
     </>
   );
 }

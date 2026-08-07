@@ -1,29 +1,76 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f7f8fa;
+  /* Base surfaces */
+  --background: #f7f8fa;      /* main bg */
+  --background-subtle: #f0f1f3; /* sekcje wyróżnione lekko od bg */
   --card: #ffffff;
-  --card-hover: #f2f4f7;
+  --card-hover: #f9fafb;
+  --card-border: #e5e7eb;     /* delikatny border kart, kluczowy w tym stylu */
+  --card-border-hover: #d1d5db;
+
+  /* Text hierarchy — to jest to, co robi różnicę w "nowoczesności" */
+  --text-primary: #171717;    /* nagłówki */
+  --text-secondary: #52525b;  /* body text */
+  --text-tertiary: #a1a1aa;   /* metadata, daty, labelki "-" */
+  --text-disabled: #d4d4d8;
+
+  /* Accent — emerald */
+  --primary: #34d399;         /* emerald-400, Twój akcent */
+  --primary-hover: #10b981;   /* emerald-500, na hover przycisków */
+  --primary-active: #059669;  /* emerald-600, active/pressed */
+  --primary-subtle: #d1fae5;  /* emerald-100, tło pod ikonki/badge */
+  --primary-subtle-text: #047857; /* emerald-700, tekst na subtle bg */
+
+  /* Semantic (przydadzą się prędzej czy później) */
+  --danger: #f87171;
+  --warning: #fbbf24;
+  --success: var(--primary);
+
   --foreground: #171717;
-  --primary: #34D399;
-  --text-primary: #262626;
-
+  --radius: 12px; /* modern AI apps lubią zaokrąglone rogi 10-16px */
 }
-
 
 @theme inline {
   --color-background: var(--background);
+  --color-background-subtle: var(--background-subtle);
   --color-card: var(--card);
-  --color-primary: var(--color-primary);
   --color-card-hover: var(--card-hover);
+  --color-card-border: var(--card-border);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-subtle: var(--primary-subtle);
+  --color-primary-active: var(--primary-active);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-tertiary: var(--text-tertiary);
+  --color-mainText: var(--text-primary);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
 
+  --animate-fade-in-up: fadeInUp 0.45s ease-out both;
+  --animate-fade-in: fadeIn 0.35s ease-out both;
+  --animate-slide-in-left: slideInLeft 0.4s ease-out both;
+}
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-20px); }
+  to   { opacity: 1; transform: translateX(0); }
 }

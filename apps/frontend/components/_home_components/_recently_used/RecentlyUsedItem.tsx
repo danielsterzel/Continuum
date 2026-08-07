@@ -1,5 +1,5 @@
 
-import { OpenLink } from "../_link_decorations/OpenLink";
+import { OpenLink } from "@/components/_link_decorations/OpenLink";
 import { RecentlyUsedMetaData } from "./RecentlyUsedMetaData";
 
 

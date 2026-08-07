@@ -2,6 +2,7 @@
 
 import { X } from "lucide-react";
 import { DropZone } from "./_upload_components/DropZone";
+import { PrimaryButton } from "../_buttons/PrimaryButton";
 type UploadModalProps = {
   show: boolean;
   onClose: () => void;
@@ -37,7 +38,6 @@ export function UploadModal({ show, onClose }: Readonly<UploadModalProps>) {
           onClick={() => onClose()}
         />
         <DropZone />
-        
       </div>
     </div>
   );

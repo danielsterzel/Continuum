@@ -9,8 +9,8 @@ export function SlideMenu() {
     <>
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed top-6 right-6 z-40 w-10 h-10 flex items-center justify-center rounded-lg shadow-md"
-        style={{ backgroundColor: "var(--color-primary)" }}
+        className="cursor-pointer fixed top-6 right-6 z-40 w-10 h-10 flex items-center justify-center rounded-lg shadow-md"
+        style={{ backgroundColor: "var(--primary)" }}
         aria-label="Otwórz menu"
       >
         <span className="text-white text-xl">☰</span>

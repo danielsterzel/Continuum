@@ -2,7 +2,7 @@
 
 import { motion } from "motion/react";
 import { recentlyUsedContainerVariant, recentlyUsedItemVariant }
- from "./HomeVariants";
+ from "../HomeVariants";
 
 import { RecentlyUsedItem, type RecentlyUsedMediaItem } from "./RecentlyUsedItem";
 

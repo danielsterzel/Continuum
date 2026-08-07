@@ -9,6 +9,7 @@ from app.repositories.library_repository import LibraryRepository
 
 from uuid import UUID
 
+
 router = APIRouter(prefix="/library")
 
 
@@ -34,7 +35,6 @@ async def get_libraries(user_id: UUID, db: Annotated[AsyncSession, Depends(get_d
 
     library_repository = LibraryRepository(db=db)
     libraries = await library_repository.fetch_all_by_user(user_id=user_id)
-
     return libraries
 
 @router.get("/collection/{user_id}/{library_id}", response_model=LibraryRead)
