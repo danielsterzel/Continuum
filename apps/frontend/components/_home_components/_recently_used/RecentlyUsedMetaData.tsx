@@ -1,3 +1,5 @@
+import { MetaChip } from "@/components/_library_components/MetaChip";
+import { Calendar, HardDrive } from "lucide-react";
 
 type RecentlyUsedMetaData = {
   createdAt: string;
@@ -6,25 +8,19 @@ type RecentlyUsedMetaData = {
 };
 
 export function RecentlyUsedMetaData({
-  createdAt,
   updatedAt,
   fileSize,
 }: Readonly<RecentlyUsedMetaData>) {
-
     return (
-        <div className="flex flex-col  text-neutral-400">
-
-            <div>Created at: {createdAt}</div>
-
-
-            <div>Last update: {updatedAt}</div>
-            <div>Memory: {fileSize} MB</div>
-
-            <div className="mt-2 grid grid-cols-2 w-full gap-16 items-center">
-                <div className="w-8 bg-neutral-400 h-px w-full" />
-                <div className="w-8 bg-neutral-400 h-px w-full" />
-            </div>
-
+        <div className="flex flex-wrap gap-1.5">
+            <MetaChip
+                icon={<Calendar className="w-3.5 h-3.5" />}
+                label={`Updated ${updatedAt}`}
+            />
+            <MetaChip
+                icon={<HardDrive className="w-3.5 h-3.5" />}
+                label={`${fileSize} MB`}
+            />
         </div>
     );
 }

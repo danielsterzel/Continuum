@@ -1,12 +1,10 @@
 "use client";
 
 import { RecentlyUsedList } from "@/components/_home_components/_recently_used/RecentlyUsedList";
-
 import { HomeTitle } from "@/components/_home_components/_title_shelf/HomeTitle";
-
 import { RecentlyUsedMediaItem } from "@/components/_home_components/_recently_used/RecentlyUsedItem";
 import { SlideMenu } from "@/components/_home_components/SlideMenu";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { LibraryList } from "@/components/_home_components/_library_list/LibraryList";
 import { PrimaryButton } from "@/components/_buttons/PrimaryButton";
 import { LibraryModal } from "@/components/_home_components/LibraryModal";
@@ -36,46 +34,44 @@ const list: RecentlyUsedMediaItem[] = [
 ];
 
 export default function Home() {
-  const [uploadVisible, setUploadVisible] = useState(false);
   const [showLibraryModal, setShowLibraryModal] = useState(false);
 
-
-
   return (
-    <div className="relative min-h-screen w-full px-4 py-6">
-      <SlideMenu />
+    <>
+      <div className="relative min-h-screen w-full px-4 py-6 max-w-5xl mx-auto">
+        <SlideMenu />
 
-      <div
-        className="flex items-center justify-between text-primary"
-        style={{ color: "var(--primary)" }}
-      >
-        <HomeTitle />
-      </div>
-      <div className="">
-        <p className="text-xl sm:text-3xl mb-4 text-emerald-900">
-          Recently Used:
-        </p>
-        <RecentlyUsedList recentlyUsedList={list} />
+        <div className="animate-fade-in">
+          <HomeTitle />
+        </div>
+
+        <section className="animate-fade-in-up mt-2" style={{ animationDelay: "0.1s" }}>
+          <div className="mb-4">
+            <span className="text-xs tracking-widest text-emerald-400 uppercase">Recent</span>
+            <h2 className="text-2xl sm:text-3xl font-semibold text-text-primary mt-0.5">
+              Recently Used
+            </h2>
+          </div>
+          <RecentlyUsedList recentlyUsedList={list} />
+        </section>
+
+        <section className="animate-fade-in-up mt-10" style={{ animationDelay: "0.2s" }}>
+          <div className="mb-4">
+            <span className="text-xs tracking-widest text-emerald-400 uppercase">Collections</span>
+            <h2 className="text-2xl sm:text-3xl font-semibold text-text-primary mt-0.5">
+              My Libraries
+            </h2>
+          </div>
+          <LibraryList />
+          <div className="mt-4">
+            <PrimaryButton onClick={() => setShowLibraryModal(true)}>
+              Create new Library
+            </PrimaryButton>
+          </div>
+        </section>
       </div>
 
-      <div className="mt-4 flex flex-col gap-4">
-        <div className="flex flex-col gap-2 sm:gap-0 w-full sm:items-center sm:flex-row justify-between "></div>
-        <p className="text-xl sm:text-3xl text-emerald-900 mb-2">
-          My libraries
-        </p>
-        <LibraryList />
-      </div>
-      <div className="flex items-center justify-center sm:justify-start">
-        <PrimaryButton
-          styling="mt-4"
-          onClick={() => {
-            setShowLibraryModal(true);
-          }}
-        >
-          Create new Library
-        </PrimaryButton>
-        <LibraryModal show={showLibraryModal} onClose={() => setShowLibraryModal(false)}/>
-      </div>
-    </div>
+      <LibraryModal show={showLibraryModal} onClose={() => setShowLibraryModal(false)} />
+    </>
   );
 }
