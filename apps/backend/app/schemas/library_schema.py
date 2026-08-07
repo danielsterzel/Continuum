@@ -13,7 +13,6 @@ class LibraryCreate(BaseModel):
         alias_generator=to_camel,
         populate_by_name=True,
     )
-
     user_id : UUID = Field(...)
     name: str = Field(..., max_length=100, min_length=1)
     description: str | None = Field(default=None)

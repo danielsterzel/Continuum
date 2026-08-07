@@ -2,25 +2,24 @@
 
 :root {
   /* Base surfaces */
-  --background: #f7f8fa;      /* main bg */
-  --background-subtle: #f0f1f3; /* sekcje wyróżnione lekko od bg */
+  --background: #f7f8fa;
+  --background-subtle: #f0f1f3; 
   --card: #ffffff;
   --card-hover: #f9fafb;
-  --card-border: #e5e7eb;     /* delikatny border kart, kluczowy w tym stylu */
+  --card-border: #e5e7eb; 
   --card-border-hover: #d1d5db;
 
-  /* Text hierarchy — to jest to, co robi różnicę w "nowoczesności" */
   --text-primary: #171717;    /* nagłówki */
   --text-secondary: #52525b;  /* body text */
   --text-tertiary: #a1a1aa;   /* metadata, daty, labelki "-" */
   --text-disabled: #d4d4d8;
 
   /* Accent — emerald */
-  --primary: #34d399;         /* emerald-400, Twój akcent */
-  --primary-hover: #10b981;   /* emerald-500, na hover przycisków */
-  --primary-active: #059669;  /* emerald-600, active/pressed */
-  --primary-subtle: #d1fae5;  /* emerald-100, tło pod ikonki/badge */
-  --primary-subtle-text: #047857; /* emerald-700, tekst na subtle bg */
+  --primary: #34d399;         /* emerald-400,
+  --primary-hover: #10b981;   /* emerald-500,
+  --primary-active: #059669;  /* emerald-600, 
+  --primary-subtle: #d1fae5;  /* emerald-100, 
+  --primary-subtle-text: #047857; /* emerald-700, 
 
   /* Semantic (przydadzą się prędzej czy później) */
   --danger: #f87171;
@@ -28,7 +27,7 @@
   --success: var(--primary);
 
   --foreground: #171717;
-  --radius: 12px; /* modern AI apps lubią zaokrąglone rogi 10-16px */
+  --radius: 12px;
 }
 
 @theme inline {
@@ -45,6 +44,7 @@
   --color-text-secondary: var(--text-secondary);
   --color-text-tertiary: var(--text-tertiary);
   --color-mainText: var(--text-primary);
+  --color-danger: var(--danger);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);

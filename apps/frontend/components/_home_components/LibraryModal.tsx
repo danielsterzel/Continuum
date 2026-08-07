@@ -60,13 +60,13 @@ export function LibraryModal({ show, onClose }: LibraryModalProps) {
   return (
     <div
       onClick={onClose}
-      className="fixed inset-0 z-40 flex items-center justify-center bg-black/60 p-4"
+      className="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-fade-in"
     >
       <div
         onClick={(e) => e.stopPropagation()}
         className="max-h-[90vh] w-full max-w-lg overflow-y-auto
           rounded-2xl bg-card border border-card-border
-          p-6 shadow-2xl"
+          p-6 shadow-2xl animate-fade-in-up"
       >
         <form onSubmit={handleSubmit} className="flex flex-col gap-5">
           {err && (

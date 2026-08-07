@@ -45,7 +45,10 @@ export function LibraryList() {
       <div>
         {items.map((item) => (
           <li key={item.id}>
-            <LibraryListItem library={item} />
+            <LibraryListItem
+              library={item}
+              onDeleted={() => setItems((prev) => prev.filter((i) => i.id !== item.id))}
+            />
           </li>
         ))}
       </div>
