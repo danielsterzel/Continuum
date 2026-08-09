@@ -1,6 +1,6 @@
 
 from typing import Annotated
-from fastapi import APIRouter, Depends, HTTPException, Response, status, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, Response, status, UploadFile, File, Form
 from app.schemas.library_schema import LibraryCreate, LibraryRead
 from app.models.libraries import Library
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -26,22 +26,44 @@ def divulge_media_type(content_type: str) -> MediaType:
             return  media_type
     return MediaType.UNKNOWN
 
-
 @router.post("/create", response_model=LibraryRead)
 async def create_library(
-    library_create: LibraryCreate, db: Annotated[AsyncSession, Depends(get_db)]
+    user_id: Annotated[UUID, Form()],
+    name: Annotated[str, Form()],
+    db: Annotated[AsyncSession, Depends(get_db)],
+    description: Annotated[str | None, Form()] = None,
+    icon: Annotated[UploadFile | None, File()] = None,
 ) -> LibraryRead:
 
+
+    lib_id = uuid4()
+    icon_path = None
+    if icon:
+        str_lib_id = str(lib_id)
+        icon_dir = MEDIA_ROOT / str_lib_id
+        icon_dir.mkdir(parents=True, exist_ok=True)
+
+        safe_name = Path(icon.filename or "default_name").name
+
+        dest = icon_dir / safe_name
+
+        with open(dest, "wb") as out:
+
+            while chunk := await icon.read(CHUNK_SIZE):
+                out.write(chunk)
+
+        icon_path = str(dest)
+
     lib = Library(
-        user_id=library_create.user_id,
-        name=library_create.name,
-        description=library_create.description,
-        icon_url=library_create.icon_url,
+        id=lib_id,
+        user_id=user_id,
+        name=name,
+        description=description,
+        icon_url=icon_path
     )
 
     library_repository = LibraryRepository(db=db)
     await library_repository.save(lib)
-
     await db.commit()
 
     await db.refresh(lib, attribute_names=["media"])
@@ -127,7 +149,8 @@ async def upload_files(
         # wrzuceniem do bazy i musi byc zgodne z baza
 
         safe_name = Path(file.filename or "unnamed").name
-        folder = MEDIA_ROOT / str(media_id)
+        lib_folder = MEDIA_ROOT / str(library_id)
+        folder = lib_folder / str(media_id)
         folder.mkdir(parents=True, exist_ok=True)
         dest = folder / safe_name
 

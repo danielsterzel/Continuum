@@ -26,7 +26,7 @@ MEDIA_TYPE_MAP = {
     "image/": MediaType.IMAGE,
     "video/": MediaType.VIDEO,
     "audio/": MediaType.RECORDING,
-    "pdf/": MediaType.PDF
+    "application/pdf": MediaType.PDF
 }
 
 class Media(Base, UUIDMixin, TimestampMixin):

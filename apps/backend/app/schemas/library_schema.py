@@ -16,8 +16,6 @@ class LibraryCreate(BaseModel):
     user_id : UUID = Field(...)
     name: str = Field(..., max_length=100, min_length=1)
     description: str | None = Field(default=None)
-    icon_url: str | None = Field(default=None, max_length=512)
-
 
 class LibraryRead(BaseModel):
 

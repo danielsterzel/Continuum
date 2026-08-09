@@ -8,7 +8,7 @@ import { PrimaryArrowButton } from "../_buttons/PrimaryArrowButton";
 import {MultipleHiddenInput } from "@/app/UI/HiddenInput";
 import { useRef, useState } from "react";
 import { RenderInputFiles } from "@/app/UI/RenderInputFiles";
-import { uploadMedia } from "@/lib/api/library";
+import { uploadMedia, getAssetUrl } from "@/lib/api/library";
 import { MediaRead } from "@/types/media";
 
 type LibraryHeroProps = {
@@ -23,7 +23,8 @@ export function LibraryHero({ library, mediaCount = 0, onMediaUploaded }: Readon
     const [media, setMedia] = useState<MediaRead[]>(library.media ?? []);
     const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-
+    console.log("ICON URL:", library.iconUrl);
+    
     return (
         <div className="animate-fade-in flex flex-col sm:flex-row gap-6 sm:gap-10 items-start sm:items-center">
             <div
@@ -31,9 +32,10 @@ export function LibraryHero({ library, mediaCount = 0, onMediaUploaded }: Readon
                     flex items-center justify-center shadow-lg overflow-hidden
                     bg-gradient-to-br from-emerald-100 to-emerald-200"
             >
+                
                 {library.iconUrl ? (
                     <img
-                        src={library.iconUrl}
+                        src={getAssetUrl(library.iconUrl)}
                         alt={library.name}
                         className="w-full h-full object-cover"
                     />

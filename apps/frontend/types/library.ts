@@ -16,6 +16,5 @@ export type LibraryCreate = {
     user_id: string;
     name: string;
     description?: string;
-    icon_url?: string;
     
 }

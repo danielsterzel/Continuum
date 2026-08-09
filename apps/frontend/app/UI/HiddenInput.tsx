@@ -15,7 +15,7 @@ export function MultipleHiddenInput({
         multiple
         ref={fileInputRef}
         type="file"
-        accept="image/*"
+        accept="*"
         className="hidden"
         onChange={onChange}
       />

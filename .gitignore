@@ -63,9 +63,7 @@ logs/
 # Media
 # =========================================
 
-media/
-uploads/
-storage/
+/apps/backend/media_storage/
 
 # =========================================
 # Database

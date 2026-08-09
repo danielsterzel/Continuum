@@ -1,9 +1,9 @@
-import type { Media } from "@/types/media";
+import type { MediaRead } from "@/types/media";
 import { MediaListItem } from "./MediaListItem";
 import { Inbox } from "lucide-react";
 
 type MediaListProps = {
-    media: Media[];
+    media: MediaRead[];
 };
 
 export function MediaList({ media }: Readonly<MediaListProps>) {

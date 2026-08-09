@@ -30,7 +30,7 @@ export function LibraryListItem({ library, onDeleted }: Readonly<LibraryListItem
               </div>
               <p className="sm:text-base font-medium text-text-primary">{library.name}</p>
             </div>
-            <p className="hidden sm:block text-text-secondary text-sm">{library.media ?? "—"}</p>
+            <p className="hidden sm:block text-text-secondary text-sm">{}</p>
             <p className="hidden sm:block text-text-secondary text-sm">{formatDate(library.updatedAt)}</p>
             <p className="hidden sm:block text-text-secondary text-sm">{library.size ?? "—"}</p>
           </Link>

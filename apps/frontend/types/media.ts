@@ -12,4 +12,5 @@ export interface MediaRead{
     updatedAt: string;
 }
 
-export interface Media{};
+// export interface Media{};
+export type MediaType = "video" | "audio" | "image" | "document";

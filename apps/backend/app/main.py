@@ -4,14 +4,14 @@ from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 
-from sqlalchemy import text, select
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
+from starlette.staticfiles import StaticFiles
 
 from app.db.dependencies import get_db
 from app.api.media_api import router as media_router
 from app.api.library_api import router as lib_router
 from app.core.settings import settings
-# from app.models.user import User
 
 
 app = FastAPI()
@@ -63,3 +63,9 @@ async def health():
 async def database_health(db: DbSession):
     result = await db.execute(text("SELECT 1"))
     return {"database": result.scalar()}
+
+app.mount(
+    "/media_storage",
+    StaticFiles(directory="media_storage"),
+    name="media_storage"
+)

@@ -1,23 +1,30 @@
 import type { MediaRead } from "@/types/media";
 import { Video, Music, Image, FileText, File } from "lucide-react";
 import { formatDate } from "@/lib/datetime";
+import Link from "next/link"
+import type { MediaType } from "@/types/media";
 
-function getMediaIcon(type: string) {
+type ElementContainer = {
+  icon: React.ReactElement;
+  color: string
+}
+
+export function getMediaIcon(type: string, styling?: string, strokeWidth: number = 1.5) {
   const t = type.toLowerCase();
   if (t.includes("video"))
-    return <Video className="w-5 h-5 text-emerald-500" strokeWidth={1.5} />;
+    return <Video className={`${styling ?? "w-5 h-5"} text-emerald-500`} strokeWidth={strokeWidth} />;
   if (t.includes("audio"))
-    return <Music className="w-5 h-5 text-blue-400" strokeWidth={1.5} />;
+    return <Music className={`${styling ?? "w-5 h-5"} text-blue-400`} strokeWidth={strokeWidth} />;
   if (t.includes("image"))
-    return <Image className="w-5 h-5 text-purple-400" strokeWidth={1.5} />;
+    return <Image className={`${styling ?? "w-5 h-5"} text-purple-400`} strokeWidth={strokeWidth} />;
   if (t.includes("pdf") || t.includes("doc") || t.includes("text"))
-    return <FileText className="w-5 h-5 text-orange-400" strokeWidth={1.5} />;
-  return <File className="w-5 h-5 text-text-tertiary" strokeWidth={1.5} />;
+    return <FileText className={`${styling ?? "w-5 h-5"} text-orange-400`} strokeWidth={strokeWidth} />;
+  return <File className={`${styling ?? "w-5 h-5"} text-text-tertiary`} strokeWidth={strokeWidth} />;
 }
 
 type TypeBadge = { label: string; className: string };
 
-function getTypeBadge(type: string): TypeBadge {
+export function getTypeBadge(type: string): TypeBadge {
   const t = type.toLowerCase();
   if (t.includes("video"))
     return { label: "Video", className: "bg-emerald-100 text-emerald-700" };
@@ -26,14 +33,14 @@ function getTypeBadge(type: string): TypeBadge {
   if (t.includes("image"))
     return { label: "Image", className: "bg-purple-100 text-purple-700" };
   if (t.includes("pdf") || t.includes("doc") || t.includes("text"))
-    return { label: "Doc", className: "bg-orange-100 text-orange-700" };
+    return { label: "Document", className: "bg-orange-100 text-orange-700" };
   return {
     label: type || "File",
     className: "bg-neutral-100 text-neutral-600",
   };
 }
 
-function formatFileSize(bytes: number): string {
+export function formatFileSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
   if (bytes < 1024 * 1024 * 1024)
@@ -41,7 +48,7 @@ function formatFileSize(bytes: number): string {
   return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
 }
 
-function formatDuration(seconds?: number): string {
+export function formatDuration(seconds?: number): string {
   if (!seconds) return "-";
   const m = Math.floor(seconds / 60);
   const s = seconds % 60;
@@ -60,7 +67,7 @@ export function MediaListItem({ media, idx }: Readonly<MediaListItemProps>) {
     <div
       className="animate-fade-in-up"
       style={{ animationDelay: `${idx * 0.05}s` }}
-    >
+    ><Link href={`/libraries/${media.libraryId}/media/${media.id}`}>
       <div
         className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr] items-center px-4 py-3
                     hover:bg-card-hover transition-colors duration-200 cursor-pointer"
@@ -92,6 +99,7 @@ export function MediaListItem({ media, idx }: Readonly<MediaListItemProps>) {
           {formatDate(media.updatedAt)}
         </span>
       </div>
+      </Link>
 
       <div className="h-px w-full bg-card-border" />
     </div>

@@ -6,6 +6,7 @@ import { Check, ImageIcon } from "lucide-react";
 import type { Library, LibraryCreate } from "@/types/library";
 import { useLibrary } from "@/app/context/LibraryContext";
 import { useAuth } from "@/hooks/useAuth";
+import { createLibrary } from "@/lib/api/library";
 
 type LibraryModalProps = {
   show: boolean;
@@ -34,30 +35,21 @@ export function LibraryModal({ show, onClose }: LibraryModalProps) {
     return () => window.clearTimeout(timeoutId);
   }, [err]);
 
-  async function createLib(bodyArg: LibraryCreate) {
-    const response = await fetch("http://localhost:8000/library/create", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(bodyArg),
-    });
-    if (!response.ok) throw new Error(`Creating library failed: ${response.status}`);
+  async function createLib(bodyArg: LibraryCreate, icon: File | null) {
 
-
-    const data = await response.json();
-
+    const data = await createLibrary(bodyArg, icon);
 
     setItems(prev => [...prev, data as Library]);
-
   }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    console.log("Handle submit called");
     try {
       setErr(false);
       setIsSubmitting(true);
-      await createLib({ ...library, user_id: user.id });
+      await createLib({ ...library, user_id: user.id}, currImg);
       setLibrary((prev) => ({ ...prev, name: "", description: "" }));
-      setCurrImg(null);
       onClose();
     } catch (error) {
       console.error(error);
