@@ -4,10 +4,13 @@ import { RecentlyUsedList } from "@/components/_home_components/_recently_used/R
 import { HomeTitle } from "@/components/_home_components/_title_shelf/HomeTitle";
 import { RecentlyUsedMediaItem } from "@/components/_home_components/_recently_used/RecentlyUsedItem";
 import { SlideMenu } from "@/components/_home_components/SlideMenu";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { LibraryList } from "@/components/_home_components/_library_list/LibraryList";
 import { PrimaryButton } from "@/components/_buttons/PrimaryButton";
 import { LibraryModal } from "@/components/_home_components/LibraryModal";
+import { useLibrary } from "@/app/context/LibraryContext";
+import { useAuth } from "@/hooks/useAuth";
+import type { Library } from "@/types/library";
 
 const list: RecentlyUsedMediaItem[] = [
   {
@@ -35,6 +38,35 @@ const list: RecentlyUsedMediaItem[] = [
 
 export default function Home() {
   const [showLibraryModal, setShowLibraryModal] = useState(false);
+  const {items, setItems} = useLibrary();
+  const { user } = useAuth();
+
+    useEffect(() => {
+    if (items.length > 0) return;
+    async function fetchLibs() {
+      try {
+        const res = await fetch(
+          `http://localhost:8000/library/collection/${user.id}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          },
+        );
+        if (!res.ok) return;
+        const data = (await res.json()) as Library[];
+        setItems(data);
+
+        data.forEach(e => {
+          console.log("ID:", e.id);
+        })
+
+      } catch (e) {}
+    }
+
+    fetchLibs();
+  }, [items.length, setItems]);
 
   return (
     <>

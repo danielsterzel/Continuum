@@ -1,4 +1,5 @@
 from pydantic import BaseModel, ConfigDict
+from pydantic.alias_generators import to_camel
 
 from app.models.media import MediaType
 
@@ -7,7 +8,8 @@ from datetime import datetime, timedelta
 
 
 class MediaRead(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(from_attributes=True, alias_generator=to_camel, validate_by_name=True,
+        validate_by_alias=True)
 
     id: UUID
     library_id: UUID
@@ -18,3 +20,4 @@ class MediaRead(BaseModel):
     thumbnail_url: str | None
     rating: int | None
     created_at: datetime
+    updated_at: datetime

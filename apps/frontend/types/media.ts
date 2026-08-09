@@ -1,13 +1,15 @@
 
-export interface Media {
-    id: number;
-    library_id: number;
-    name: string;
-    type: string;
+export interface MediaRead{
+    id: string;
+    libraryId: string;
+    filename: string;
     fileSize: number;
-    duration?: number;
-    mimeType?: string;
-    url?: string;
-    createdAt?: string;
-    updatedAt?: string;
+    mediaType: string;
+    duration: number | null;
+    thumbnailUrl: string | null; 
+    rating: number | null;
+    createdAt: string;
+    updatedAt: string;
 }
+
+export interface Media{};

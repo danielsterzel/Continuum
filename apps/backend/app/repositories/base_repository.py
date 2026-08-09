@@ -18,7 +18,7 @@ class BaseRepository[T]:
 
         self.db.add(obj)
         await self.db.commit()
-        await self.db.refresh(obj)
+        await self.db.flush(obj)
 
     async def fetch(self, id: UUID) -> T | None:
 

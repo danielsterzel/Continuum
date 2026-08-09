@@ -3,7 +3,9 @@
 import { useEffect, useRef, useState } from "react";
 import { Check, ImageIcon } from "lucide-react";
 
-import type { LibraryCreate } from "@/types/library";
+import type { Library, LibraryCreate } from "@/types/library";
+import { useLibrary } from "@/app/context/LibraryContext";
+import { useAuth } from "@/hooks/useAuth";
 
 type LibraryModalProps = {
   show: boolean;
@@ -16,12 +18,15 @@ export function LibraryModal({ show, onClose }: LibraryModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [library, setLibrary] = useState<LibraryCreate>({
-    user_id: "76d06599-1154-4c60-b39e-6b9f6bba2046",
+    user_id: "",
     name: "",
     description: "",
   });
 
   const imgInputRef = useRef<HTMLInputElement>(null);
+
+  const { setItems } = useLibrary();
+  const { user } = useAuth();
 
   useEffect(() => {
     if (!err) return;
@@ -36,6 +41,13 @@ export function LibraryModal({ show, onClose }: LibraryModalProps) {
       body: JSON.stringify(bodyArg),
     });
     if (!response.ok) throw new Error(`Creating library failed: ${response.status}`);
+
+
+    const data = await response.json();
+
+
+    setItems(prev => [...prev, data as Library]);
+
   }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -43,7 +55,7 @@ export function LibraryModal({ show, onClose }: LibraryModalProps) {
     try {
       setErr(false);
       setIsSubmitting(true);
-      await createLib(library);
+      await createLib({ ...library, user_id: user.id });
       setLibrary((prev) => ({ ...prev, name: "", description: "" }));
       setCurrImg(null);
       onClose();

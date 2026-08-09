@@ -4,7 +4,9 @@ import { motion } from "motion/react";
 import { LineArrow } from "../_svg/LineArrow";
 
 type PrimaryButtonProps = {
-    children: React.ReactNode
+    children: React.ReactNode,
+    styling: string;
+    onClick: () => void;
 }
 
 const arrowLine = {
@@ -18,13 +20,14 @@ const arrowHead = {
 }
 
 
-export function PrimaryArrowButton({children} : Readonly<PrimaryButtonProps>)
+export function PrimaryArrowButton({children, styling, onClick} : Readonly<PrimaryButtonProps>)
 {
     return(
         <motion.button
+        onClick={onClick}
         initial="rest"
         whileHover="hover"
-        className="flex gap-1 items-center rounded-lg cursor-pointer">
+        className={`flex gap-1 items-center cursor-pointer ${styling}`}>
         
             <LineArrow />
             {children}

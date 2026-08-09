@@ -14,5 +14,5 @@ class MediaRepository(BaseRepository):
 
         list_media = await self.db.execute(select(Media).where(Media.library_id == library_id))
 
-        return list_media.scalars().all()
+        return list(list_media.scalars().all())
     

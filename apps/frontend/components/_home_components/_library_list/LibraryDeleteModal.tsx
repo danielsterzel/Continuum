@@ -1,7 +1,7 @@
 "use client";
 
 import { deleteLibrary } from "@/lib/api/library";
-import { TriangleAlert, Trash2, X, Library } from "lucide-react";
+import { TriangleAlert, Trash2, X} from "lucide-react";
 import { createPortal } from "react-dom";
 
 type LibraryDeleteModalProps = {
@@ -17,7 +17,7 @@ export function LibraryDeleteModal({
   libraryId,
   onClose,
   onDeleted,
-  userId="76d06599-1154-4c60-b39e-6b9f6bba2046"
+  userId
 }: Readonly<LibraryDeleteModalProps>) {
   async function handleDelete() {
     await deleteLibrary(userId, libraryId);

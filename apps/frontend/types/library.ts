@@ -1,3 +1,4 @@
+import { MediaRead } from "./media";
 
 
 export interface Library {
@@ -6,7 +7,7 @@ export interface Library {
     name: string;
     description?: string;
     iconUrl: string;
-    media?: string; // later on Media[]
+    media?: MediaRead[];
     updatedAt?: string;
     size?: string;    
 }

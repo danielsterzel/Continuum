@@ -17,10 +17,17 @@ from app.models.mixins import TimestampMixin, UUIDMixin
 
 class MediaType(str, Enum):
     VIDEO = "video"
-    AUDIOBOOK = "audiobook"
-    PODCAST = "podcast"
     RECORDING = "recording"
+    IMAGE = "image"
+    PDF = "pdf"
+    UNKNOWN = "unknown"
 
+MEDIA_TYPE_MAP = {
+    "image/": MediaType.IMAGE,
+    "video/": MediaType.VIDEO,
+    "audio/": MediaType.RECORDING,
+    "pdf/": MediaType.PDF
+}
 
 class Media(Base, UUIDMixin, TimestampMixin):
     __tablename__ = "media"
@@ -40,11 +47,12 @@ class Media(Base, UUIDMixin, TimestampMixin):
     filepath: Mapped[str] = mapped_column(String(256))
     file_size: Mapped[int] = mapped_column(BigInteger)
 
-    duration: Mapped[timedelta | None] = mapped_column(Interval, nullable=False)
+    duration: Mapped[timedelta | None] = mapped_column(Interval, nullable=True)
     thumbnail_url: Mapped[str | None] = mapped_column(String(256))
 
     media_type: Mapped["MediaType"] = mapped_column(
-        SqlEnum(MediaType, name="media_type")
+        SqlEnum(MediaType, name="media_type",
+                values_callable=lambda enum: [item.value for item in enum])
     )
 
     rating: Mapped[int | None] = mapped_column(Integer, nullable=True)

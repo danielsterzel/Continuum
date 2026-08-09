@@ -4,28 +4,43 @@ import { SlideMenu } from "@/components/_home_components/SlideMenu";
 import { LibraryHero } from "@/components/_library_components/LibraryHero";
 import { MediaList } from "@/components/_library_components/MediaList";
 import type { Library } from "@/types/library";
-import type { Media } from "@/types/media";
+import type { Media, MediaRead } from "@/types/media";
 import { ArrowLeft } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { fetchSingleLib } from "@/lib/api/library";
+import { useAuth } from "@/hooks/useAuth";
 
-// --- placeholder data — replace with actual fetch ---
-const library: Library = {
-    id: 1,
-    name: "My Library",
-    description: "A curated collection of media files.",
-    iconUrl: "",
-    updatedAt: new Date().toISOString(),
-};
-
-const media: Media[] = [];
-// ----------------------------------------------------
 
 export default function LibraryPage() {
+
+    const {user} = useAuth();
+    const router = useRouter();
+    const params = useParams<{id: string}>();
+    const libId = params.id;
+
+    const [library, setLibrary] = useState<Library | null>(null);
+    const [media, setMedia] = useState<MediaRead[]>([]);
+
+
+    useEffect(() => {
+        const handleFetch = async () => {
+            const lib = await fetchSingleLib(user.id, libId);
+            setLibrary(lib);
+            setMedia(lib.media ?? []);
+        }
+
+        handleFetch();
+
+    }, [user.id, libId])
+
+
     return (
         <div className="relative min-h-screen w-full px-4 py-6">
             <SlideMenu />
 
             <button
-                onClick={() => window.history.back()}
+                onClick={() => router.back()}
                 className="group flex items-center gap-2 mb-8
                     text-text-tertiary hover:text-text-primary
                     transition-colors duration-200"
@@ -36,7 +51,8 @@ export default function LibraryPage() {
                 <span className="text-sm">Back</span>
             </button>
 
-            <LibraryHero library={library} mediaCount={media.length} />
+            {library && <LibraryHero library={library} mediaCount={media.length} 
+            onMediaUploaded={(uploaded) => setMedia(prev => [...prev,...uploaded])}/>}
 
             <div className="mt-10">
                 <MediaList media={media} />

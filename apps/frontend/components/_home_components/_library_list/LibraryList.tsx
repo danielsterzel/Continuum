@@ -1,37 +1,13 @@
-"use client";
-import { useEffect, useState } from "react";
-import { LibraryListItem } from "./LibraryListItem";
-import type { Library } from "@/types/library";
 
-const userId = "76d06599-1154-4c60-b39e-6b9f6bba2046";
+import { useLibrary } from "@/app/context/LibraryContext";
+import { LibraryListItem } from "./LibraryListItem";
+
+
 
 export function LibraryList() {
-  const [items, setItems] = useState<Library[]>([]);
 
-  useEffect(() => {
-    async function fetchLibs() {
-      try {
-        const res = await fetch(
-          `http://localhost:8000/library/collection/${userId}`,
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-            },
-          },
-        );
-        const data = (await res.json()) as Library[];
-        setItems(data);
+  const {items, setItems} = useLibrary();
 
-        data.forEach(e => {
-          console.log("ID:", e.id);
-        })
-
-      } catch (e) {}
-    }
-
-    fetchLibs();
-  }, []);
 
   return (
     <div className="bg-card border border-card-border rounded-xl shadow-xl overflow-hidden max-h-[500px] overflow-y-auto">
