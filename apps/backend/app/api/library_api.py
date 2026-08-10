@@ -1,6 +1,7 @@
 
 from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Response, status, UploadFile, File, Form
+
 from app.schemas.library_schema import LibraryCreate, LibraryRead
 from app.models.libraries import Library
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -13,6 +14,8 @@ from app.schemas.media_schema import MediaRead, MediaType
 
 from pathlib import Path
 from uuid import UUID, uuid4
+
+MAX_ALLOWED_ICON_SIZE = 1024 * 1024 * 1024
 
 MEDIA_ROOT = Path("media_storage")
 CHUNK_SIZE = 1024 * 1024
@@ -35,6 +38,9 @@ async def create_library(
     icon: Annotated[UploadFile | None, File()] = None,
 ) -> LibraryRead:
 
+
+    if icon and icon.size is not None and icon.size > MAX_ALLOWED_ICON_SIZE:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail="File size too big")
 
     lib_id = uuid4()
     icon_path = None
@@ -95,6 +101,11 @@ async def delete_lib(user_id: UUID, library_id: UUID, db: Annotated[AsyncSession
 
     library_repository = LibraryRepository(db)
 
+    library = await library_repository.fetch_single_by_user(user_id=user_id, library_id=library_id)
+
+    if library is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such library")
+
     await library_repository.remove(library_id)
 
     return Response(status_code=status.HTTP_204_NO_CONTENT)
@@ -127,9 +138,10 @@ async def get_file(
 
     return media
 
-@router.post("/{library_id}/media/upload", response_model=list[MediaRead])
+@router.post("/{user_id}/{library_id}/media/upload", response_model=list[MediaRead])
 async def upload_files(
     library_id: UUID,
+    user_id: UUID,
     db: Annotated[AsyncSession, Depends(get_db)],
     files: Annotated[list[UploadFile], File()]
 ):
@@ -137,10 +149,10 @@ async def upload_files(
     library_repository = LibraryRepository(db=db)
     media_repository = MediaRepository(db=db)
 
-    library = await library_repository.fetch(id=library_id)
+    library = await library_repository.fetch_single_by_user(user_id=user_id, library_id=library_id)
 
     if library is None:
-        raise HTTPException(status_code=404, detail="Library not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such library")
 
     media_files = []
 

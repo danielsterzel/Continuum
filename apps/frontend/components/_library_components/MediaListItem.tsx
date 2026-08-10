@@ -1,13 +1,8 @@
 import type { MediaRead } from "@/types/media";
 import { Video, Music, Image, FileText, File } from "lucide-react";
 import { formatDate } from "@/lib/datetime";
+import { formatDuration, formatFileSize } from "@/lib/UxMedia";
 import Link from "next/link"
-import type { MediaType } from "@/types/media";
-
-type ElementContainer = {
-  icon: React.ReactElement;
-  color: string
-}
 
 export function getMediaIcon(type: string, styling?: string, strokeWidth: number = 1.5) {
   const t = type.toLowerCase();
@@ -38,21 +33,6 @@ export function getTypeBadge(type: string): TypeBadge {
     label: type || "File",
     className: "bg-neutral-100 text-neutral-600",
   };
-}
-
-export function formatFileSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  if (bytes < 1024 * 1024 * 1024)
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-  return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
-}
-
-export function formatDuration(seconds?: number): string {
-  if (!seconds) return "-";
-  const m = Math.floor(seconds / 60);
-  const s = seconds % 60;
-  return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
 type MediaListItemProps = {

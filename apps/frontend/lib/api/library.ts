@@ -68,9 +68,9 @@ export async function fetchSingleLib(userId: string, libraryId: string): Promise
     return data;
 }
 
-async function postMediaFiles(libraryId: string, formData: FormData)
+async function postMediaFiles(libraryId: string, userId: string, formData: FormData)
 {
-    const res = await fetch(`${API_PREFIX}/${libraryId}/media/upload`, {
+    const res = await fetch(`${API_PREFIX}/${userId}/${libraryId}/media/upload`, {
         method: "POST",
         body: formData
     });
@@ -84,14 +84,14 @@ async function postMediaFiles(libraryId: string, formData: FormData)
     return returnData;
 }
 
-export async function uploadMedia(libraryId: string, files: File[]): Promise<MediaRead[]>
+export async function uploadMedia(libraryId: string,userId: string, files: File[]): Promise<MediaRead[]>
 {
     const formData = new FormData();
 
     files.forEach((file) => {
         formData.append("files", file);
     })
-    const returnedFiles = await postMediaFiles(libraryId, formData);
+    const returnedFiles = await postMediaFiles(libraryId, userId, formData);
 
     return returnedFiles
 }

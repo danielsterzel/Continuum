@@ -16,7 +16,7 @@
 
   /* Accent — emerald */
   --primary: #34d399;         /* emerald-400 */
-  --primary-hover: #10b981;   /* emerald-500 */
+  --primary-hover: #2bcd93;   /* emerald-400/500 blend, softer hover */
   --primary-active: #059669;  /* emerald-600 */
   --primary-subtle: #d1fae5;  /* emerald-100 */
   --primary-subtle-text: #047857; /* emerald-700 */

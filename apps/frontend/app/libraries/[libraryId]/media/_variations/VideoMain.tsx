@@ -3,8 +3,8 @@
 import { useParams } from "next/navigation";
 import { BASE_PREFIX } from "@/lib/BASE_PREFIX";
 import { useMedia } from "@/app/context/MediaContext";
-import { ChevronDown, Notebook, Clock } from "lucide-react";
-import { useState } from "react";
+import { ChevronDown, Notebook, Clock, Edit } from "lucide-react";
+import { useState, useRef } from "react";
 
 import type { Note } from "@/types/note";
 import { getMediaColor, getMediaBg } from "../[mediaId]/page";
@@ -26,7 +26,9 @@ function NoteMetaData({ note, color }: NoteMetaDataProps) {
     <div className="flex items-center gap-2 text-xs text-text-tertiary">
       {note.timestamp !== null && (
         <>
-          <span className={`inline-flex items-center gap-1 font-medium ${color}`}>
+          <span
+            className={`inline-flex items-center gap-1 font-medium ${color}`}
+          >
             <Clock className="w-3 h-3" />
             {formatTimestamp(note.timestamp)}
           </span>
@@ -66,7 +68,9 @@ function NoteItem({ note, styling, iconColor, iconBg }: NoteItemProps) {
             <Notebook className="w-4 h-4" />
           </div>
           <div className="flex flex-col min-w-0 gap-0.5">
-            <p className="text-text-primary text-sm font-medium truncate">{note.title}</p>
+            <p className="text-text-primary text-sm font-medium truncate">
+              {note.title}
+            </p>
             <NoteMetaData note={note} color={color} />
           </div>
         </div>
@@ -106,6 +110,17 @@ export function VideoMain() {
     mediaId: string;
   }>();
   const { media } = useMedia();
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+
+  const handleNoteAdd = () => {
+    if (!videoRef.current) {
+      return;
+    }
+
+    const timestamp = videoRef.current.currentTime;
+
+    console.log("CURR TIMESTAMP: ", timestamp);
+  };
 
   if (!media) {
     return null;
@@ -128,31 +143,50 @@ export function VideoMain() {
   };
 
   return (
-    <div className="relative w-full flex flex-col sm:grid sm:grid-cols-4 sm:items-start gap-6">
-      <ul className="order-2 sm:order-1 sm:col-span-1 w-full flex flex-col gap-3 items-center">
-        <NoteItem note={noteMock} iconColor={color} iconBg={bg} />
-        <NoteItem note={noteMock} iconColor={color} iconBg={bg} />
-        <NoteItem note={noteMock} iconColor={color} iconBg={bg} />
-        <NoteItem note={noteMock} iconColor={color} iconBg={bg} />
-        <NoteItem note={noteMock} iconColor={color} iconBg={bg} />
-      </ul>
-
-      <div
+    <div className="w-full flex flex-col items-center sm:block">
+      <button
+        type="button"
+        onClick={handleNoteAdd}
         className="
+        mb-4 inline-flex items-center gap-2
+        px-12 py-2 rounded-2xl
+        bg-primary text-emerald-950 text-sm font-medium
+        shadow-lg shadow-primary/20
+        hover:bg-primary-hover hover:shadow-xl 
+        active:scale-[0.98]
+        transition-all duration-200
+        cursor-pointer"
+      >
+        <Edit className="w-4 h-4 transition-transform duration-200 " />
+        <span>New Note</span>
+      </button>
+      <div className="relative w-full flex flex-col sm:grid sm:grid-cols-4 sm:items-start gap-6">
+        <ul className="order-2 sm:order-1 sm:col-span-1 w-full flex flex-col gap-3 items-center">
+          <NoteItem note={noteMock} iconColor={color} iconBg={bg} />
+          <NoteItem note={noteMock} iconColor={color} iconBg={bg} />
+          <NoteItem note={noteMock} iconColor={color} iconBg={bg} />
+          <NoteItem note={noteMock} iconColor={color} iconBg={bg} />
+          <NoteItem note={noteMock} iconColor={color} iconBg={bg} />
+        </ul>
+
+        <div
+          className="
         order-1 sm:order-2
         bg-black
         rounded-2xl
         sm:col-span-3 sm:sticky sm:top-24 sm:self-start min-h-0 sm:min-h-[70vh] w-full flex items-center justify-center"
-      >
-        <video
-          controls
-          className="w-full max-w-[240px] sm:max-w-[480px] max-h-[350px] sm:max-h-[560px] rounded-xl"
         >
-          <source
-            src={`${BASE_PREFIX}/media_storage/${libraryId}/${mediaId}/${media?.filename}`}
-            type="video/mp4"
-          />
-        </video>
+          <video
+            ref={videoRef}
+            controls
+            className="w-full max-w-[240px] sm:max-w-[480px] max-h-[350px] sm:max-h-[560px] rounded-xl"
+          >
+            <source
+              src={`${BASE_PREFIX}/media_storage/${libraryId}/${mediaId}/${media?.filename}`}
+              type="video/mp4"
+            />
+          </video>
+        </div>
       </div>
     </div>
   );
