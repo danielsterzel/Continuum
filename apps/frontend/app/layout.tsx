@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Montserrat } from "next/font/google";
 import "./globals.css";
 import { Provider } from "./providers";
+import { SlideMenu } from "@/components/_home_components/SlideMenu";
 
 const montserrat = Montserrat({
   subsets: ["latin"],
@@ -22,6 +23,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={montserrat.className}>
         <Provider>
+          <SlideMenu />
           {children}
         </Provider>
       </body>

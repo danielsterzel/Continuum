@@ -3,7 +3,6 @@
 import { RecentlyUsedList } from "@/components/_home_components/_recently_used/RecentlyUsedList";
 import { HomeTitle } from "@/components/_home_components/_title_shelf/HomeTitle";
 import { RecentlyUsedMediaItem } from "@/components/_home_components/_recently_used/RecentlyUsedItem";
-import { SlideMenu } from "@/components/_home_components/SlideMenu";
 import { useState, useEffect } from "react";
 import { LibraryList } from "@/components/_home_components/_library_list/LibraryList";
 import { PrimaryButton } from "@/components/_buttons/PrimaryButton";
@@ -71,8 +70,6 @@ export default function Home() {
   return (
     <>
       <div className="relative min-h-screen w-full px-4 py-6 max-w-5xl mx-auto">
-        <SlideMenu />
-
         <div className="animate-fade-in">
           <HomeTitle />
         </div>

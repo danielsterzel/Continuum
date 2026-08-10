@@ -1,6 +1,5 @@
 "use client";
 
-import { SlideMenu } from "@/components/_home_components/SlideMenu";
 import { LibraryHero } from "@/components/_library_components/LibraryHero";
 import { MediaList } from "@/components/_library_components/MediaList";
 import type { Library } from "@/types/library";
@@ -36,7 +35,6 @@ export default function LibraryPage() {
 
     return (
         <div className="relative min-h-screen w-full px-4 py-6">
-            <SlideMenu />
             <GoBackButton onBack={() => router.back()}/>
 
             {library && <LibraryHero library={library} mediaCount={media.length} 
