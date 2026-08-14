@@ -34,4 +34,4 @@ class BaseRepository[T]:
         query = delete(self.model).where(self.model.id == id)
 
         await self.db.execute(query)
-        await self.db.commit()
+        await self.db.flush()

@@ -41,7 +41,10 @@ export default function LibraryPage() {
             onMediaUploaded={(uploaded) => setMedia(prev => [...prev,...uploaded])}/>}
 
             <div className="mt-10">
-                <MediaList media={media} />
+                <MediaList
+                    media={media}
+                    onDeleted={(mediaId) => setMedia(prev => prev.filter(m => m.id !== mediaId))}
+                />
             </div>
         </div>
     );

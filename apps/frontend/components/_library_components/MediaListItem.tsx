@@ -1,8 +1,12 @@
+"use client";
 import type { MediaRead } from "@/types/media";
-import { Video, Music, Image, FileText, File } from "lucide-react";
+import { Video, Music, Image, FileText, File, Trash2 } from "lucide-react";
 import { formatDate } from "@/lib/datetime";
 import { formatDuration, formatFileSize } from "@/lib/UxMedia";
 import Link from "next/link"
+import { useAuth } from "@/hooks/useAuth";
+import { useState } from "react";
+import { MediaDeleteModal } from "./MediaDeleteModal";
 
 export function getMediaIcon(type: string, styling?: string, strokeWidth: number = 1.5) {
   const t = type.toLowerCase();
@@ -38,10 +42,13 @@ export function getTypeBadge(type: string): TypeBadge {
 type MediaListItemProps = {
   media: MediaRead;
   idx: number;
+  onDeleted: (mediaId: string) => void;
 };
 
-export function MediaListItem({ media, idx }: Readonly<MediaListItemProps>) {
+export function MediaListItem({ media, idx, onDeleted }: Readonly<MediaListItemProps>) {
   const badge = getTypeBadge(media.mediaType);
+  const { user } = useAuth();
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   return (
     <div
@@ -49,7 +56,7 @@ export function MediaListItem({ media, idx }: Readonly<MediaListItemProps>) {
       style={{ animationDelay: `${idx * 0.05}s` }}
     ><Link href={`/libraries/${media.libraryId}/media/${media.id}`}>
       <div
-        className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr] items-center px-4 py-3
+        className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr_minmax(2.5rem,auto)] items-center px-4 py-3
                     hover:bg-card-hover transition-colors duration-200 cursor-pointer"
       >
         <div className="flex items-center gap-3 min-w-0">
@@ -78,10 +85,31 @@ export function MediaListItem({ media, idx }: Readonly<MediaListItemProps>) {
         <span className="hidden sm:block text-text-tertiary text-sm">
           {formatDate(media.updatedAt)}
         </span>
+        <button
+        onClick={(e) => {
+          e.stopPropagation();
+          e.preventDefault();
+          setShowDeleteModal(true);
+        }}
+        className="
+        cursor-pointer
+        bg-red-200 max-w-6 max-h-6 sm:max-w-8 sm:max-h-8 rounded-lg p-1 justify-self-end">
+        <Trash2 className="w-4 h-4 sm:w-6 sm:h-6 text-red-500"/>
+      </button>
       </div>
       </Link>
 
       <div className="h-px w-full bg-card-border" />
+
+      <MediaDeleteModal
+        show={showDeleteModal}
+        userId={user.id}
+        libraryId={media.libraryId}
+        mediaId={media.id}
+        filename={media.filename}
+        onClose={() => setShowDeleteModal(false)}
+        onDeleted={() => onDeleted(media.id)}
+      />
     </div>
   );
 }

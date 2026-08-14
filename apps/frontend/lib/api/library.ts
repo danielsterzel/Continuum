@@ -2,6 +2,7 @@ import { Library } from "@/types/library";
 import { MediaRead } from "@/types/media";
 import { LibraryCreate } from "@/types/library";
 
+
 const API_ORIGIN = "http://127.0.0.1:8000";
 const API_PREFIX = `${API_ORIGIN}/library`;
 
@@ -113,4 +114,16 @@ export async function fetchSingleMedia(libraryId: string, mediaId: string): Prom
     const data = await res.json();
     return data as MediaRead;
 
+}
+
+export async function deleteMediaFromLibrary(userId: string, libraryId: string, mediaId: string)
+{
+    const res = await fetch(`${API_PREFIX}/collection/delete_media/${userId}/${libraryId}/${mediaId}`, {
+        method: "DELETE"
+    });
+    if(!res.ok )
+        {
+            throw new Error(`HTTP error when deleting: ${res.status}`); 
+        }
+    
 }

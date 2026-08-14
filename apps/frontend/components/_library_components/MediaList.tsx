@@ -4,16 +4,17 @@ import { Inbox } from "lucide-react";
 
 type MediaListProps = {
     media: MediaRead[];
+    onDeleted: (mediaId: string) => void;
 };
 
-export function MediaList({ media }: Readonly<MediaListProps>) {
+export function MediaList({ media, onDeleted }: Readonly<MediaListProps>) {
     return (
         <div className="animate-fade-in-up" style={{ animationDelay: "0.15s" }}>
             <p className="text-xl sm:text-3xl text-emerald-900 mb-4">Media</p>
 
             <div className="bg-card rounded-xl shadow-xl overflow-hidden border border-card-border">
                 <div
-                    className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr] px-4 py-2.5
+                    className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr_minmax(2.5rem,auto)] px-4 py-2.5
                         text-text-tertiary text-sm border-b border-card-border bg-background-subtle"
                 >
                     <span className="pl-10">Name</span>
@@ -28,7 +29,7 @@ export function MediaList({ media }: Readonly<MediaListProps>) {
                 ) : (
                     <div>
                         {media.map((item, idx) => (
-                            <MediaListItem key={item.id} media={item} idx={idx} />
+                            <MediaListItem key={item.id} media={item} idx={idx} onDeleted={onDeleted} />
                         ))}
                     </div>
                 )}

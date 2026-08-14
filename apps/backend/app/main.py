@@ -11,7 +11,9 @@ from starlette.staticfiles import StaticFiles
 from app.db.dependencies import get_db
 from app.api.media_api import router as media_router
 from app.api.library_api import router as lib_router
+from app.api.media_progress_api import router as progress_router
 from app.core.settings import settings
+
 
 
 app = FastAPI()
@@ -30,6 +32,7 @@ DbSession = Annotated[AsyncSession, Depends(get_db)]
 
 app.include_router(media_router)
 app.include_router(lib_router)
+app.include_router(progress_router)
 OWNER_EMAIL = "owner@continuum.local"
 
 

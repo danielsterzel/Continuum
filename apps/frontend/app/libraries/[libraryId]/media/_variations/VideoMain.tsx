@@ -3,114 +3,31 @@
 import { useParams } from "next/navigation";
 import { BASE_PREFIX } from "@/lib/BASE_PREFIX";
 import { useMedia } from "@/app/context/MediaContext";
-import { ChevronDown, Notebook, Clock, Edit } from "lucide-react";
-import { useState, useRef } from "react";
+import { Edit } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
 
 import type { Note } from "@/types/note";
 import { getMediaColor, getMediaBg } from "../[mediaId]/page";
-import { formatDate } from "@/lib/datetime";
+import {
+  fetchMediaProgresForMedia,
+  postMediaProgress,
+} from "@/lib/api/media_progress";
+import { useAuth } from "@/hooks/useAuth";
 
-function formatTimestamp(seconds: number) {
-  const m = Math.floor(seconds / 60);
-  const s = Math.floor(seconds % 60);
-  return `${m}:${s.toString().padStart(2, "0")}`;
-}
+import { NoteItem } from "./video_components/NoteItem";
 
-type NoteMetaDataProps = {
-  note: Note;
-  color: string;
-};
-
-function NoteMetaData({ note, color }: NoteMetaDataProps) {
-  return (
-    <div className="flex items-center gap-2 text-xs text-text-tertiary">
-      {note.timestamp !== null && (
-        <>
-          <span
-            className={`inline-flex items-center gap-1 font-medium ${color}`}
-          >
-            <Clock className="w-3 h-3" />
-            {formatTimestamp(note.timestamp)}
-          </span>
-          <span className="text-text-tertiary/50">•</span>
-        </>
-      )}
-      <span>{formatDate(new Date(note.createdAt).toISOString())}</span>
-    </div>
-  );
-}
-
-type NoteItemProps = {
-  note: Note;
-  styling?: string;
-  iconColor?: string;
-  iconBg?: string;
-};
-function NoteItem({ note, styling, iconColor, iconBg }: NoteItemProps) {
-  const [show, setShow] = useState(false);
-  const color = iconColor ?? "text-text-tertiary";
-  const bg = iconBg ?? "bg-card";
-
-  return (
-    <li
-      className={`
-      w-full flex flex-col gap-3
-      bg-card/60 backdrop-blur-sm border border-card-border/60
-      hover:border-card-border hover:bg-card-hover/70
-      transition-all duration-300 shadow-sm hover:shadow-md
-      p-4 rounded-2xl ${styling ?? ""}`}
-    >
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-3 min-w-0">
-          <div
-            className={`shrink-0 w-9 h-9 rounded-full flex items-center justify-center ${bg} ${color}`}
-          >
-            <Notebook className="w-4 h-4" />
-          </div>
-          <div className="flex flex-col min-w-0 gap-0.5">
-            <p className="text-text-primary text-sm font-medium truncate">
-              {note.title}
-            </p>
-            <NoteMetaData note={note} color={color} />
-          </div>
-        </div>
-
-        <button
-          type="button"
-          onClick={() => setShow((prev) => !prev)}
-          aria-label={show ? "Collapse note" : "Expand note"}
-          className="shrink-0 w-7 h-7 flex items-center justify-center rounded-full
-          text-text-tertiary hover:text-text-primary hover:bg-card-hover
-          transition-colors duration-200 cursor-pointer"
-        >
-          <ChevronDown
-            className={`w-4 h-4 transition-transform duration-300 ${show ? "rotate-180" : ""}`}
-          />
-        </button>
-      </div>
-
-      {show && (
-        <textarea
-          className="
-          w-full min-h-28
-          resize-none outline-none bg-background/50 border border-card-border/50
-          focus:border-card-border rounded-xl p-3
-          text-sm text-text-secondary leading-relaxed
-          transition-colors duration-200"
-          defaultValue={note.content}
-        ></textarea>
-      )}
-    </li>
-  );
-}
+const CRON_TIME = 30_000;
 
 export function VideoMain() {
   const { libraryId, mediaId } = useParams<{
     libraryId: string;
     mediaId: string;
   }>();
+  const { user } = useAuth();
   const { media } = useMedia();
+
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const [paused, setPaused] = useState(true);
 
   const handleNoteAdd = () => {
     if (!videoRef.current) {
@@ -121,6 +38,52 @@ export function VideoMain() {
 
     console.log("CURR TIMESTAMP: ", timestamp);
   };
+
+  const initialProgressRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    const mountMediaProgress = async () => {
+      const savedProgress = await fetchMediaProgresForMedia({
+        userId: user.id,
+        libraryId: libraryId,
+        mediaId: mediaId,
+      });
+
+      initialProgressRef.current = savedProgress.currentPosition;
+
+      if(savedProgress.currentPosition != null && videoRef.current && videoRef.current.readyState >=1 )
+        
+        {
+          videoRef.current.currentTime = savedProgress.currentPosition;
+        }
+    };
+
+    mountMediaProgress();
+    console.log("MOUNT from db");
+  }, [user.id, libraryId, mediaId]);
+
+  useEffect(() => {
+    if (paused) {
+      return;
+    }
+    const interval = setInterval(async () => {
+      const currentPosition = videoRef.current?.currentTime ?? null;
+
+      await postMediaProgress(
+        {
+          userId: user.id,
+          libraryId,
+          mediaId,
+        },
+        {
+          currentPosition,
+          lastDeviceId: null,
+        },
+      );
+    }, CRON_TIME);
+    console.log("CRON");
+    return () => clearInterval(interval);
+  }, [user.id, libraryId, mediaId, paused]);
 
   if (!media) {
     return null;
@@ -140,6 +103,32 @@ export function VideoMain() {
     deleted_at: null,
     createdAt: 0,
     updatedAt: 0,
+  };
+
+  const saveProgress = async () => {
+    const currentPosition = videoRef.current?.currentTime ?? null;
+
+    await postMediaProgress(
+      {
+        userId: user.id,
+        libraryId,
+        mediaId,
+      },
+      {
+        currentPosition,
+        lastDeviceId: null,
+      },
+    );
+  };
+
+  const handleSeek = async () => {
+    await saveProgress();
+    console.log("SEEK");
+  };
+
+  const handlePause = async () => {
+    await saveProgress();
+    console.log("PAUSE");
   };
 
   return (
@@ -177,6 +166,18 @@ export function VideoMain() {
         sm:col-span-3 sm:sticky sm:top-24 sm:self-start min-h-0 sm:min-h-[70vh] w-full flex items-center justify-center"
         >
           <video
+            onLoadedMetadata={(tag) => {
+              if (initialProgressRef.current != null) {
+                tag.currentTarget.currentTime = initialProgressRef.current;
+              }
+            }}
+            onSeeked={handleSeek}
+            onPause={() => {
+              handlePause();
+              setPaused(true);
+            }}
+            onPlay={() => setPaused(false)}
+
             ref={videoRef}
             controls
             className="w-full max-w-[240px] sm:max-w-[480px] max-h-[350px] sm:max-h-[560px] rounded-xl"

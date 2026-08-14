@@ -96,19 +96,7 @@ async def get_single_library(user_id : UUID, library_id: UUID, db: Annotated[Asy
 
     return library
 
-@router.delete("/collection/{user_id}/{library_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_lib(user_id: UUID, library_id: UUID, db: Annotated[AsyncSession, Depends(get_db)]):
 
-    library_repository = LibraryRepository(db)
-
-    library = await library_repository.fetch_single_by_user(user_id=user_id, library_id=library_id)
-
-    if library is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such library")
-
-    await library_repository.remove(library_id)
-
-    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 @router.get("/{library_id}/media", response_model=list[MediaRead])
 async def get_media_files(
@@ -190,3 +178,35 @@ async def upload_files(
     await db.commit()
 
     return [MediaRead.model_validate(media) for media in media_files]
+
+
+@router.delete("/collection/{user_id}/{library_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_lib(user_id: UUID, library_id: UUID, db: Annotated[AsyncSession, Depends(get_db)]):
+
+    library_repository = LibraryRepository(db)
+
+    library = await library_repository.fetch_single_by_user(user_id=user_id, library_id=library_id)
+
+    if library is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such library")
+
+    await library_repository.remove(library_id)
+
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+@router.delete("/collection/delete_media/{user_id}/{library_id}/{media_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_media(user_id: UUID, library_id: UUID, media_id: UUID, db: Annotated[AsyncSession, Depends(get_db)]):
+
+    library_repository = LibraryRepository(db)
+    library = await library_repository.fetch_single_by_user(user_id=user_id, library_id=library_id)
+
+    if library is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="no such library")
+
+    success = await library_repository.remove_media(user_id=user_id,library_id=library_id,media_id=media_id)
+    if not success:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Something went wrong with this request")
+
+    await db.commit()
+
+
