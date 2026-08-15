@@ -4,7 +4,6 @@ import { Video, Music, Image, FileText, File, Trash2 } from "lucide-react";
 import { formatDate } from "@/lib/datetime";
 import { formatDuration, formatFileSize } from "@/lib/UxMedia";
 import Link from "next/link"
-import { useAuth } from "@/hooks/useAuth";
 import { useState } from "react";
 import { MediaDeleteModal } from "./MediaDeleteModal";
 
@@ -47,7 +46,6 @@ type MediaListItemProps = {
 
 export function MediaListItem({ media, idx, onDeleted }: Readonly<MediaListItemProps>) {
   const badge = getTypeBadge(media.mediaType);
-  const { user } = useAuth();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   return (
@@ -103,7 +101,6 @@ export function MediaListItem({ media, idx, onDeleted }: Readonly<MediaListItemP
 
       <MediaDeleteModal
         show={showDeleteModal}
-        userId={user.id}
         libraryId={media.libraryId}
         mediaId={media.id}
         filename={media.filename}

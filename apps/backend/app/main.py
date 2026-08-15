@@ -21,7 +21,7 @@ app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://localhost:3000",
+        "*"
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -34,23 +34,6 @@ app.include_router(media_router)
 app.include_router(lib_router)
 app.include_router(progress_router)
 OWNER_EMAIL = "owner@continuum.local"
-
-
-
-# @app.get("/")
-# async def root(db: DbSession):
-#     user = await db.scalar(select(User).where(User.email == OWNER_EMAIL))
-
-#     if user is None:
-#         user = User(email=OWNER_EMAIL, display_name="Owner")
-#         db.add(user)
-#         await db.commit()
-#         await db.refresh(user)
-
-#     return {
-#         "message": "Continuum API is running",
-#         "user_id": str(user.id),
-#     }
 
 @app.get("/")
 async def home():

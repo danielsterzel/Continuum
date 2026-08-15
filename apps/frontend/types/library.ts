@@ -13,8 +13,7 @@ export interface Library {
 }
 
 export type LibraryCreate = {
-    user_id: string;
     name: string;
     description?: string;
-    
+
 }

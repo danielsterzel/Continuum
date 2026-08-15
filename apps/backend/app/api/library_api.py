@@ -2,10 +2,10 @@
 from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Response, status, UploadFile, File, Form
 
-from app.schemas.library_schema import LibraryCreate, LibraryRead
+from app.schemas.library_schema import LibraryRead
 from app.models.libraries import Library
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.db.dependencies import get_db
+from app.db.dependencies import get_db, OwnerId
 from app.repositories.library_repository import LibraryRepository
 from app.repositories.media_repository import MediaRepository
 from app.models.media import Media, MEDIA_TYPE_MAP
@@ -31,7 +31,7 @@ def divulge_media_type(content_type: str) -> MediaType:
 
 @router.post("/create", response_model=LibraryRead)
 async def create_library(
-    user_id: Annotated[UUID, Form()],
+    user_id: OwnerId,
     name: Annotated[str, Form()],
     db: Annotated[AsyncSession, Depends(get_db)],
     description: Annotated[str | None, Form()] = None,
@@ -77,15 +77,15 @@ async def create_library(
 
     return output_lib
 
-@router.get("/collection/{user_id}", response_model=list[LibraryRead])
-async def get_libraries(user_id: UUID, db: Annotated[AsyncSession, Depends(get_db)]):
+@router.get("/collection", response_model=list[LibraryRead])
+async def get_libraries(user_id: OwnerId, db: Annotated[AsyncSession, Depends(get_db)]):
 
     library_repository = LibraryRepository(db=db)
     libraries = await library_repository.fetch_all_by_user(user_id=user_id)
     return libraries
 
-@router.get("/collection/{user_id}/{library_id}", response_model=LibraryRead)
-async def get_single_library(user_id : UUID, library_id: UUID, db: Annotated[AsyncSession, Depends(get_db)]):
+@router.get("/collection/{library_id}", response_model=LibraryRead)
+async def get_single_library(user_id: OwnerId, library_id: UUID, db: Annotated[AsyncSession, Depends(get_db)]):
 
     library_repository = LibraryRepository(db)
 
@@ -126,10 +126,10 @@ async def get_file(
 
     return media
 
-@router.post("/{user_id}/{library_id}/media/upload", response_model=list[MediaRead])
+@router.post("/{library_id}/media/upload", response_model=list[MediaRead])
 async def upload_files(
     library_id: UUID,
-    user_id: UUID,
+    user_id: OwnerId,
     db: Annotated[AsyncSession, Depends(get_db)],
     files: Annotated[list[UploadFile], File()]
 ):
@@ -175,13 +175,17 @@ async def upload_files(
         await media_repository.save(obj=media)
         media_files.append(media)
 
+    if media_files:
+        await library_repository.touch(library_id)
+
     await db.commit()
 
     return [MediaRead.model_validate(media) for media in media_files]
 
 
-@router.delete("/collection/{user_id}/{library_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_lib(user_id: UUID, library_id: UUID, db: Annotated[AsyncSession, Depends(get_db)]):
+# http://10.78.77.121:3000/library/collection/f3de954d-3a67-401f-b1a0-2fdf44e11ace
+@router.delete("/collection/{library_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_lib(user_id: OwnerId, library_id: UUID, db: Annotated[AsyncSession, Depends(get_db)]):
 
     library_repository = LibraryRepository(db)
 
@@ -192,10 +196,12 @@ async def delete_lib(user_id: UUID, library_id: UUID, db: Annotated[AsyncSession
 
     await library_repository.remove(library_id)
 
+    await db.commit()
+
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
-@router.delete("/collection/delete_media/{user_id}/{library_id}/{media_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_media(user_id: UUID, library_id: UUID, media_id: UUID, db: Annotated[AsyncSession, Depends(get_db)]):
+@router.delete("/collection/delete_media/{library_id}/{media_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_media(user_id: OwnerId, library_id: UUID, media_id: UUID, db: Annotated[AsyncSession, Depends(get_db)]):
 
     library_repository = LibraryRepository(db)
     library = await library_repository.fetch_single_by_user(user_id=user_id, library_id=library_id)
@@ -206,6 +212,8 @@ async def delete_media(user_id: UUID, library_id: UUID, media_id: UUID, db: Anno
     success = await library_repository.remove_media(user_id=user_id,library_id=library_id,media_id=media_id)
     if not success:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Something went wrong with this request")
+
+    await library_repository.touch(library_id)
 
     await db.commit()
 

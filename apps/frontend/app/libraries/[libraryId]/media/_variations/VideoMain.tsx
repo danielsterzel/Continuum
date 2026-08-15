@@ -12,7 +12,6 @@ import {
   fetchMediaProgresForMedia,
   postMediaProgress,
 } from "@/lib/api/media_progress";
-import { useAuth } from "@/hooks/useAuth";
 
 import { NoteItem } from "./video_components/NoteItem";
 
@@ -23,7 +22,6 @@ export function VideoMain() {
     libraryId: string;
     mediaId: string;
   }>();
-  const { user } = useAuth();
   const { media } = useMedia();
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -43,24 +41,30 @@ export function VideoMain() {
 
   useEffect(() => {
     const mountMediaProgress = async () => {
+      try{
       const savedProgress = await fetchMediaProgresForMedia({
-        userId: user.id,
         libraryId: libraryId,
         mediaId: mediaId,
       });
 
-      initialProgressRef.current = savedProgress.currentPosition;
+        initialProgressRef.current = savedProgress.currentPosition;
 
       if(savedProgress.currentPosition != null && videoRef.current && videoRef.current.readyState >=1 )
         
         {
           videoRef.current.currentTime = savedProgress.currentPosition;
         }
+    }catch(e)
+    {
+      // suppress error?
+    }
+
+
     };
 
     mountMediaProgress();
     console.log("MOUNT from db");
-  }, [user.id, libraryId, mediaId]);
+  }, [libraryId, mediaId]);
 
   useEffect(() => {
     if (paused) {
@@ -71,7 +75,6 @@ export function VideoMain() {
 
       await postMediaProgress(
         {
-          userId: user.id,
           libraryId,
           mediaId,
         },
@@ -83,7 +86,7 @@ export function VideoMain() {
     }, CRON_TIME);
     console.log("CRON");
     return () => clearInterval(interval);
-  }, [user.id, libraryId, mediaId, paused]);
+  }, [libraryId, mediaId, paused]);
 
   if (!media) {
     return null;
@@ -110,7 +113,6 @@ export function VideoMain() {
 
     await postMediaProgress(
       {
-        userId: user.id,
         libraryId,
         mediaId,
       },

@@ -7,7 +7,6 @@ import { useState } from "react";
 
 type MediaDeleteModalProps = {
   show: boolean;
-  userId: string;
   libraryId: string;
   mediaId: string;
   filename: string;
@@ -17,7 +16,6 @@ type MediaDeleteModalProps = {
 
 export function MediaDeleteModal({
   show,
-  userId,
   libraryId,
   mediaId,
   filename,
@@ -29,7 +27,7 @@ export function MediaDeleteModal({
   async function handleDelete() {
     setIsDeleting(true);
     try {
-      await deleteMediaFromLibrary(userId, libraryId, mediaId);
+      await deleteMediaFromLibrary(libraryId, mediaId);
       onDeleted();
       onClose();
     } finally {

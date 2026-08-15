@@ -2,7 +2,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.dependencies import get_db
+from app.db.dependencies import get_db, OwnerId
 from uuid import UUID
 from datetime import timedelta
 
@@ -14,8 +14,8 @@ from app.models.note import Note
 router = APIRouter(prefix="/notes")
 
 
-@router.get("/{user_id}/fetch_notes", response_model=list[NoteRead])
-async def fetch_notes(user_id: UUID, db: Annotated[AsyncSession, Depends(get_db)]):
+@router.get("/fetch_notes", response_model=list[NoteRead])
+async def fetch_notes(user_id: OwnerId, db: Annotated[AsyncSession, Depends(get_db)]):
 
     note_repository = NoteRepository(db)
 
@@ -25,8 +25,8 @@ async def fetch_notes(user_id: UUID, db: Annotated[AsyncSession, Depends(get_db)
 
     return note_schemas
 
-@router.post("/{user_id}/create", response_model=NoteRead)
-async def create_note(user_id: UUID, request: NoteCreate, db: Annotated[AsyncSession, Depends(get_db)]):
+@router.post("/create", response_model=NoteRead)
+async def create_note(user_id: OwnerId, request: NoteCreate, db: Annotated[AsyncSession, Depends(get_db)]):
 
     media_repository = MediaRepository(db)
     note_repository = NoteRepository(db)
@@ -47,8 +47,8 @@ async def create_note(user_id: UUID, request: NoteCreate, db: Annotated[AsyncSes
 
     return note
 
-@router.delete("/{user_id}/delete/{note_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_note(user_id: UUID, note_id: UUID, db: Annotated[AsyncSession, Depends(get_db)]):
+@router.delete("/delete/{note_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_note(user_id: OwnerId, note_id: UUID, db: Annotated[AsyncSession, Depends(get_db)]):
 
     note_repository = NoteRepository(db)
 

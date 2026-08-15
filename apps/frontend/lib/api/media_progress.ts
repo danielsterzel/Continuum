@@ -7,7 +7,6 @@ const API_BASE = "http://127.0.0.1:8000";
 const API_PREFIX = API_BASE + "/media_progress";
 
 type FetchProps = {
-  userId: string;
   libraryId: string;
   mediaId: string;
 };
@@ -15,15 +14,10 @@ type FetchProps = {
 export async function fetchMediaProgresForMedia(
   request: FetchProps,
 ): Promise<MediaProgressRead> {
-  const { userId, libraryId, mediaId } = request;
+  const { libraryId, mediaId } = request;
 
   const res = await fetch(
-    `${API_PREFIX}/recent/${userId}/${libraryId}/${mediaId}`,
-    {
-      method: "GET",
-      headers: { "Content-Type": "application/json" },
-    },
-  );
+    `${process.env.NEXT_PUBLIC_API_URL}/media_progress/recent/${libraryId}/${mediaId}`);
   if (!res.ok) {
     throw new Error(`HTTP Exception: ${res.status}`);
   }
@@ -35,9 +29,9 @@ export async function postMediaProgress(
   request: FetchProps,
   updatedMediaProgress: MediaProgressWrite,
 ): Promise<void> {
-  const { userId, libraryId, mediaId } = request;
+  const { libraryId, mediaId } = request;
   const post = await fetch(
-    `${API_PREFIX}/update/${userId}/${libraryId}/${mediaId}`,
+    `${process.env.NEXT_PUBLIC_API_URL}/media_progress/update/${libraryId}/${mediaId}`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },

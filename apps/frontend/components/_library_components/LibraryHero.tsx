@@ -10,7 +10,6 @@ import { useRef, useState } from "react";
 import { RenderInputFiles } from "@/app/UI/RenderInputFiles";
 import { uploadMedia, getAssetUrl } from "@/lib/api/library";
 import { MediaRead } from "@/types/media";
-import { useAuth } from "@/hooks/useAuth";
 
 type LibraryHeroProps = {
     library: Library;
@@ -23,8 +22,6 @@ export function LibraryHero({ library, mediaCount = 0, onMediaUploaded }: Readon
     const [files, setFile] = useState<File[]>([]);
     const [media, setMedia] = useState<MediaRead[]>(library.media ?? []);
     const fileInputRef = useRef<HTMLInputElement | null>(null);
-
-    const {user} = useAuth();
 
     console.log("ICON URL:", library.iconUrl);
     
@@ -86,7 +83,7 @@ export function LibraryHero({ library, mediaCount = 0, onMediaUploaded }: Readon
                     setFile((prev) => prev.filter((_, i) => i !== index))
                 }} onSubmit={async () => {
                     // TODO: wywołanie API do wysłania `files`
-                    const uploaded = await uploadMedia(library.id, user.id, files);
+                    const uploaded = await uploadMedia(library.id, files);
                     onMediaUploaded(uploaded);
                     setFile([]);
                 }}/>

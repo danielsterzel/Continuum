@@ -1,7 +1,7 @@
 
-from app.models.libraries import Library 
+from app.models.libraries import Library
 from app.repositories.base_repository import BaseRepository
-from sqlalchemy import select, and_, delete
+from sqlalchemy import select, and_, delete, update, func
 from app.models.media import Media
 from uuid import UUID
 
@@ -25,6 +25,13 @@ class LibraryRepository(BaseRepository):
             .options(selectinload(Library.media))
         )
         return library.scalar_one_or_none()
+
+    async def touch(self, library_id: UUID) -> None:
+        await self.db.execute(
+            update(Library)
+            .where(Library.id == library_id)
+            .values(updated_at=func.now())
+        )
 
     async def remove_media(self, user_id, library_id, media_id) -> bool:
         result = await self.db.execute(

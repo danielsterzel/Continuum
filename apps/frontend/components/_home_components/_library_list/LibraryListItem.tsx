@@ -6,7 +6,6 @@ import { formatDate } from "@/lib/datetime";
 import Link from "next/link";
 import { LibraryDeleteModal } from "./LibraryDeleteModal";
 import { useState } from "react";
-import { useAuth } from "@/hooks/useAuth";
 
 type LibraryListItemProps = {
   library: Library;
@@ -15,7 +14,6 @@ type LibraryListItemProps = {
 
 export function LibraryListItem({ library, onDeleted }: Readonly<LibraryListItemProps>) {
   const [show, setShow] = useState(false);
-  const { user } = useAuth();
   return (
     <>
       <div className="w-full flex flex-col transition-colors duration-200 hover:bg-card-hover">
@@ -45,7 +43,7 @@ export function LibraryListItem({ library, onDeleted }: Readonly<LibraryListItem
         </div>
         <div className="h-px w-full bg-card-border" />
       </div>
-      <LibraryDeleteModal libraryId={library.id} userId={user.id} show={show} onClose={() => setShow(false)} onDeleted={onDeleted} />
+      <LibraryDeleteModal libraryId={library.id} show={show} onClose={() => setShow(false)} onDeleted={onDeleted} />
     </>
   );
 }

@@ -8,7 +8,6 @@ import { LibraryList } from "@/components/_home_components/_library_list/Library
 import { PrimaryButton } from "@/components/_buttons/PrimaryButton";
 import { LibraryModal } from "@/components/_home_components/LibraryModal";
 import { useLibrary } from "@/app/context/LibraryContext";
-import { useAuth } from "@/hooks/useAuth";
 import type { Library } from "@/types/library";
 
 const list: RecentlyUsedMediaItem[] = [
@@ -38,14 +37,13 @@ const list: RecentlyUsedMediaItem[] = [
 export default function Home() {
   const [showLibraryModal, setShowLibraryModal] = useState(false);
   const {items, setItems} = useLibrary();
-  const { user } = useAuth();
 
     useEffect(() => {
     if (items.length > 0) return;
     async function fetchLibs() {
       try {
         const res = await fetch(
-          `http://localhost:8000/library/collection/${user.id}`,
+          `http://localhost:8000/library/collection`,
           {
             method: "GET",
             headers: {

@@ -5,7 +5,6 @@ import { Check, ImageIcon } from "lucide-react";
 
 import type { Library, LibraryCreate } from "@/types/library";
 import { useLibrary } from "@/app/context/LibraryContext";
-import { useAuth } from "@/hooks/useAuth";
 import { createLibrary } from "@/lib/api/library";
 
 type LibraryModalProps = {
@@ -19,7 +18,6 @@ export function LibraryModal({ show, onClose }: LibraryModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [library, setLibrary] = useState<LibraryCreate>({
-    user_id: "",
     name: "",
     description: "",
   });
@@ -27,7 +25,6 @@ export function LibraryModal({ show, onClose }: LibraryModalProps) {
   const imgInputRef = useRef<HTMLInputElement>(null);
 
   const { setItems } = useLibrary();
-  const { user } = useAuth();
 
   useEffect(() => {
     if (!err) return;
@@ -48,7 +45,7 @@ export function LibraryModal({ show, onClose }: LibraryModalProps) {
     try {
       setErr(false);
       setIsSubmitting(true);
-      await createLib({ ...library, user_id: user.id}, currImg);
+      await createLib(library, currImg);
       setLibrary((prev) => ({ ...prev, name: "", description: "" }));
       onClose();
     } catch (error) {

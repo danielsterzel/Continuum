@@ -5,7 +5,7 @@ from fastapi import APIRouter, HTTPException, status
 from fastapi.params import Depends
 
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.db.dependencies import get_db
+from app.db.dependencies import get_db, OwnerId
 
 from app.repositories.media_progress_repository import MediaProgressRepository
 from app.repositories.library_repository import LibraryRepository
@@ -19,21 +19,20 @@ from uuid import UUID
 router = APIRouter(prefix="/media_progress")
 
 
-@router.get("/recent/{user_id}/{library_id}/{media_id}", response_model=MediaProgressRead | None)
-async def recent_progress(user_id: UUID, library_id: UUID, media_id: UUID, db: Annotated[AsyncSession, Depends(get_db)]):
+@router.get("/recent/{library_id}/{media_id}", response_model=MediaProgressRead | None)
+async def recent_progress(user_id: OwnerId, library_id: UUID, media_id: UUID, db: Annotated[AsyncSession, Depends(get_db)]):
 
     db_client = MediaProgressRepository(db)
 
     media_progress = await db_client.get_user_media(user_id=user_id, library_id=library_id, media_id=media_id)
 
     if not media_progress:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Something went wrong with fetching media_progress")
-
+        return media_progress
     return MediaProgressRead.model_validate(media_progress)
 
 
-@router.post("/update/{user_id}/{library_id}/{media_id}")
-async def update_progress(request: MediaProgressWrite, user_id: UUID, library_id: UUID, media_id: UUID, db: Annotated[AsyncSession, Depends(get_db)]):
+@router.post("/update/{library_id}/{media_id}")
+async def update_progress(request: MediaProgressWrite, user_id: OwnerId, library_id: UUID, media_id: UUID, db: Annotated[AsyncSession, Depends(get_db)]):
 
 
     library_repository = LibraryRepository(db)

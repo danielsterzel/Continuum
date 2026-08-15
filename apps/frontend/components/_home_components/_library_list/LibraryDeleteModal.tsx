@@ -6,7 +6,6 @@ import { createPortal } from "react-dom";
 
 type LibraryDeleteModalProps = {
   show: boolean;
-  userId: string;
   libraryId: string;
   onClose: () => void;
   onDeleted: () => void;
@@ -17,10 +16,9 @@ export function LibraryDeleteModal({
   libraryId,
   onClose,
   onDeleted,
-  userId
 }: Readonly<LibraryDeleteModalProps>) {
   async function handleDelete() {
-    await deleteLibrary(userId, libraryId);
+    await deleteLibrary(libraryId);
     onDeleted();
     onClose();
   }
