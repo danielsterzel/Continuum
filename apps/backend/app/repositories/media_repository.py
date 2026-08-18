@@ -3,12 +3,16 @@ from app.models.media import Media
 from app.models.libraries import Library
 
 from uuid import UUID
+from datetime import datetime, timezone
 
-from sqlalchemy import select, and_
+from sqlalchemy import select, and_, update
 
 
 class MediaRepository(BaseRepository):
+
     model = Media
+
+    allowed_updates = {'filename', 'thumbnail_url', 'rating'}
 
     async def fetch_by_library(self, library_id: UUID) -> list[Media]:
 
@@ -40,3 +44,69 @@ class MediaRepository(BaseRepository):
         res = await self.db.execute(query)
 
         return res.scalar_one_or_none()
+
+    async def resolve_media_user(self, library_id: UUID, user_id: UUID) -> bool:
+
+        query = (
+            select(Library)
+            .where(Library.user_id == user_id, Library.id == library_id)
+        )
+
+        res = await self.db.execute(query)
+
+        return res.scalar_one_or_none() is not None
+
+    async def update_media_validate(
+            self,
+            media_id: UUID,
+            user_id: UUID,
+            **kwargs
+    ) -> bool:
+
+        if not kwargs:
+            return False
+
+        if any(k not in self.allowed_updates for k in kwargs):
+            return False
+
+        permitted_media = (
+            select(self.model.id)
+            .join(Library, Library.id == self.model.library_id)
+            .where(
+                Library.user_id == user_id,
+                self.model.id == media_id
+            )
+        )
+
+        query = (
+            update(self.model)
+            .where(self.model.id.in_(permitted_media))
+            .values(**kwargs)
+        )
+
+        res = await self.db.execute(query)
+
+        return res.rowcount == 1
+
+    async def soft_delete_one_by_id(self, media_id: UUID, user_id: UUID) -> bool:
+
+        query = (select(self.model)
+            .join(Library, Library.id == self.model.library_id)
+            .where(
+                Library.user_id == user_id,
+                self.model.id == media_id
+            ))
+
+        res = await self.db.execute(query)
+
+        media: Media = res.scalar_one_or_none()
+
+        if not media:
+            return False
+
+        if media.deleted_at:
+            return True
+
+        media.deleted_at = datetime.now(timezone.utc)
+
+        return True

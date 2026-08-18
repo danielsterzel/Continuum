@@ -15,3 +15,8 @@ class TimestampMixin:
 
 class UUIDMixin:
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+
+class TombstoneMixin:
+    deleted_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )

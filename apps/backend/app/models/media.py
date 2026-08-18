@@ -9,10 +9,11 @@ from sqlalchemy import (
     BigInteger,
     CheckConstraint,
     Interval,
+    DateTime
 )
 from enum import Enum
 from datetime import timedelta
-from app.models.mixins import TimestampMixin, UUIDMixin
+from app.models.mixins import TimestampMixin, UUIDMixin, TombstoneMixin
 
 
 class MediaType(str, Enum):
@@ -31,7 +32,7 @@ MEDIA_TYPE_MAP = {
 }
 
 
-class Media(Base, UUIDMixin, TimestampMixin):
+class Media(Base, UUIDMixin, TimestampMixin, TombstoneMixin):
     __tablename__ = "media"
 
     __table_args__ = (
@@ -61,6 +62,8 @@ class Media(Base, UUIDMixin, TimestampMixin):
     )
 
     rating: Mapped[int | None] = mapped_column(Integer, nullable=True)
+
+
 
     library: Mapped["Library"] = relationship(back_populates="media")
 

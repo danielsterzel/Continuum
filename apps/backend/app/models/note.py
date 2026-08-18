@@ -5,10 +5,10 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import String, ForeignKey, Interval, DateTime
 
 from datetime import datetime, timedelta
-from app.models.mixins import TimestampMixin, UUIDMixin
+from app.models.mixins import TimestampMixin, UUIDMixin, TombstoneMixin
 
 
-class Note(Base, TimestampMixin, UUIDMixin):
+class Note(Base, TimestampMixin, UUIDMixin, TombstoneMixin):
     __tablename__ = "note"
 
     __table_args__ = ()
@@ -20,6 +20,3 @@ class Note(Base, TimestampMixin, UUIDMixin):
     title: Mapped[str] = mapped_column(String(50))
     content: Mapped[str] = mapped_column(String(300))
     timestamp: Mapped[timedelta | None] = mapped_column(Interval, nullable=True)
-    deleted_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )

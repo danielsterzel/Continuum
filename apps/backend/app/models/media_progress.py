@@ -4,10 +4,10 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import Interval, DateTime, ForeignKey, UniqueConstraint, func
 
 from datetime import datetime, timedelta
-from app.models.mixins import UUIDMixin
+from app.models.mixins import UUIDMixin, TombstoneMixin
 
 
-class MediaProgress(Base, UUIDMixin):
+class MediaProgress(Base, UUIDMixin, TombstoneMixin):
     __tablename__ = "media_progress"
 
     __table_args__ = (UniqueConstraint("media_id", name="unique_media_for_progress"),)

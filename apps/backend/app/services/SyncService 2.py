@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.sync_change import EntityType
 from app.schemas.sync_change_schema import SyncChangeWrite
-from app.services.resolve.resolve_base import ResolveBase
+from app.services.resolve.resolve_base import ResolveContract
 from app.services.resolve.resolve_media import ResolveMedia
 from app.services.resolve.resolve_note import ResolveNote
 from app.services.resolve.resolve_library import ResolveLibrary
@@ -15,22 +15,6 @@ from uuid import UUID
 class SyncService:
     """IMPLEMENT CREATE SYNC_CHANGE ROW"""
 
-    """
-    if change.base_version == entity.version:
-        # normal write
-    else:
-        # concurrent/stale write
-        await resolve_conflict(...)"""
-
-    """
-    if change.base_version == entity.version:
-        # klient pracował na aktualnej wersji
-        ...
-    else:
-        # klient pracował na starej wersji
-        ...
-    """
-
     def __init__(self, db: AsyncSession):
         self.db = db
 
@@ -39,7 +23,7 @@ class SyncService:
             resolver = self._get_resolver(change, user_id)
             await resolver.resolve()
 
-    def _get_resolver(self, change: SyncChangeWrite, user_id: UUID) -> ResolveBase:
+    def _get_resolver(self, change: SyncChangeWrite, user_id: UUID) -> ResolveContract:
 
         # try:
         match change.entity_type:

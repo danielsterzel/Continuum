@@ -1,4 +1,3 @@
-from sqlalchemy.exc import SQLAlchemyError
 
 from app.models.sync_change import SyncOperation
 from app.repositories.note_repository import NoteRepository
@@ -9,7 +8,6 @@ from app.models.note import Note
 
 
 class ResolveNote(ResolveBase[NoteRepository]):
-
     @staticmethod
     def deserialize_payload_as_note(payload: dict):
         """celowo pomijam tutaj edge case: user zrobil notatke i usunal zanim sync
@@ -22,7 +20,7 @@ class ResolveNote(ResolveBase[NoteRepository]):
             timestamp=payload["timestamp"],
         )
 
-    async def sync_create(self, note_id: UUID, payload: dict) -> None:
+    async def sync_create(self, note_id: UUID, payload: dict):
 
         note = self.deserialize_payload_as_note(payload)
         note.id = note_id
@@ -35,7 +33,7 @@ class ResolveNote(ResolveBase[NoteRepository]):
 
         await self.repository.save(note)
 
-    async def sync_update(self, note_id: UUID, payload: dict) -> None:
+    async def sync_update(self, note_id: UUID, payload: dict):
 
         db_res = await self.repository.update_note_validate(
             note_id=note_id, user_id=self.user_id, **payload
@@ -43,7 +41,7 @@ class ResolveNote(ResolveBase[NoteRepository]):
         if not db_res:
             raise ValueError("Failed to execute sync update")
 
-    async def sync_delete(self, note_id) -> None:
+    async def sync_delete(self, note_id):
         db_res = await self.repository.soft_delete_one_by_id(
             user_id=self.user_id, note_id=note_id
         )
@@ -60,6 +58,12 @@ class ResolveNote(ResolveBase[NoteRepository]):
                 await self.sync_create(note_id=change.entity_id, payload=change.payload)
 
             case SyncOperation.UPDATE:
+                saved_note = await self.repository.fetch_by_user(
+                    self.user_id, change.entity_id
+                )
+
+                if not saved_note:
+                    raise ValueError("Invalid operation: couldn't execute note fetch")
 
                 await self.sync_update(note_id=change.entity_id, payload=change.payload)
 

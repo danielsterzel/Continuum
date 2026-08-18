@@ -31,3 +31,4 @@ class BaseRepository[T]:
 
         await self.db.execute(query)
         await self.db.flush()
+
