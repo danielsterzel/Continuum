@@ -1,7 +1,6 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { BASE_PREFIX } from "@/lib/BASE_PREFIX";
 import { useMedia } from "@/app/context/MediaContext";
 import { Edit } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
@@ -14,6 +13,7 @@ import {
 } from "@/lib/api/media_progress";
 
 import { NoteItem } from "./video_components/NoteItem";
+import { CreateNote } from "./video_components/CreateNote";
 
 const CRON_TIME = 30_000;
 
@@ -28,38 +28,29 @@ export function VideoMain() {
   const [paused, setPaused] = useState(true);
 
   const handleNoteAdd = () => {
-    if (!videoRef.current) {
-      return;
-    }
 
-    const timestamp = videoRef.current.currentTime;
 
-    console.log("CURR TIMESTAMP: ", timestamp);
+
   };
 
   const initialProgressRef = useRef<number | null>(null);
 
   useEffect(() => {
     const mountMediaProgress = async () => {
-      try{
       const savedProgress = await fetchMediaProgresForMedia({
         libraryId: libraryId,
         mediaId: mediaId,
       });
 
-        initialProgressRef.current = savedProgress.currentPosition;
+      initialProgressRef.current = savedProgress.currentPosition;
 
-      if(savedProgress.currentPosition != null && videoRef.current && videoRef.current.readyState >=1 )
-        
-        {
-          videoRef.current.currentTime = savedProgress.currentPosition;
-        }
-    }catch(e)
-    {
-      // suppress error?
-    }
-
-
+      if (
+        savedProgress.currentPosition != null &&
+        videoRef.current &&
+        videoRef.current.readyState >= 1
+      ) {
+        videoRef.current.currentTime = savedProgress.currentPosition;
+      }
     };
 
     mountMediaProgress();
@@ -134,23 +125,8 @@ export function VideoMain() {
   };
 
   return (
-    <div className="w-full flex flex-col items-center sm:block">
-      <button
-        type="button"
-        onClick={handleNoteAdd}
-        className="
-        mb-4 inline-flex items-center gap-2
-        px-12 py-2 rounded-2xl
-        bg-primary text-emerald-950 text-sm font-medium
-        shadow-lg shadow-primary/20
-        hover:bg-primary-hover hover:shadow-xl 
-        active:scale-[0.98]
-        transition-all duration-200
-        cursor-pointer"
-      >
-        <Edit className="w-4 h-4 transition-transform duration-200 " />
-        <span>New Note</span>
-      </button>
+    <div className="relative w-full flex flex-col items-center sm:block">
+      <CreateNote videoRef={videoRef}/>
       <div className="relative w-full flex flex-col sm:grid sm:grid-cols-4 sm:items-start gap-6">
         <ul className="order-2 sm:order-1 sm:col-span-1 w-full flex flex-col gap-3 items-center">
           <NoteItem note={noteMock} iconColor={color} iconBg={bg} />
@@ -185,7 +161,7 @@ export function VideoMain() {
             className="w-full max-w-[240px] sm:max-w-[480px] max-h-[350px] sm:max-h-[560px] rounded-xl"
           >
             <source
-              src={`${BASE_PREFIX}/media_storage/${libraryId}/${mediaId}/${media?.filename}`}
+              src={`${process.env.NEXT_PUBLIC_API_URL}/media_storage/${libraryId}/${mediaId}/${media?.filename}`}
               type="video/mp4"
             />
           </video>

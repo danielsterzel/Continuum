@@ -25,37 +25,51 @@ async def fetch_notes(user_id: OwnerId, db: Annotated[AsyncSession, Depends(get_
 
     return note_schemas
 
+
 @router.post("/create", response_model=NoteRead)
-async def create_note(user_id: OwnerId, request: NoteCreate, db: Annotated[AsyncSession, Depends(get_db)]):
+async def create_note(
+    user_id: OwnerId, request: NoteCreate, db: Annotated[AsyncSession, Depends(get_db)]
+):
 
     media_repository = MediaRepository(db)
     note_repository = NoteRepository(db)
 
-    media = await media_repository.fetch_owned_by_user(media_id=UUID(request.mediaId), user_id=user_id)
+    media = await media_repository.fetch_owned_by_user(
+        media_id=UUID(request.mediaId), user_id=user_id
+    )
 
     if media is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such media")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="No such media"
+        )
 
     note = Note(
         media_id=media.id,
         title=request.title,
         content=request.content,
-        timestamp=timedelta(seconds=request.timestamp) if request.timestamp is not None else None,
+        timestamp=timedelta(seconds=request.timestamp)
+        if request.timestamp is not None
+        else None,
     )
 
     await note_repository.save(note)
 
     return note
 
+
 @router.delete("/delete/{note_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_note(user_id: OwnerId, note_id: UUID, db: Annotated[AsyncSession, Depends(get_db)]):
+async def delete_note(
+    user_id: OwnerId, note_id: UUID, db: Annotated[AsyncSession, Depends(get_db)]
+):
 
     note_repository = NoteRepository(db)
 
     note = await note_repository.fetch_permitted(note_id=note_id, user_id=user_id)
 
     if note is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No such note")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="No such note"
+        )
 
     await note_repository.remove(note_id)
 

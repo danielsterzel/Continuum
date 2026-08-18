@@ -1,4 +1,3 @@
-
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from sqlalchemy import select, delete
@@ -6,9 +5,7 @@ from sqlalchemy import select, delete
 from uuid import UUID
 
 
-
 class BaseRepository[T]:
-
     model: type[T]
 
     def __init__(self, db: AsyncSession):
@@ -26,7 +23,6 @@ class BaseRepository[T]:
 
         result = await self.db.execute(query)
 
-    
         return result.scalar_one_or_none()
 
     async def remove(self, id: UUID) -> None:

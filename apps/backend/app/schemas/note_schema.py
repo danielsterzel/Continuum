@@ -6,11 +6,18 @@ from pydantic.alias_generators import to_camel
 from datetime import datetime, timedelta
 from uuid import UUID
 
-PATTERN = regex.compile(r"^[\p{L}\p{N}\p{Emoji_Presentation}\p{Extended_Pictographic}‍️ ]+$")
+PATTERN = regex.compile(
+    r"^[\p{L}\p{N}\p{Emoji_Presentation}\p{Extended_Pictographic}‍️ ]+$"
+)
+
 
 class NoteRead(BaseModel):
-
-    model_config = ConfigDict(from_attributes=True, alias_generator=to_camel, validate_by_alias=True, validate_by_name=True)
+    model_config = ConfigDict(
+        from_attributes=True,
+        alias_generator=to_camel,
+        validate_by_alias=True,
+        validate_by_name=True,
+    )
 
     id: UUID
     media_id: UUID
@@ -35,10 +42,9 @@ class NoteRead(BaseModel):
             raise ValueError("Invalid note title")
         return value
 
-class NoteCreate(BaseModel):
 
+class NoteCreate(BaseModel):
     mediaId: str
     title: str = Field(..., max_length=50)
     content: str = Field(..., max_length=300)
     timestamp: float | None
-

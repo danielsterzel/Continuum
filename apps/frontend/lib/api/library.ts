@@ -10,7 +10,22 @@ const API_PREFIX = `${API_ORIGIN}/library`;
 
 export function getAssetUrl(path?: string | null): string | undefined {
     if (!path) return undefined;
-    return `${API_ORIGIN}/${path.replace(/^\/+/, "")}`;
+    return `${process.env.NEXT_PUBLIC_API_URL}/${path.replace(/^\/+/, "")}`;
+}
+
+
+export async function fetchLibraries()
+{
+    const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/library/collection`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          },
+        );
+    return res;
 }
 
 export async function createLibrary(bodyArg: LibraryCreate, icon: File | null)

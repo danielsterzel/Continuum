@@ -2,56 +2,66 @@
 
 import { RecentlyUsedList } from "@/components/_home_components/_recently_used/RecentlyUsedList";
 import { HomeTitle } from "@/components/_home_components/_title_shelf/HomeTitle";
-import { RecentlyUsedMediaItem } from "@/components/_home_components/_recently_used/RecentlyUsedItem";
 import { useState, useEffect } from "react";
 import { LibraryList } from "@/components/_home_components/_library_list/LibraryList";
 import { PrimaryButton } from "@/components/_buttons/PrimaryButton";
 import { LibraryModal } from "@/components/_home_components/LibraryModal";
 import { useLibrary } from "@/app/context/LibraryContext";
 import type { Library } from "@/types/library";
-
-const list: RecentlyUsedMediaItem[] = [
-  {
-    id: 1,
-    text: "Test1",
-    createdAt: new Date(Date.now()).toLocaleDateString("pl-PL"),
-    updatedAt: new Date(Date.now()).toLocaleDateString("pl-PL"),
-    fileSize: 100,
-  },
-  {
-    id: 2,
-    text: "Test2",
-    createdAt: new Date(Date.now()).toLocaleDateString("pl-PL"),
-    updatedAt: new Date(Date.now()).toLocaleDateString("pl-PL"),
-    fileSize: 200,
-  },
-  {
-    id: 3,
-    text: "Test3",
-    createdAt: new Date(Date.now()).toLocaleDateString("pl-PL"),
-    updatedAt: new Date(Date.now()).toLocaleDateString("pl-PL"),
-    fileSize: 300,
-  },
-];
+import { fetchLibraries } from "@/lib/api/library";
+import { DeviceIcon } from "@/components/DeviceIcon";
+import { list } from "@/lib/hardcoded";
+import { createDevice, fetchDevice } from "@/lib/api/device";
+import { Device, DeviceWrite } from "@/types/device";
 
 export default function Home() {
   const [showLibraryModal, setShowLibraryModal] = useState(false);
   const {items, setItems} = useLibrary();
+  const [device, setDevice] = useState<Device | null>(null);
 
-    useEffect(() => {
-    if (items.length > 0) return;
-    async function fetchLibs() {
+
+  useEffect(() => {
+    const handleDeviceFetch = async() => {
+  
+      const deviceId = localStorage.getItem("deviceId")
+        if(!deviceId){
+        
+        const res = await createDevice({name: "default"} as DeviceWrite);
+        localStorage.setItem("deviceId", res.id);
+        return;
+      }
+      const device = await fetchDevice(deviceId);
+    
+      if(!device)
+        {
+          // only one try then fuck off
+          throw new Error(`Err setting device`);
+        }
+
+      setDevice(device);
+    }
+    handleDeviceFetch();
+
+    console.log(device?.id);
+  }, []);
+
+  useEffect(() => {
+
+    if (items.length > 0) {
+      
+      return;
+
+    }
+    async function getLibs() {
       try {
-        const res = await fetch(
-          `http://localhost:8000/library/collection`,
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-            },
-          },
-        );
-        if (!res.ok) return;
+
+
+        const res = await fetchLibraries();
+
+        if (!res.ok) {
+
+          return;
+        }
         const data = (await res.json()) as Library[];
         setItems(data);
 
@@ -62,7 +72,7 @@ export default function Home() {
       } catch (e) {}
     }
 
-    fetchLibs();
+    getLibs();
   }, [items.length, setItems]);
 
   return (
@@ -70,6 +80,8 @@ export default function Home() {
       <div className="relative min-h-screen w-full px-4 py-6 max-w-5xl mx-auto">
         <div className="animate-fade-in">
           <HomeTitle />
+          {/* <DeviceIcon device={device}/> */}
+
         </div>
 
         <section className="animate-fade-in-up mt-2" style={{ animationDelay: "0.1s" }}>

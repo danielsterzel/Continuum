@@ -8,7 +8,12 @@ from datetime import datetime, timedelta
 
 
 class MediaRead(BaseModel):
-    model_config = ConfigDict(from_attributes=True, alias_generator=to_camel, validate_by_alias=True, validate_by_name=True)
+    model_config = ConfigDict(
+        from_attributes=True,
+        alias_generator=to_camel,
+        validate_by_alias=True,
+        validate_by_name=True,
+    )
 
     id: UUID
     library_id: UUID

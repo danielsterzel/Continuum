@@ -1,5 +1,3 @@
-
-
 import regex
 
 from pydantic import BaseModel, Field, ConfigDict, field_validator
@@ -13,12 +11,12 @@ from pydantic.alias_generators import to_camel
 # Ten sam pattern co po stronie frontu (\p{L}\p{N}_-).
 LIBRARY_NAME_PATTERN = regex.compile(r"^[\p{L}\p{N}_-]+$")
 
-class LibraryCreate(BaseModel):
 
+class LibraryCreate(BaseModel):
     model_config = ConfigDict(
-        alias_generator=to_camel, validate_by_alias = True, validate_by_name = True
+        alias_generator=to_camel, validate_by_alias=True, validate_by_name=True
     )
-    user_id : UUID = Field(...)
+    user_id: UUID = Field(...)
     name: str = Field(..., max_length=100, min_length=1)
     description: str | None = Field(default=None)
 
@@ -32,9 +30,11 @@ class LibraryCreate(BaseModel):
             )
         return value
 
-class LibraryRead(BaseModel):
 
-    model_config=ConfigDict(from_attributes=True, alias_generator=to_camel, populate_by_name=True)
+class LibraryRead(BaseModel):
+    model_config = ConfigDict(
+        from_attributes=True, alias_generator=to_camel, populate_by_name=True
+    )
 
     id: UUID = Field(...)
     user_id: UUID = Field(...)

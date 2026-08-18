@@ -1,4 +1,3 @@
-
 from typing import Annotated
 from fastapi import APIRouter, HTTPException, status
 
@@ -20,11 +19,18 @@ router = APIRouter(prefix="/media_progress")
 
 
 @router.get("/recent/{library_id}/{media_id}", response_model=MediaProgressRead | None)
-async def recent_progress(user_id: OwnerId, library_id: UUID, media_id: UUID, db: Annotated[AsyncSession, Depends(get_db)]):
+async def recent_progress(
+    user_id: OwnerId,
+    library_id: UUID,
+    media_id: UUID,
+    db: Annotated[AsyncSession, Depends(get_db)],
+):
 
     db_client = MediaProgressRepository(db)
 
-    media_progress = await db_client.get_user_media(user_id=user_id, library_id=library_id, media_id=media_id)
+    media_progress = await db_client.get_user_media(
+        user_id=user_id, library_id=library_id, media_id=media_id
+    )
 
     if not media_progress:
         return media_progress
@@ -32,8 +38,13 @@ async def recent_progress(user_id: OwnerId, library_id: UUID, media_id: UUID, db
 
 
 @router.post("/update/{library_id}/{media_id}")
-async def update_progress(request: MediaProgressWrite, user_id: OwnerId, library_id: UUID, media_id: UUID, db: Annotated[AsyncSession, Depends(get_db)]):
-
+async def update_progress(
+    request: MediaProgressWrite,
+    user_id: OwnerId,
+    library_id: UUID,
+    media_id: UUID,
+    db: Annotated[AsyncSession, Depends(get_db)],
+):
 
     library_repository = LibraryRepository(db)
     media_progress_repository = MediaProgressRepository(db)
@@ -42,15 +53,19 @@ async def update_progress(request: MediaProgressWrite, user_id: OwnerId, library
     library = await library_repository.fetch_single_by_user(user_id, library_id)
 
     if not library:
-
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Could not process request")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Could not process request"
+        )
 
     media = await media_repository.fetch_one_by_library(library_id, media_id)
 
     if not media:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Something went wrong with fetching media")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Something went wrong with fetching media",
+        )
 
-    media_progress = MediaProgress(media_id=media_id,**request.model_dump())
+    media_progress = MediaProgress(media_id=media_id, **request.model_dump())
 
     await media_progress_repository.save_or_update(media_progress)
 

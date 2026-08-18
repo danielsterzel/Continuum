@@ -22,4 +22,3 @@ API_BASE = ""
 
 
 router = APIRouter(prefix=API_BASE)
-

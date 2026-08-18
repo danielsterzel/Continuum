@@ -22,12 +22,14 @@ class MediaType(str, Enum):
     PDF = "pdf"
     UNKNOWN = "unknown"
 
+
 MEDIA_TYPE_MAP = {
     "image/": MediaType.IMAGE,
     "video/": MediaType.VIDEO,
     "audio/": MediaType.RECORDING,
-    "application/pdf": MediaType.PDF
+    "application/pdf": MediaType.PDF,
 }
+
 
 class Media(Base, UUIDMixin, TimestampMixin):
     __tablename__ = "media"
@@ -51,8 +53,11 @@ class Media(Base, UUIDMixin, TimestampMixin):
     thumbnail_url: Mapped[str | None] = mapped_column(String(256))
 
     media_type: Mapped["MediaType"] = mapped_column(
-        SqlEnum(MediaType, name="media_type",
-                values_callable=lambda enum: [item.value for item in enum])
+        SqlEnum(
+            MediaType,
+            name="media_type",
+            values_callable=lambda enum: [item.value for item in enum],
+        )
     )
 
     rating: Mapped[int | None] = mapped_column(Integer, nullable=True)

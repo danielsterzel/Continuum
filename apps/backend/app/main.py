@@ -12,28 +12,28 @@ from app.db.dependencies import get_db
 from app.api.media_api import router as media_router
 from app.api.library_api import router as lib_router
 from app.api.media_progress_api import router as progress_router
+from app.api.device_api import router as device_router
 from app.core.settings import settings
-
 
 
 app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "*"
-    ],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
-    allow_headers=["*"]
+    allow_headers=["*"],
 )
 
 DbSession = Annotated[AsyncSession, Depends(get_db)]
 
 app.include_router(media_router)
 app.include_router(lib_router)
+app.include_router(device_router)
 app.include_router(progress_router)
 OWNER_EMAIL = "owner@continuum.local"
+
 
 @app.get("/")
 async def home():
@@ -50,8 +50,7 @@ async def database_health(db: DbSession):
     result = await db.execute(text("SELECT 1"))
     return {"database": result.scalar()}
 
+
 app.mount(
-    "/media_storage",
-    StaticFiles(directory="media_storage"),
-    name="media_storage"
+    "/media_storage", StaticFiles(directory="media_storage"), name="media_storage"
 )
