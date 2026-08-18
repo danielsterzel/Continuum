@@ -5,6 +5,7 @@ from app.models.device import Device
 from app.models.media import Media
 from app.models.media_progress import MediaProgress
 from app.models.note import Note
+from app.models.sync_change import SyncChange
 
 __all__ = [
     "TimestampMixin",
@@ -15,4 +16,5 @@ __all__ = [
     "Media",
     "MediaProgress",
     "Note",
+    "SyncChange",
 ]

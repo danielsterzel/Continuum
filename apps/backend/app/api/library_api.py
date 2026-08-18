@@ -1,63 +1,262 @@
-
 from typing import Annotated
-from fastapi import APIRouter, Depends, HTTPException, Response, status
-from app.schemas.library_schema import LibraryCreate, LibraryRead
+from fastapi import (
+    APIRouter,
+    Depends,
+    HTTPException,
+    Response,
+    status,
+    UploadFile,
+    File,
+    Form,
+)
+
+from app.schemas.library_schema import LibraryRead
 from app.models.libraries import Library
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.db.dependencies import get_db
+from app.db.dependencies import get_db, OwnerId
 from app.repositories.library_repository import LibraryRepository
+from app.repositories.media_repository import MediaRepository
+from app.models.media import Media, MEDIA_TYPE_MAP
+from app.schemas.media_schema import MediaRead, MediaType
 
-from uuid import UUID
 
+from pathlib import Path
+from uuid import UUID, uuid4
 
+MAX_ALLOWED_ICON_SIZE = 1024 * 1024 * 1024
+
+MEDIA_ROOT = Path("media_storage")
+CHUNK_SIZE = 1024 * 1024
 router = APIRouter(prefix="/library")
 
 
-@router.post("/create")
-async def create_library(
-    library_create: LibraryCreate, db: Annotated[AsyncSession, Depends(get_db)]
-):
+def divulge_media_type(content_type: str) -> MediaType:
 
-    print(repr(library_create))
+    for prefix, media_type in MEDIA_TYPE_MAP.items():
+        if content_type.startswith(prefix):
+            return media_type
+    return MediaType.UNKNOWN
+
+
+@router.post("/create", response_model=LibraryRead)
+async def create_library(
+    user_id: OwnerId,
+    name: Annotated[str, Form()],
+    db: Annotated[AsyncSession, Depends(get_db)],
+    description: Annotated[str | None, Form()] = None,
+    icon: Annotated[UploadFile | None, File()] = None,
+) -> LibraryRead:
+
+    if icon and icon.size is not None and icon.size > MAX_ALLOWED_ICON_SIZE:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail="File size too big",
+        )
+
+    lib_id = uuid4()
+    icon_path = None
+    if icon:
+        str_lib_id = str(lib_id)
+        icon_dir = MEDIA_ROOT / str_lib_id
+        icon_dir.mkdir(parents=True, exist_ok=True)
+
+        safe_name = Path(icon.filename or "default_name").name
+
+        dest = icon_dir / safe_name
+
+        with open(dest, "wb") as out:
+            while chunk := await icon.read(CHUNK_SIZE):
+                out.write(chunk)
+
+        icon_path = str(dest)
+
     lib = Library(
-        user_id=library_create.user_id,
-        name=library_create.name,
-        description=library_create.description,
-        icon_url=library_create.icon_url,
+        id=lib_id,
+        user_id=user_id,
+        name=name,
+        description=description,
+        icon_url=icon_path,
     )
 
     library_repository = LibraryRepository(db=db)
     await library_repository.save(lib)
+    await db.commit()
 
-    return {"success": True}
+    await db.refresh(lib, attribute_names=["media"])
+    output_lib = LibraryRead.model_validate(lib)
 
-@router.get("/collection/{user_id}", response_model=list[LibraryRead])
-async def get_libraries(user_id: UUID, db: Annotated[AsyncSession, Depends(get_db)]):
+    return output_lib
+
+
+@router.get("/collection", response_model=list[LibraryRead])
+async def get_libraries(user_id: OwnerId, db: Annotated[AsyncSession, Depends(get_db)]):
 
     library_repository = LibraryRepository(db=db)
     libraries = await library_repository.fetch_all_by_user(user_id=user_id)
     return libraries
 
-@router.get("/collection/{user_id}/{library_id}", response_model=LibraryRead)
-async def get_single_library(user_id : UUID, library_id: UUID, db: Annotated[AsyncSession, Depends(get_db)]):
+
+@router.get("/collection/{library_id}", response_model=LibraryRead)
+async def get_single_library(
+    user_id: OwnerId, library_id: UUID, db: Annotated[AsyncSession, Depends(get_db)]
+):
 
     library_repository = LibraryRepository(db)
 
-    library = await library_repository.fetch_single_by_user(user_id=user_id, library_id=library_id)
+    library = await library_repository.fetch_single_by_user(
+        user_id=user_id, library_id=library_id
+    )
 
     if not library:
         raise HTTPException(status_code=404, detail="No such library")
 
     return library
 
-@router.delete("/collection/{user_id}/{library_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_lib(user_id: UUID, library_id: UUID, db: Annotated[AsyncSession, Depends(get_db)]):
+
+@router.get("/{library_id}/media", response_model=list[MediaRead])
+async def get_media_files(
+    library_id: UUID, db: Annotated[AsyncSession, Depends(get_db)]
+):
+    media_repository = MediaRepository(db=db)
+
+    media_list = await media_repository.fetch_by_library(library_id=library_id)
+
+    media_schemas = [
+        MediaRead.model_validate(media_model) for media_model in media_list
+    ]
+
+    return media_schemas
+
+
+@router.get("/{library_id}/media/{media_id}", response_model=MediaRead)
+async def get_file(
+    library_id: UUID, media_id: UUID, db: Annotated[AsyncSession, Depends(get_db)]
+):
+    media_repository = MediaRepository(db=db)
+
+    media = await media_repository.fetch(media_id)
+
+    if not media:
+        raise HTTPException(status_code=404, detail="Media was not found")
+
+    return media
+
+
+@router.post("/{library_id}/media/upload", response_model=list[MediaRead])
+async def upload_files(
+    library_id: UUID,
+    user_id: OwnerId,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    files: Annotated[list[UploadFile], File()],
+):
+
+    library_repository = LibraryRepository(db=db)
+    media_repository = MediaRepository(db=db)
+
+    library = await library_repository.fetch_single_by_user(
+        user_id=user_id, library_id=library_id
+    )
+
+    if library is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="No such library"
+        )
+
+    media_files = []
+
+    for file in files:
+        media_id = uuid4()  # bo sciezka do pliku jest po uuid wiec musi byc przed
+        # wrzuceniem do bazy i musi byc zgodne z baza
+
+        safe_name = Path(file.filename or "unnamed").name
+        lib_folder = MEDIA_ROOT / str(library_id)
+        folder = lib_folder / str(media_id)
+        folder.mkdir(parents=True, exist_ok=True)
+        dest = folder / safe_name
+
+        size = 0
+        with open(dest, "wb") as out:
+            while chunk := await file.read(CHUNK_SIZE):
+                out.write(chunk)
+                size += len(chunk)
+
+        file_type = file.content_type or ""
+        media_type = divulge_media_type(file_type)
+
+        media: Media = Media(
+            id=media_id,
+            library_id=library_id,
+            filename=safe_name,
+            filepath=str(dest),
+            file_size=size,
+            media_type=media_type,
+        )
+
+        await media_repository.save(obj=media)
+        media_files.append(media)
+
+    if media_files:
+        await library_repository.touch(library_id)
+
+    await db.commit()
+
+    return [MediaRead.model_validate(media) for media in media_files]
+
+
+# http://10.78.77.121:3000/library/collection/f3de954d-3a67-401f-b1a0-2fdf44e11ace
+@router.delete("/collection/{library_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_lib(
+    user_id: OwnerId, library_id: UUID, db: Annotated[AsyncSession, Depends(get_db)]
+):
 
     library_repository = LibraryRepository(db)
 
+    library = await library_repository.fetch_single_by_user(
+        user_id=user_id, library_id=library_id
+    )
+
+    if library is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="No such library"
+        )
+
     await library_repository.remove(library_id)
+
+    await db.commit()
 
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
+@router.delete(
+    "/collection/delete_media/{library_id}/{media_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+async def delete_media(
+    user_id: OwnerId,
+    library_id: UUID,
+    media_id: UUID,
+    db: Annotated[AsyncSession, Depends(get_db)],
+):
 
+    library_repository = LibraryRepository(db)
+    library = await library_repository.fetch_single_by_user(
+        user_id=user_id, library_id=library_id
+    )
+
+    if library is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="no such library"
+        )
+
+    success = await library_repository.remove_media(
+        user_id=user_id, library_id=library_id, media_id=media_id
+    )
+    if not success:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Something went wrong with this request",
+        )
+
+    await library_repository.touch(library_id)
+
+    await db.commit()
