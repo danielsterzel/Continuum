@@ -26,10 +26,12 @@ async def recent_progress(
     db: Annotated[AsyncSession, Depends(get_db)],
 ):
 
+    """TODO: figure out what to do with library_id...."""
+
     db_client = MediaProgressRepository(db)
 
-    media_progress = await db_client.get_user_media(
-        user_id=user_id, library_id=library_id, media_id=media_id
+    media_progress = await db_client.fetch_media_progress_validate(
+        user_id=user_id, media_id=media_id
     )
 
     if not media_progress:

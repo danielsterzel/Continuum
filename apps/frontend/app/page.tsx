@@ -7,40 +7,42 @@ import { LibraryList } from "@/components/_home_components/_library_list/Library
 import { PrimaryButton } from "@/components/_buttons/PrimaryButton";
 import { LibraryModal } from "@/components/_home_components/LibraryModal";
 import { useLibrary } from "@/app/context/LibraryContext";
-import type { Library } from "@/types/library";
+import type { LibraryRead } from "@/types/library";
 import { fetchLibraries } from "@/lib/api/library";
 import { DeviceIcon } from "@/components/DeviceIcon";
 import { list } from "@/lib/hardcoded";
 import { createDevice, fetchDevice } from "@/lib/api/device";
-import { Device, DeviceWrite } from "@/types/device";
+import { DeviceRead, DeviceWrite } from "@/types/device";
 
 export default function Home() {
   const [showLibraryModal, setShowLibraryModal] = useState(false);
   const {items, setItems} = useLibrary();
-  const [device, setDevice] = useState<Device | null>(null);
+  const [device, setDevice] = useState<DeviceRead | null>(null);
 
 
   useEffect(() => {
-    const handleDeviceFetch = async() => {
-  
-      const deviceId = localStorage.getItem("deviceId")
-        if(!deviceId){
-        
-        const res = await createDevice({name: "default"} as DeviceWrite);
-        localStorage.setItem("deviceId", res.id);
-        return;
-      }
-      const device = await fetchDevice(deviceId);
-    
-      if(!device)
-        {
-          // only one try then fuck off
-          throw new Error(`Err setting device`);
-        }
 
-      setDevice(device);
-    }
-    handleDeviceFetch();
+      const savedDevice = localStorage.getItem("device");
+
+      if(savedDevice)
+        {
+          setDevice(JSON.parse(savedDevice) as DeviceRead);
+          return;
+        }
+      
+      const create = async () => {
+
+        //TODO: problematyczne bo i tak nie utowrzy sie bez backenud
+        const createdDevice = await createDevice({
+          name: "default"
+        } as DeviceWrite);
+
+        setDevice(device);
+      }
+
+      localStorage.setItem("device", JSON.stringify(device))
+
+      create();
 
     console.log(device?.id);
   }, []);
@@ -62,7 +64,7 @@ export default function Home() {
 
           return;
         }
-        const data = (await res.json()) as Library[];
+        const data = (await res.json()) as LibraryRead[];
         setItems(data);
 
         data.forEach(e => {

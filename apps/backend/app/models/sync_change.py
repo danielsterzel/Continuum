@@ -1,4 +1,4 @@
-from sqlalchemy import ForeignKey, Integer, DateTime, func, Uuid, Index
+from sqlalchemy import ForeignKey, Integer, DateTime, func, Uuid, Index, text
 from sqlalchemy.dialects.postgresql import JSONB
 
 from app.db.base import Base
@@ -15,7 +15,6 @@ class EntityType(str, Enum):
     Library = "library"
     Media = "media"
     MediaProgress = "media_progress"
-
 
 class SyncOperation(str, Enum):
     CREATE = "create"
@@ -45,7 +44,7 @@ class SyncChange(Base, UUIDMixin):
             values_callable=lambda enum: [item.value for item in enum],
         )
     )
-    base_version: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    base_version: Mapped[int] = mapped_column(Integer, server_default=text("1"))
     payload: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 

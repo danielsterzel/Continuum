@@ -1,8 +1,8 @@
 import { Computer } from "lucide-react";
-import type { Device } from "@/types/device";
+import type { DeviceRead } from "@/types/device";
 
 type DeviceIconProps = {
-  device: Device | null;
+  device: DeviceRead | null;
 };
 
 export function DeviceIcon({ device }: DeviceIconProps) {

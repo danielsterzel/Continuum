@@ -8,7 +8,7 @@ from sqlalchemy import select, delete, update
 from datetime import datetime, timezone
 
 
-class NoteRepository(BaseRepository):
+class NoteRepository(BaseRepository[Note]):
     model = Note
     allowed_updates = {"title", "content", "timestamp"}
 
@@ -41,6 +41,7 @@ class NoteRepository(BaseRepository):
         note = await self.db.execute(query)
         return note.scalar_one_or_none()
 
+
     async def fetch_permitted(self, note_id: UUID, user_id: UUID) -> Note | None:
 
         query = (
@@ -54,49 +55,29 @@ class NoteRepository(BaseRepository):
 
         return res.scalar_one_or_none()
 
-    async def soft_delete_one_by_id(self, note_id: UUID, user_id: UUID) -> bool:
+    async def soft_delete_one_by_id(self, entity_id: UUID, user_id: UUID) -> bool:
 
         query = (
             select(self.model)
             .join(Media, self.model.media_id == Media.id)
             .join(Library, Media.library_id == Library.id)
-            .where(Note.id == note_id, Library.user_id == user_id)
+            .where(Note.id == entity_id, Library.user_id == user_id)
         )
 
         res = await self.db.execute(query)
-        note: Note = res.scalar_one_or_none()
+        note: Note | None = res.scalar_one_or_none()
 
-        if not note:
-            return False
+        return self.soft_delete_entity(note)
 
-        if note.deleted_at:
-            return True
-
-        note.deleted_at = datetime.now(timezone.utc)
-        return True
-
-    async def update_note_validate(self, note_id: UUID, user_id: UUID, **kwargs) -> bool:
-
-        if not kwargs:
-            return False
-
-        if any(k not in self.allowed_updates for k in kwargs):
-            return False
+    async def update_note_validate(self, entity_id: UUID, user_id: UUID, **kwargs) -> bool:
 
         permitted_note = (
             select(self.model.id)
             .join(Media, Note.media_id == Media.id)
             .join(Library, Media.library_id == Library.id)
-            .where(Note.id == note_id, Library.user_id == user_id)
+            .where(Note.id == entity_id, Library.user_id == user_id)
         )
-
-        query = (
-            update(self.model).where(self.model.id.in_(permitted_note)).values(**kwargs)
-        )
-
-        res = await self.db.execute(query)
-
-        return res.rowcount == 1
+        return await self.update_entity_validate(permissions=permitted_note, **kwargs)
 
     async def is_media_owned_by_user(self, media_id: UUID, user_id: UUID) -> bool:
         query = (

@@ -2,7 +2,7 @@ from pydantic import BaseModel, ConfigDict
 from pydantic.alias_generators import to_camel
 from datetime import datetime
 from uuid import UUID
-
+from typing import Any
 
 from app.models.sync_change import SyncOperation, EntityType
 
@@ -20,8 +20,8 @@ class SyncChangeWrite(BaseModel):
     entity_type: EntityType
     entity_id: UUID
     operation: SyncOperation
-    base_version: int | None = None
-    payload: dict | None = None
+    base_version: int
+    payload: dict[str, Any] | None = None
 
 
 class SyncChangeRead(BaseModel):
@@ -37,6 +37,6 @@ class SyncChangeRead(BaseModel):
     entity_type: EntityType
     entity_id: UUID
     operation: SyncOperation
-    base_version: int | None = None
-    payload: dict | None = None
+    base_version: int
+    payload: dict[str, Any] | None = None
     created_at: datetime

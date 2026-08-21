@@ -2,7 +2,7 @@
 
 import { LibraryHero } from "@/components/_library_components/LibraryHero";
 import { MediaList } from "@/components/_library_components/MediaList";
-import type { Library } from "@/types/library";
+import type { LibraryRead } from "@/types/library";
 import type {MediaRead } from "@/types/media";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -17,7 +17,7 @@ export default function LibraryPage() {
     const {libraryId} = useParams<{libraryId: string}>();
     const {setItems} = useLibrary();
 
-    const [library, setLibrary] = useState<Library | null>(null);
+    const [library, setLibrary] = useState<LibraryRead | null>(null);
     const [media, setMedia] = useState<MediaRead[]>([]);
 
 

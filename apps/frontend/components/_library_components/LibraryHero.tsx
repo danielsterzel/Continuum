@@ -1,6 +1,6 @@
 "use client";
 
-import type { Library } from "@/types/library";
+import type { LibraryRead } from "@/types/library";
 import { BookOpen, Calendar, FileStack } from "lucide-react";
 import { formatDate } from "@/lib/datetime";
 import { MetaChip } from "./MetaChip";
@@ -12,7 +12,7 @@ import { uploadMedia, getAssetUrl } from "@/lib/api/library";
 import { MediaRead } from "@/types/media";
 
 type LibraryHeroProps = {
-    library: Library;
+    library: LibraryRead;
     mediaCount?: number;
     onMediaUploaded: (uploaded: MediaRead[]) => void;
 };

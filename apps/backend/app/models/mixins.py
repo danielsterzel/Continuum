@@ -1,4 +1,4 @@
-from sqlalchemy import DateTime, func
+from sqlalchemy import DateTime, func, Integer, text
 from sqlalchemy.orm import mapped_column, Mapped
 from uuid import UUID, uuid4
 from datetime import datetime
@@ -20,3 +20,6 @@ class TombstoneMixin:
     deleted_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
+
+class VersionMixin:
+    version: Mapped[int] = mapped_column(Integer(), server_default=text("0"))

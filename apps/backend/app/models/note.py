@@ -2,13 +2,13 @@ from app.db.base import Base
 from uuid import UUID
 
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import String, ForeignKey, Interval, DateTime
+from sqlalchemy import String, ForeignKey, Interval
 
 from datetime import datetime, timedelta
-from app.models.mixins import TimestampMixin, UUIDMixin, TombstoneMixin
+from app.models.mixins import TimestampMixin, UUIDMixin, TombstoneMixin, VersionMixin
 
 
-class Note(Base, TimestampMixin, UUIDMixin, TombstoneMixin):
+class Note(Base, TimestampMixin, UUIDMixin, TombstoneMixin, VersionMixin):
     __tablename__ = "note"
 
     __table_args__ = ()

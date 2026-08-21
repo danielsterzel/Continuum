@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Check, ImageIcon } from "lucide-react";
 
-import type { Library, LibraryCreate } from "@/types/library";
+import type { LibraryRead, LibraryCreate } from "@/types/library";
 import { useLibrary } from "@/app/context/LibraryContext";
 import { createLibrary } from "@/lib/api/library";
 
@@ -36,7 +36,7 @@ export function LibraryModal({ show, onClose }: LibraryModalProps) {
 
     const data = await createLibrary(bodyArg, icon);
 
-    setItems(prev => [...prev, data as Library]);
+    setItems(prev => [...prev, data as LibraryRead]);
   }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {

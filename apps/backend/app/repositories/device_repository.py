@@ -8,7 +8,7 @@ from sqlalchemy.orm import selectinload
 
 
 class DeviceRepository(BaseRepository):
-    async def fetch_device(self, device_id: UUID, user_id: UUID) -> Device | None:
+    async def fetch_device_by_id_and_user_id(self, device_id: UUID, user_id: UUID) -> Device | None:
 
         query = (
             select(Device)

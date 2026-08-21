@@ -1,4 +1,4 @@
-import { Library } from "@/types/library";
+import { LibraryRead } from "@/types/library";
 import { MediaRead } from "@/types/media";
 import { LibraryCreate } from "@/types/library";
 
@@ -72,7 +72,7 @@ export async function deleteLibrary(libraryId: string)
 
 }
 
-export async function fetchSingleLib(libraryId: string): Promise<Library>
+export async function fetchSingleLib(libraryId: string): Promise<LibraryRead>
 {
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/library/collection/${libraryId}`, {
         method: "GET"
@@ -82,7 +82,7 @@ export async function fetchSingleLib(libraryId: string): Promise<Library>
             throw new Error(`HTTP error: ${res.status}`);
         }
 
-    const data = await res.json() as Library;
+    const data = await res.json() as LibraryRead;
     return data;
 }
 

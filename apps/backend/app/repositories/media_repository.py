@@ -5,10 +5,10 @@ from app.models.libraries import Library
 from uuid import UUID
 from datetime import datetime, timezone
 
-from sqlalchemy import select, and_, update
+from sqlalchemy import select, and_
 
 
-class MediaRepository(BaseRepository):
+class MediaRepository(BaseRepository[Media]):
 
     model = Media
 
@@ -58,55 +58,33 @@ class MediaRepository(BaseRepository):
 
     async def update_media_validate(
             self,
-            media_id: UUID,
+            entity_id: UUID,
             user_id: UUID,
             **kwargs
     ) -> bool:
-
-        if not kwargs:
-            return False
-
-        if any(k not in self.allowed_updates for k in kwargs):
-            return False
 
         permitted_media = (
             select(self.model.id)
             .join(Library, Library.id == self.model.library_id)
             .where(
                 Library.user_id == user_id,
-                self.model.id == media_id
+                self.model.id == entity_id
             )
         )
 
-        query = (
-            update(self.model)
-            .where(self.model.id.in_(permitted_media))
-            .values(**kwargs)
-        )
+        return await self.update_entity_validate(permissions=permitted_media, **kwargs)
 
-        res = await self.db.execute(query)
-
-        return res.rowcount == 1
-
-    async def soft_delete_one_by_id(self, media_id: UUID, user_id: UUID) -> bool:
+    async def soft_delete_one_by_id(self, entity_id: UUID, user_id: UUID) -> bool:
 
         query = (select(self.model)
             .join(Library, Library.id == self.model.library_id)
             .where(
-                Library.user_id == user_id,
-                self.model.id == media_id
+            Library.user_id == user_id,
+            self.model.id == entity_id
             ))
 
         res = await self.db.execute(query)
 
-        media: Media = res.scalar_one_or_none()
+        media: Media | None = res.scalar_one_or_none()
 
-        if not media:
-            return False
-
-        if media.deleted_at:
-            return True
-
-        media.deleted_at = datetime.now(timezone.utc)
-
-        return True
+        return self.soft_delete_entity(media)

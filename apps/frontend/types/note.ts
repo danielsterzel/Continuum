@@ -1,7 +1,7 @@
 
 import type { MediaRead } from "./media";
 
-export type Note = {
+export type NoteRead = {
     id: string;
     mediaId: string;
     media: MediaRead;
@@ -12,3 +12,8 @@ export type Note = {
     createdAt: number;
     updatedAt: number;
 };
+
+export type Note = NoteRead & {
+    deletedAt: number;
+    version: number;
+}

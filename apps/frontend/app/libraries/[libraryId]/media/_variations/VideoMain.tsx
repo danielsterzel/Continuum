@@ -5,7 +5,7 @@ import { useMedia } from "@/app/context/MediaContext";
 import { Edit } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 
-import type { Note } from "@/types/note";
+import type { NoteRead } from "@/types/note";
 import { getMediaColor, getMediaBg } from "../[mediaId]/page";
 import {
   fetchMediaProgresForMedia,
@@ -85,7 +85,7 @@ export function VideoMain() {
   const color = getMediaColor(media.mediaType);
   const bg = getMediaBg(media.mediaType);
 
-  const noteMock: Note = {
+  const noteMock: NoteRead = {
     id: "MOCK_ID",
     mediaId: media?.id,
     media: media,

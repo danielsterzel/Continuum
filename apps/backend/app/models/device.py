@@ -4,11 +4,10 @@ from datetime import datetime
 from uuid import UUID
 
 from app.db.base import Base
-from app.models.mixins import UUIDMixin
+from app.models.mixins import UUIDMixin, VersionMixin
 from app.models.user import User
 
-
-class Device(Base, UUIDMixin):
+class Device(Base, UUIDMixin, VersionMixin):
     __tablename__ = "device"
 
     __table_args__ = (Index("idx_device_user", "user_id"),)

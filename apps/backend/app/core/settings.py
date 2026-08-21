@@ -8,6 +8,7 @@ class Settings(BaseSettings):
     database_url: str
     frontend_url: str
     owner_email: str = "owner@continuum.local"
+    media_storage_dir: Path
 
     model_config = SettingsConfigDict(
         env_file=BASE_DIR / ".env", env_file_encoding="utf-8", extra="ignore"

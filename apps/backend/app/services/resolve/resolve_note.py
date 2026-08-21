@@ -1,31 +1,27 @@
-from sqlalchemy.exc import SQLAlchemyError
 
-from app.models.sync_change import SyncOperation
 from app.repositories.note_repository import NoteRepository
-from app.schemas.sync_change_schema import SyncChangeWrite
 from app.services.resolve.resolve_base import ResolveBase
-from uuid import UUID
 from app.models.note import Note
 
-
+from typing import Any
+from uuid import UUID
 class ResolveNote(ResolveBase[NoteRepository]):
 
+    repository_type = NoteRepository
+    entity_type = "note"
+
     @staticmethod
-    def deserialize_payload_as_note(payload: dict):
+    def deserialize_payload_as_note(entity_id: UUID, payload: dict[str, Any]):
         """celowo pomijam tutaj edge case: user zrobil notatke i usunal zanim sync
         dlatego nie ma deleted_at
         """
         return Note(
-            media_id=payload["media_id"],
-            title=payload["title"],
-            content=payload["content"],
-            timestamp=payload["timestamp"],
+            id=entity_id,**payload
         )
 
-    async def sync_create(self, note_id: UUID, payload: dict) -> None:
+    async def sync_create(self, entity_id: UUID, payload: dict[str, Any]) -> None:
 
-        note = self.deserialize_payload_as_note(payload)
-        note.id = note_id
+        note = self.deserialize_payload_as_note(entity_id=entity_id, payload=payload)
 
         check_user_permission = await self.repository.is_media_owned_by_user(
             media_id=note.media_id, user_id=self.user_id
@@ -35,33 +31,17 @@ class ResolveNote(ResolveBase[NoteRepository]):
 
         await self.repository.save(note)
 
-    async def sync_update(self, note_id: UUID, payload: dict) -> None:
+    async def sync_update(self, entity_id: UUID, payload: dict[str, Any]) -> None:
 
         db_res = await self.repository.update_note_validate(
-            note_id=note_id, user_id=self.user_id, **payload
+            entity_id=entity_id, user_id=self.user_id, **payload
         )
         if not db_res:
             raise ValueError("Failed to execute sync update")
 
-    async def sync_delete(self, note_id) -> None:
+    async def sync_delete(self, entity_id: UUID) -> None:
         db_res = await self.repository.soft_delete_one_by_id(
-            user_id=self.user_id, note_id=note_id
+            user_id=self.user_id, entity_id=entity_id
         )
         if not db_res:
             raise ValueError("Failed to execute sync delete")
-
-    async def resolve(self, change: SyncChangeWrite) -> None:
-
-        if change.entity_type != "note":
-            raise ValueError("Incorrect resolver - type is not 'note'")
-
-        match change.operation:
-            case SyncOperation.CREATE:
-                await self.sync_create(note_id=change.entity_id, payload=change.payload)
-
-            case SyncOperation.UPDATE:
-
-                await self.sync_update(note_id=change.entity_id, payload=change.payload)
-
-            case SyncOperation.DELETE:
-                await self.sync_delete(note_id=change.entity_id)

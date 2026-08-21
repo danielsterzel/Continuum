@@ -13,7 +13,7 @@ from sqlalchemy import (
 )
 from enum import Enum
 from datetime import timedelta
-from app.models.mixins import TimestampMixin, UUIDMixin, TombstoneMixin
+from app.models.mixins import TimestampMixin, UUIDMixin, TombstoneMixin, VersionMixin
 
 
 class MediaType(str, Enum):
@@ -32,7 +32,7 @@ MEDIA_TYPE_MAP = {
 }
 
 
-class Media(Base, UUIDMixin, TimestampMixin, TombstoneMixin):
+class Media(Base, UUIDMixin, TimestampMixin, TombstoneMixin, VersionMixin):
     __tablename__ = "media"
 
     __table_args__ = (

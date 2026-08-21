@@ -44,7 +44,12 @@ class NoteRead(BaseModel):
 
 
 class NoteCreate(BaseModel):
-    mediaId: str
+    model_config = ConfigDict(
+        from_attributes=True, alias_generator=to_camel, validate_by_alias=True,
+        validate_by_name=True
+    )
+
+    media_id: str
     title: str = Field(..., max_length=50)
     content: str = Field(..., max_length=300)
     timestamp: float | None

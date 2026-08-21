@@ -1,6 +1,6 @@
 "use client";
 
-import type { Library } from "@/types/library";
+import type { LibraryRead } from "@/types/library";
 import { Clapperboard, Trash } from "lucide-react";
 import { formatDate } from "@/lib/datetime";
 import Link from "next/link";
@@ -8,7 +8,7 @@ import { LibraryDeleteModal } from "./LibraryDeleteModal";
 import { useState } from "react";
 
 type LibraryListItemProps = {
-  library: Library;
+  library: LibraryRead;
   onDeleted: () => void;
 };
 

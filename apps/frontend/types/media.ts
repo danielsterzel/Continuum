@@ -1,5 +1,5 @@
 
-export interface MediaRead{
+export type MediaRead = {
     id: string;
     libraryId: string;
     filename: string;
@@ -12,5 +12,10 @@ export interface MediaRead{
     updatedAt: string;
 }
 
-// export interface Media{};
+export type Media = MediaRead & {
+    deletedAt: number;
+    version: number;
+    // filepath: string; tego nie bo sobie sam backend zrobi fielpath
+}
 export type MediaType = "video" | "audio" | "image" | "document";
+
