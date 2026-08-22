@@ -1,5 +1,6 @@
 
-import type { DeviceRead, DeviceWrite } from "@/types/device";
+import type { DeviceRead } from "@/types/device";
+import type { DeviceWrite } from "@/types/device";
 
 export async function fetchDevice(deviceId: string): Promise<DeviceRead>
 {
@@ -14,7 +15,7 @@ export async function fetchDevice(deviceId: string): Promise<DeviceRead>
 
 }
 
-export async function createDevice(deviceWrite: DeviceWrite | null): Promise<DeviceRead>
+export async function createDevice(deviceWrite: DeviceWrite | null)
 {
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/device/create`, {
         method: "POST",

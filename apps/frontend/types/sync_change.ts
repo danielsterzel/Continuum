@@ -1,5 +1,5 @@
 
-enum EntityType{
+export enum EntityType{
     
     Note = "note",
     Library = "library",
@@ -7,7 +7,7 @@ enum EntityType{
     MediaProgress = "media_progress"
 }
 
-enum SyncOperation{
+export enum SyncOperation{
     CREATE="create",
     UPDATE="update",
     DELETE="delete"

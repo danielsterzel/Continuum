@@ -1,5 +1,5 @@
 
-
+import { EntityType } from "./sync_change";
 
 export type MediaProgressRead = {
     id: string;
@@ -17,5 +17,6 @@ export type MediaProgressWrite = {
 export type MediaProgress = MediaProgressRead &  {
     deletedAt: number;
     version: number;
+    entityType: EntityType.MediaProgress
 
 }

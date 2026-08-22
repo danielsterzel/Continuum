@@ -1,7 +1,7 @@
 import {v4} from 'uuid';
 
 import type { SyncChange } from "@/types/sync_change";
-
+import type { EntityUnionType } from '@/types/entity_union';
 type SyncQueue = Record<string, SyncChange>;
 const QUEUE_KEY = "queue"
 
@@ -18,7 +18,7 @@ export function getQueue(): SyncQueue
 }
 
 
-function enqueueChange(syncEntity: SyncChange)
+export function enqueueChange(syncEntity: SyncChange)
 {
 
     const id = syncEntity.id ?? v4();

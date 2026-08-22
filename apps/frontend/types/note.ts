@@ -1,5 +1,6 @@
 
 import type { MediaRead } from "./media";
+import type { EntityType } from "./sync_change";
 
 export type NoteRead = {
     id: string;
@@ -16,4 +17,5 @@ export type NoteRead = {
 export type Note = NoteRead & {
     deletedAt: number;
     version: number;
+    entityType: EntityType.Note
 }

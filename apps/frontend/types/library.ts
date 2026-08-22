@@ -1,4 +1,5 @@
 import { MediaRead } from "./media";
+import { EntityType } from "./sync_change";
 
 
 export type LibraryRead = {
@@ -18,8 +19,9 @@ export type LibraryCreate = {
 
 }
 
-export type LibrarySync = LibraryRead &  {
+export type Library = LibraryRead &  {
     deletedAt: number;
     createdAt: number;
     version: number;
+    entityType: EntityType.Library
 }

@@ -69,7 +69,6 @@ export async function deleteLibrary(libraryId: string)
             console.log(res.statusText)
             throw new Error(`HTTP error ${res.status}`);
         }
-
 }
 
 export async function fetchSingleLib(libraryId: string): Promise<LibraryRead>

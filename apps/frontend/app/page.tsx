@@ -56,10 +56,7 @@ export default function Home() {
     }
     async function getLibs() {
       try {
-
-
         const res = await fetchLibraries();
-
         if (!res.ok) {
 
           return;

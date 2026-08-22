@@ -3,6 +3,7 @@ import { Montserrat } from "next/font/google";
 import "./globals.css";
 import { Provider } from "./providers";
 import { SlideMenu } from "@/components/_home_components/SlideMenu";
+import { SyncService } from "./worker/SyncService";
 
 const montserrat = Montserrat({
   subsets: ["latin"],
@@ -22,6 +23,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={montserrat.className}>
+        <SyncService />
         <Provider>
           <SlideMenu />
           {children}

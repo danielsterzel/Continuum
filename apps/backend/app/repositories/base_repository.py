@@ -39,11 +39,15 @@ class BaseRepository[T](ABC):
 
     async def update_entity_validate(self, permissions: PermissionQueryType, **kwargs) -> bool:
 
+        kwargs = {
+            key: value
+            for key, value in kwargs.items()
+            if key in self.allowed_updates
+        }
+
         if not kwargs:
             return False
 
-        if any(k not in self.allowed_updates for k in kwargs):
-            return False
 
         query = (
             update(self.model).where(self.model.id.in_(permissions)).values(**kwargs)

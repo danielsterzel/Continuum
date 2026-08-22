@@ -19,5 +19,4 @@ export type Device = {
     name: string | null;
     lastSeen: string;
     version: number
-
 }

@@ -1,4 +1,6 @@
 
+import type { EntityType } from "./sync_change";
+
 export type MediaRead = {
     id: string;
     libraryId: string;
@@ -15,6 +17,7 @@ export type MediaRead = {
 export type Media = MediaRead & {
     deletedAt: number;
     version: number;
+    entityType: EntityType.Media;
     // filepath: string; tego nie bo sobie sam backend zrobi fielpath
 }
 export type MediaType = "video" | "audio" | "image" | "document";
