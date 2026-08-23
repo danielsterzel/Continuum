@@ -19,7 +19,7 @@ export function LibraryListItem({ library, onDeleted }: Readonly<LibraryListItem
       <div className="w-full flex flex-col transition-colors duration-200 hover:bg-card-hover">
         <div className="flex items-center">
           <Link
-            href={`/libraries/${library.id}`}
+            href={`/library?libraryId=${library.id}`}
             className="flex-1 grid grid-cols-[2fr_1fr_1fr_1fr] items-center px-4 py-3"
           >
             <div className="flex items-center gap-4">

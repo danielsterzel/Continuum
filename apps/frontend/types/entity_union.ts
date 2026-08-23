@@ -5,4 +5,4 @@ import type { Media } from "@/types/media";
 import type { MediaProgress } from "@/types/media_progress";
 import type { Device } from "@/types/device";
 
-export type EntityUnionType = Note | Library | Media | MediaProgress;
+export type EntityUnionType = Note | Library | Media | MediaProgress | Device;

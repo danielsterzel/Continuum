@@ -54,7 +54,7 @@ export function mapNoteToSyncChange(
     operation: operation,
     baseVersion: version,
     payload: payload,
-    createdAt: Date.now(),
+    createdAt: new Date().toISOString(),
   };
 
   entity.version = version + 1;
@@ -83,7 +83,7 @@ export function mapLibraryToSyncChange(
     operation: operation,
     baseVersion: version,
     payload: payload,
-    createdAt: Date.now(),
+    createdAt: new Date().toISOString(),
   };
 
   entity.version = version + 1;
@@ -112,7 +112,7 @@ export function mapMediaToSyncChange(
     operation: operation,
     baseVersion: version,
     payload: payload,
-    createdAt: Date.now(),
+    createdAt: new Date().toISOString(),
   };
 
   entity.version = version + 1;
@@ -147,13 +147,15 @@ export function mapMediaProgressToSyncChange(
     operation: operation,
     baseVersion: version,
     payload: payload,
-    createdAt: Date.now(),
+    createdAt: new Date().toISOString(),
   };
 
   entity.version = version + 1;
 
   return { syncChange, entity };
 }
+
+
 export function deviceToSyncChange(
   entity: EntityUnionType,
   operation: SyncOperation,
@@ -174,7 +176,7 @@ export function deviceToSyncChange(
     operation: operation,
     baseVersion: version,
     payload: payload,
-    createdAt: Date.now(),
+    createdAt: new Date().toISOString(),
   };
 
   entity.version = version + 1;
@@ -198,5 +200,8 @@ export function mapEntityToSync(
 
     case EntityType.Note:
       return mapNoteToSyncChange(entity, operation);
+
+      case EntityType.Device:
+        return deviceToSyncChange(entity, operation);
   }
 }

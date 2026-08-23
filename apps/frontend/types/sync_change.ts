@@ -4,7 +4,8 @@ export enum EntityType{
     Note = "note",
     Library = "library",
     Media = "media",
-    MediaProgress = "media_progress"
+    MediaProgress = "media_progress",
+    Device = "device"
 }
 
 export enum SyncOperation{
@@ -21,7 +22,7 @@ export type SyncChange = {
     operation: SyncOperation
     baseVersion: number;
     payload: Record<string, any>;
-    createdAt: number;
+    createdAt: string;
 }
 
 export type SyncChangeWrite = {

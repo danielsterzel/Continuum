@@ -12,67 +12,101 @@ import { fetchLibraries } from "@/lib/api/library";
 import { DeviceIcon } from "@/components/DeviceIcon";
 import { list } from "@/lib/hardcoded";
 import { createDevice, fetchDevice } from "@/lib/api/device";
-import { DeviceRead, DeviceWrite } from "@/types/device";
+import { Device, DeviceRead, DeviceWrite } from "@/types/device";
+import { v4 } from "uuid";
+import { createPortal } from "react-dom";
+import { SetupDevice } from "@/components/_home_components/SetupDevice";
+import { useAuth } from "@/hooks/useAuth";
+
 
 export default function Home() {
   const [showLibraryModal, setShowLibraryModal] = useState(false);
-  const {items, setItems} = useLibrary();
-  const [device, setDevice] = useState<DeviceRead | null>(null);
+  const { items, setItems } = useLibrary();
+  const [device, setDevice] = useState<Device| null>(null);
+  const [openDeviceSetup, setOpenDeviceSetup] = useState(false);
 
 
   useEffect(() => {
+    if (localStorage.getItem("user") === null) {
+      //TODO
+      // const userId = v4();
+      const {user} = useAuth();
+      const userId = user.id
+      localStorage.setItem("user", userId);
+    }
+  });
 
-      const savedDevice = localStorage.getItem("device");
+  useEffect(() => {
+    const rawDevice = localStorage.getItem("device");
 
-      if(savedDevice)
-        {
-          setDevice(JSON.parse(savedDevice) as DeviceRead);
-          return;
-        }
-      
-      const create = async () => {
+    if (!rawDevice) {
+      setOpenDeviceSetup(true);
+      return;
+    }
 
-        //TODO: problematyczne bo i tak nie utowrzy sie bez backenud
-        const createdDevice = await createDevice({
-          name: "default"
-        } as DeviceWrite);
+    const savedDevice = JSON.parse(rawDevice) as Device
+  });
 
-        setDevice(device);
-      }
-
-      localStorage.setItem("device", JSON.stringify(device))
-
-      create();
-
-    console.log(device?.id);
+  useEffect(() => {
+    //   const savedDevice = localStorage.getItem("device");
+    //   if(savedDevice)
+    //     {
+    //       setDevice(JSON.parse(savedDevice) as DeviceRead);
+    //       return;
+    //     }
+    //   const create = async () => {
+    //     //TODO: problematyczne bo i tak nie utowrzy sie bez backenud
+    //     const createdDevice = await createDevice({
+    //       name: "default"
+    //     } as DeviceWrite);
+    //     setDevice(device);
+    //   }
+    //   localStorage.setItem("device", JSON.stringify(device))
+    //   create();
+    // console.log(device?.id);
   }, []);
 
   useEffect(() => {
-
     if (items.length > 0) {
-      
       return;
-
     }
     async function getLibs() {
       try {
         const res = await fetchLibraries();
         if (!res.ok) {
-
           return;
         }
         const data = (await res.json()) as LibraryRead[];
         setItems(data);
 
-        data.forEach(e => {
+        data.forEach((e) => {
           console.log("ID:", e.id);
-        })
-
+        });
       } catch (e) {}
     }
 
     getLibs();
   }, [items.length, setItems]);
+
+  if(openDeviceSetup)
+    {
+      return <>
+            {openDeviceSetup &&
+        createPortal(
+          <SetupDevice
+            onSubmit={() => {
+              const rawDevice = localStorage.getItem("device");
+
+              if (rawDevice) {
+                setDevice(JSON.parse(rawDevice) as Device);
+              }
+
+              setOpenDeviceSetup(false);
+            }}
+          />,
+          document.body,
+        )}</>
+    }
 
   return (
     <>
@@ -80,12 +114,16 @@ export default function Home() {
         <div className="animate-fade-in">
           <HomeTitle />
           {/* <DeviceIcon device={device}/> */}
-
         </div>
 
-        <section className="animate-fade-in-up mt-2" style={{ animationDelay: "0.1s" }}>
+        <section
+          className="animate-fade-in-up mt-2"
+          style={{ animationDelay: "0.1s" }}
+        >
           <div className="mb-4">
-            <span className="text-xs tracking-widest text-emerald-400 uppercase">Recent</span>
+            <span className="text-xs tracking-widest text-emerald-400 uppercase">
+              Recent
+            </span>
             <h2 className="text-2xl sm:text-3xl font-semibold text-text-primary mt-0.5">
               Recently Used
             </h2>
@@ -93,9 +131,14 @@ export default function Home() {
           <RecentlyUsedList recentlyUsedList={list} />
         </section>
 
-        <section className="animate-fade-in-up mt-10" style={{ animationDelay: "0.2s" }}>
+        <section
+          className="animate-fade-in-up mt-10"
+          style={{ animationDelay: "0.2s" }}
+        >
           <div className="mb-4">
-            <span className="text-xs tracking-widest text-emerald-400 uppercase">Collections</span>
+            <span className="text-xs tracking-widest text-emerald-400 uppercase">
+              Collections
+            </span>
             <h2 className="text-2xl sm:text-3xl font-semibold text-text-primary mt-0.5">
               My Libraries
             </h2>
@@ -109,7 +152,10 @@ export default function Home() {
         </section>
       </div>
 
-      <LibraryModal show={showLibraryModal} onClose={() => setShowLibraryModal(false)} />
+      <LibraryModal
+        show={showLibraryModal}
+        onClose={() => setShowLibraryModal(false)}
+      />
     </>
   );
 }

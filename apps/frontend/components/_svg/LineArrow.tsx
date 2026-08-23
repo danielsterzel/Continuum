@@ -1,8 +1,8 @@
 "use client";
 
-import { motion } from "motion/react";
+import { motion, type Variants } from "motion/react";
 
-const line = {
+const line: Variants = {
   rest: {
     pathLength: 0,
     strokeWidth: 2,
@@ -17,7 +17,7 @@ const line = {
   },
 };
 
-const arrow = {
+const arrow: Variants = {
   rest: {
     x: 0,
     strokeWidth: 2,

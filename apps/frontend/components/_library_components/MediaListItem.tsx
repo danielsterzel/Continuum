@@ -6,6 +6,7 @@ import { formatDuration, formatFileSize } from "@/lib/UxMedia";
 import Link from "next/link"
 import { useState } from "react";
 import { MediaDeleteModal } from "./MediaDeleteModal";
+import { useLibrary } from "@/app/context/LibraryContext";
 
 export function getMediaIcon(type: string, styling?: string, strokeWidth: number = 1.5) {
   const t = type.toLowerCase();
@@ -48,11 +49,12 @@ export function MediaListItem({ media, idx, onDeleted }: Readonly<MediaListItemP
   const badge = getTypeBadge(media.mediaType);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
+
   return (
     <div
       className="animate-fade-in-up"
       style={{ animationDelay: `${idx * 0.05}s` }}
-    ><Link href={`/libraries/${media.libraryId}/media/${media.id}`}>
+    ><Link href={`/library?libraryId=${media.libraryId}&media?mediaId=${media.id}`}>
       <div
         className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr_minmax(2.5rem,auto)] items-center px-4 py-3
                     hover:bg-card-hover transition-colors duration-200 cursor-pointer"

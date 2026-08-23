@@ -1,15 +1,15 @@
 "use client";
 
-import { useParams, useRouter } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useEffect} from "react";
 import { fetchSingleMedia } from "@/lib/api/library";
 import { GoBackButton } from "@/app/UI/GoBackButton";
 import { getMediaIcon } from "@/components/_library_components/MediaListItem";
 import { formatFileSize } from "@/lib/UxMedia";
-import { VideoMain } from "../_variations/VideoMain";
-import { ImageMain } from "../_variations/ImageMain";
-import { PdfMain } from "../_variations/PdfMain";
-import { AudioMain } from "../_variations/AudioMain";
+import { VideoMain } from "./_variations/VideoMain";
+import { ImageMain } from "./_variations/ImageMain";
+import { PdfMain } from "./_variations/PdfMain";
+import { AudioMain } from "./_variations/AudioMain";
 import { MetaChip } from "@/components/_library_components/MetaChip";
 import { formatDate } from "@/lib/datetime";
 import { HardDrive, Tag, Calendar, CalendarClock } from "lucide-react";
@@ -66,11 +66,18 @@ type Pallete = {
     img: ImgStyle;
 }
 
-export default function MediaPage() {
-  const { libraryId, mediaId } = useParams<{
-    libraryId: string;
-    mediaId: string;
-  }>();
+export function MediaClient()
+{
+  const searchParams = useSearchParams();
+
+  const libraryId = searchParams.get("libraryId");
+  const mediaId = searchParams.get("mediaId");
+
+  if(!libraryId || !mediaId)
+    {
+        return null;
+    }
+
   const {media, setMedia} = useMedia();
   console.log("RENDER MEDIA:", media);
 
@@ -140,5 +147,5 @@ export default function MediaPage() {
       <div className="mt-8 sm:mt-12 flex items-center justify-center">{Main && <Main />}</div>
 
     </div>
-  );
+  );  
 }

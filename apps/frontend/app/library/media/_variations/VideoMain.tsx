@@ -6,7 +6,7 @@ import { Edit } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 
 import type { NoteRead } from "@/types/note";
-import { getMediaColor, getMediaBg } from "../[mediaId]/page";
+import { getMediaColor, getMediaBg } from "../MediaClient";
 import {
   fetchMediaProgresForMedia,
   postMediaProgress,
