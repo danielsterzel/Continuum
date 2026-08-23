@@ -35,6 +35,9 @@ class User(Base, TimestampMixin, UUIDMixin):
         String(100),
         nullable=False,
     )
+
+    password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
+
     libraries: Mapped[list["Library"]] = relationship(
         back_populates="user",
         cascade="all, delete-orphan",

@@ -1,6 +1,7 @@
 import { SQLiteDBConnection } from "@capacitor-community/sqlite";
 import type { Device } from "@/types/device";
 import { EntityType } from "@/types/sync_change";
+import { persistDatabase } from "../database";
 
 export class DeviceRepository {
   private db: SQLiteDBConnection;
@@ -40,6 +41,7 @@ export class DeviceRepository {
     `,
       [device.id, device.userId, device.name, device.lastSeen, device.version],
     );
+    await persistDatabase();
   }
 
   async get(): Promise<Device | null> {

@@ -1,9 +1,15 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import { useState } from "react";
 
 export function SlideMenu() {
   const [isOpen, setIsOpen] = useState(false);
+  const pathname = usePathname();
+
+  if (!pathname.startsWith("/dashboard") && !pathname.startsWith("/library")) {
+    return null;
+  }
 
   return (
     <>
@@ -39,10 +45,30 @@ export function SlideMenu() {
         </div>
 
         <nav className="flex flex-col gap-1 p-4">
-          <a href="#" className="px-3 py-2.5 rounded-lg text-text-secondary hover:bg-card-hover hover:text-text-primary transition-colors duration-200">Dashboard</a>
-          <a href="#" className="px-3 py-2.5 rounded-lg text-text-secondary hover:bg-card-hover hover:text-text-primary transition-colors duration-200">Settings</a>
-          <a href="#" className="px-3 py-2.5 rounded-lg text-text-secondary hover:bg-card-hover hover:text-text-primary transition-colors duration-200">Profile</a>
-          <a href="#" className="px-3 py-2.5 rounded-lg text-text-secondary hover:bg-card-hover hover:text-text-primary transition-colors duration-200">Sign out</a>
+          <a
+            href="#"
+            className="px-3 py-2.5 rounded-lg text-text-secondary hover:bg-card-hover hover:text-text-primary transition-colors duration-200"
+          >
+            Dashboard
+          </a>
+          <a
+            href="#"
+            className="px-3 py-2.5 rounded-lg text-text-secondary hover:bg-card-hover hover:text-text-primary transition-colors duration-200"
+          >
+            Settings
+          </a>
+          <a
+            href="#"
+            className="px-3 py-2.5 rounded-lg text-text-secondary hover:bg-card-hover hover:text-text-primary transition-colors duration-200"
+          >
+            Profile
+          </a>
+          <a
+            href="#"
+            className="px-3 py-2.5 rounded-lg text-text-secondary hover:bg-card-hover hover:text-text-primary transition-colors duration-200"
+          >
+            Sign out
+          </a>
         </nav>
       </div>
     </>

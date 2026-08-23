@@ -19,3 +19,15 @@ class UserRepository(BaseRepository):
             return False
 
         return True
+
+    async def fetch_by_email(self, email: str) -> User | None:
+
+        query = (
+            select(self.model)
+            .where(self.model.email == email)
+        )
+
+        res = await self.db.execute(query)
+
+        user: User | None = res.scalar_one_or_none()
+        return user

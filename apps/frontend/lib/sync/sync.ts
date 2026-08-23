@@ -45,10 +45,11 @@ export async function batchAndSend(): Promise<void> {
 
 export function queueEntityChange(
   entityArg: EntityUnionType,
-  operation: SyncOperation
+  operation: SyncOperation,
+  deviceId: string
 )
 {
-  const {syncChange} = mapEntityToSync(entityArg, operation);
+  const {syncChange} = mapEntityToSync(entityArg, operation, deviceId);
 
   enqueueChange(syncChange);
 

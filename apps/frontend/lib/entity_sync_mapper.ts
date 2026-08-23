@@ -17,26 +17,12 @@ type SyncAndEntity = {
   entity: EntityUnionType;
 };
 
-function prepareDeviceAndSyncId() {
-  const device = getDevice();
-  const syncId = v4();
-
-  return { deviceId: device.id, syncId: syncId };
-}
-
-export function getDevice() {
-  const device = localStorage.getItem("device");
-  if (!device) {
-    throw new Error("Device not found");
-  }
-  return JSON.parse(device) as Device;
-}
-
 export function mapNoteToSyncChange(
   entity: Note,
   operation: SyncOperation,
+  deviceId: string,
 ): SyncAndEntity {
-  const { deviceId, syncId } = prepareDeviceAndSyncId();
+  const syncId = v4();
 
   let { id, version, entityType, ...originalPayload } = entity;
 
@@ -64,9 +50,9 @@ export function mapNoteToSyncChange(
 export function mapLibraryToSyncChange(
   entity: Library,
   operation: SyncOperation,
+  deviceId: string,
 ): SyncAndEntity {
-  const { deviceId, syncId } = prepareDeviceAndSyncId();
-
+  const syncId = v4();
   let { id, media, version, entityType, ...originalPayload } = entity;
 
   const payload = snakecaseKeys(originalPayload);
@@ -94,9 +80,9 @@ export function mapLibraryToSyncChange(
 export function mapMediaToSyncChange(
   entity: Media,
   operation: SyncOperation,
+  deviceId: string,
 ): SyncAndEntity {
-  const { deviceId, syncId } = prepareDeviceAndSyncId();
-
+  const syncId = v4();
   let { id, version, entityType, ...originalPayload } = entity;
 
   const payload = snakecaseKeys(originalPayload);
@@ -123,9 +109,9 @@ export function mapMediaToSyncChange(
 export function mapMediaProgressToSyncChange(
   entity: MediaProgress,
   operation: SyncOperation,
+  deviceId: string,
 ): SyncAndEntity {
-  const { deviceId, syncId } = prepareDeviceAndSyncId();
-
+  const syncId = v4();
   let { id, version, entityType, ...originalPayload } = entity;
   const payload = snakecaseKeys(originalPayload);
 
@@ -155,12 +141,12 @@ export function mapMediaProgressToSyncChange(
   return { syncChange, entity };
 }
 
-
 export function deviceToSyncChange(
   entity: EntityUnionType,
   operation: SyncOperation,
+  deviceId: string,
 ) {
-  const { deviceId, syncId } = prepareDeviceAndSyncId();
+  const syncId = v4();
   let { id, version, entityType, ...originalPayload } = entity;
 
   const payload = snakecaseKeys(originalPayload);
@@ -187,21 +173,22 @@ export function deviceToSyncChange(
 export function mapEntityToSync(
   entity: EntityUnionType,
   operation: SyncOperation,
+  deviceId: string,
 ) {
   switch (entity.entityType) {
     case EntityType.Library:
-      return mapLibraryToSyncChange(entity, operation);
+      return mapLibraryToSyncChange(entity, operation, deviceId);
 
     case EntityType.Media:
-      return mapMediaToSyncChange(entity, operation);
+      return mapMediaToSyncChange(entity, operation, deviceId);
 
     case EntityType.MediaProgress:
-      return mapMediaProgressToSyncChange(entity, operation);
+      return mapMediaProgressToSyncChange(entity, operation, deviceId);
 
     case EntityType.Note:
-      return mapNoteToSyncChange(entity, operation);
+      return mapNoteToSyncChange(entity, operation, deviceId);
 
-      case EntityType.Device:
-        return deviceToSyncChange(entity, operation);
+    case EntityType.Device:
+      return deviceToSyncChange(entity, operation, deviceId);
   }
 }

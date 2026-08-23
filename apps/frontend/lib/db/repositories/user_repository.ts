@@ -1,5 +1,6 @@
 import { SQLiteDBConnection } from "@capacitor-community/sqlite";
 import type { User } from "@/types/user";
+import { persistDatabase } from "../database";
 
 export class UserRepository {
   private db: SQLiteDBConnection;
@@ -41,6 +42,8 @@ export class UserRepository {
     `,
       [user.id, user.email, user.displayName, user.createdAt, user.updatedAt],
     );
+
+    await persistDatabase();
   }
   async get(): Promise<User | null> {
   const result = await this.db.query(`

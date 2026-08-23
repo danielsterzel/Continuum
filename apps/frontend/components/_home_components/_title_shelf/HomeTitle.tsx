@@ -1,17 +1,15 @@
 export function HomeTitle() {
-    return (
-        <div className="py-8 max-w-[400px] origin-bottom tracking-wider flex flex-col gap-2">
-            <div className="tracking-widest text-xs text-emerald-400 uppercase">
-                Dashboard
-            </div>
-            <div className="flex gap-1 items-center relative">
-        
-                <h1 className="text-3xl sm:text-5xl font-semibold text-text-primary">
-                    Welcome back
-                </h1>
- 
-            </div>
-            <p className="text-text-secondary">Pick up right where you left off</p>
-        </div>
-    );
+  return (
+    <div className="flex max-w-xl origin-bottom flex-col gap-2">
+      <div className="text-xs uppercase tracking-[0.2em] text-emerald-400">
+        Your space
+      </div>
+      <h1 className="text-3xl font-semibold tracking-tight text-text-primary sm:text-5xl">
+        Welcome back
+      </h1>
+      <p className="text-sm leading-6 text-text-secondary sm:text-base">
+        Pick up right where you left off.
+      </p>
+    </div>
+  );
 }
