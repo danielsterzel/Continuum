@@ -6,6 +6,7 @@ from app.models.sync_change import EntityType, SyncChange, SyncOperation
 from app.repositories.device_repository import DeviceRepository
 from app.schemas.sync_change_schema import SyncChangeWrite
 from app.services.resolve.resolve_base import ResolveBase
+from app.services.resolve.resolve_device import ResolveDevice
 from app.services.resolve.resolve_media import ResolveMedia
 from app.services.resolve.resolve_note import ResolveNote
 from app.services.resolve.resolve_library import ResolveLibrary
@@ -63,12 +64,17 @@ class SyncService:
         try:
             for change in changes:
 
-                await self._validate_device(device_id=change.device_id, user_id=user_id)
+                is_device_registration = (
+                    change.entity_type == EntityType.Device
+                    and change.operation == SyncOperation.CREATE
+                )
+                if not is_device_registration:
+
+                    await self._validate_device(device_id=change.device_id, user_id=user_id)
 
                 if change.operation == SyncOperation.DELETE and change.entity_type == EntityType.MediaProgress:
                     # no delete defined for media_progress
                     continue
-                await self._validate_device(change.device_id, user_id)
 
                 resolver = self._get_resolver(change, user_id)
                 await resolver.resolve(change)
@@ -97,6 +103,8 @@ class SyncService:
                 return ResolveLibrary(user_id=user_id, db=self.db)
             case EntityType.Note:
                 return ResolveNote(user_id=user_id, db=self.db)
+            case EntityType.Device:
+                return ResolveDevice(user_id=user_id, db=self.db)
             case _:
                 raise ValueError(f"Unsupported entity type: {change.entity_type}")
 

@@ -22,9 +22,9 @@ async def sync(changes: list[SyncChangeWrite], user_id: OwnerId, db: Annotated[A
             changes=changes,
             user_id=user_id
         )
-    except (SQLAlchemyError, ValueError, TypeError, KeyError):
+    except (SQLAlchemyError, ValueError, TypeError, KeyError) as e:
+        print("SYNC ERROR:", repr(e))
         response = Response(
-            content="INVALID SYNC",
             status_code=404,
         )
         return response

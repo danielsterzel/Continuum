@@ -21,7 +21,6 @@ class ResolveLibrary(ResolveBase[LibraryRepository]):
 
         payload["user_id"] = self.user_id # bo string vs UUID type mismatch :/
         library = self.deserialize_library(entity_id=entity_id, payload=payload,)
-
         await self.repository.save(library)
 
     async def sync_update(self, entity_id: UUID, payload: dict[str, Any]) -> None:

@@ -9,5 +9,6 @@ ENTITY_MAPPING = {
     EntityType.Note: models.Note,
     EntityType.Library: models.Library,
     EntityType.Media: models.Media,
-    EntityType.MediaProgress: models.MediaProgress
+    EntityType.MediaProgress: models.MediaProgress,
+    EntityType.Device: models.Device
 }

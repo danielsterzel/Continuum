@@ -15,6 +15,7 @@ class EntityType(str, Enum):
     Library = "library"
     Media = "media"
     MediaProgress = "media_progress"
+    Device = "device"
 
 class SyncOperation(str, Enum):
     CREATE = "create"
