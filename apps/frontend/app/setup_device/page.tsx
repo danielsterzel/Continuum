@@ -3,78 +3,59 @@
 import { ArrowRight, Smartphone } from "lucide-react";
 import type { Device } from "@/types/device";
 import { v4 } from "uuid";
-import { useRef } from "react";
-
-import { useEffect } from "react";
-import { queueEntityChange } from "@/lib/sync/sync";
+import { useRef, useEffect  } from "react";
 import { EntityType, SyncOperation } from "@/types/sync_change";
 import { useRouter } from "next/navigation";
 import { DeviceRepository } from "@/lib/db/repositories/device_repository";
 import { getDatabase } from "@/lib/db/database";
-import { UserRepository } from "@/lib/db/repositories/user_repository";
+import { useUser } from "../context/UserContext";
+import { useDevice } from "../context/DeviceContext";
+import { enqueueChange } from "@/lib/sync/queue";
+import { queueEntityChange } from "@/lib/sync/sync";
 
 export default function SetupDevice() {
   const inputRef = useRef<HTMLInputElement | null>(null);
 
+  const {user} = useUser();
+  const {device, setDevice} = useDevice();
+
+
   const router = useRouter();
 
   useEffect(() => {
-    async function mountValidation() {
-      const db = await getDatabase();
-      const userRepository = new UserRepository(db);
+  if (!user) {
+    router.replace("/setup_user");
+    return;
+  }
 
-      const user = await userRepository.get();
-
-      if (!user) {
-        router.replace("/setup_user");
-        return;
-      }
-
-      const deviceRepository = new DeviceRepository(db);
-
-      const isSavedDevice = await deviceRepository.get();
-      console.log("DEVICE", isSavedDevice);
-
-      if (isSavedDevice) {
-        router.push("/dashboard");
-        return;
-      }
-    }
-    mountValidation();
-  }, []);
+  if (device) {
+    router.replace("/dashboard");
+  }
+}, [user, device, router]);
 
   async function handleDeviceSubmit() {
-    const db = await getDatabase();
-
-    const userRepository = new UserRepository(db);
-
-    const user = await userRepository.get();
 
     if (!user) {
       router.replace("/setup_user");
       return;
     }
 
+    const db = await getDatabase();
     const deviceRepository = new DeviceRepository(db);
-    const deviceId = v4();
-    let choosenName;
 
-    if (inputRef.current) {
-      choosenName = inputRef.current.value;
-    } else {
-      choosenName = "default";
-    }
-
-    const device: Device = {
+    const newDevice: Device = {
       userId: user.id,
-      id: deviceId,
-      name: choosenName,
+      id: v4(),
+      name: inputRef.current?.value || "default",
       lastSeen: new Date().toISOString(),
-      version: 0,
+      version: 1,
       entityType: EntityType.Device,
     };
 
-    await deviceRepository.add(device);
+    await deviceRepository.add(newDevice);
+    await queueEntityChange(newDevice, SyncOperation.CREATE, newDevice.id);
+    
+    setDevice(newDevice);
 
     router.replace("/dashboard");
   }

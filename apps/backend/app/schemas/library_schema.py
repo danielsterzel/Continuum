@@ -43,3 +43,5 @@ class LibraryRead(BaseModel):
     icon_url: str | None = Field(default=None)
     media: list[MediaRead]
     updated_at: datetime
+    version: int
+    deleted_at: datetime | None

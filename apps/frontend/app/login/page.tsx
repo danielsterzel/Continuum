@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, type SubmitEvent } from "react";
+import { useState, useEffect, type SubmitEvent } from "react";
 import {
   ArrowRight,
   CircleAlert,
@@ -17,6 +17,8 @@ import { loginUser } from "@/lib/api/user";
 import { getDatabase } from "@/lib/db/database";
 import { UserRepository } from "@/lib/db/repositories/user_repository";
 import type { UserLogin } from "@/types/user";
+import { useUser } from "../context/UserContext";
+import { useDevice } from "../context/DeviceContext";
 
 function getErrorMessage(error: unknown): string {
   return error instanceof Error
@@ -30,11 +32,32 @@ export default function Login() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const { user, setUser } = useUser();
+  const { device } = useDevice();
+
+  useEffect(() => {
+    if (!user) {
+      return;
+    }
+
+    if (device) {
+      router.replace("/dashboard");
+    } else {
+      router.replace("/setup_device");
+    }
+  }, [user, device, router]);
+
   async function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
+
+    if (user) {
+      return;
+    }
+
     setError(null);
 
     const formData = new FormData(event.currentTarget);
+
     const request: UserLogin = {
       email: String(formData.get("email") ?? "").trim(),
       password: String(formData.get("password") ?? ""),
@@ -48,22 +71,14 @@ export default function Login() {
     try {
       setIsSubmitting(true);
 
-      const user = await loginUser(request);
+      const loggedInUser = await loginUser(request);
+
       const db = await getDatabase();
       const userRepository = new UserRepository(db);
 
-      await userRepository.initTable();
+      await userRepository.add(loggedInUser);
 
-      const localUser = await userRepository.get();
-      if (!localUser) {
-        await userRepository.add(user);
-      } else if (localUser.id !== user.id) {
-        throw new Error(
-          "A different account is already set up on this device.",
-        );
-      }
-
-      router.replace("/dashboard");
+      setUser(loggedInUser);
     } catch (submitError) {
       setError(getErrorMessage(submitError));
     } finally {

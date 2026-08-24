@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import {
   ArrowRight,
@@ -10,6 +12,10 @@ import {
   Play,
   Sparkles,
 } from "lucide-react";
+import { useUser } from "./context/UserContext";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useDevice } from "./context/DeviceContext";
 
 const features = [
   {
@@ -33,6 +39,21 @@ const features = [
 ];
 
 export default function WelcomePage() {
+
+  const {user} = useUser();
+  const {device} = useDevice();
+  const router = useRouter();
+
+  useEffect(() => {
+    if(user && device)
+      {
+      router.replace("/dashboard");
+      }
+      if(user && !device)
+        {
+          router.replace("/setup_device");
+        }
+  }, [user, router, device]);
   return (
     <main className="min-h-[100dvh] overflow-x-hidden bg-background text-text-primary">
       <div className="relative isolate">

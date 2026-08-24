@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import {
   ArrowRight,
   CircleAlert,
@@ -18,6 +18,9 @@ import { createUser } from "@/lib/api/user";
 import type { User, UserSetupRequest } from "@/types/user";
 import { UserRepository } from "@/lib/db/repositories/user_repository";
 import { getDatabase } from "@/lib/db/database";
+import { useUser } from "../context/UserContext";
+import { useDevice } from "../context/DeviceContext";
+
 
 function getPasswordError(password: string): string | null {
   if (password.length < 8) {
@@ -50,6 +53,21 @@ export default function SetupUser() {
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const {user} = useUser();
+  const {device} = useDevice();
+
+  useEffect(() => {
+    if(user && device)
+      {
+        router.replace("/dashboard")
+        return;
+      }
+    if(user && !device)
+      {
+        router.replace("/setup_device");
+        return;
+      }
+  }, [user, router])
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();

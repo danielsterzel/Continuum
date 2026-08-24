@@ -34,7 +34,7 @@ async def create_note(
     media_repository = MediaRepository(db)
     note_repository = NoteRepository(db)
 
-    media = await media_repository.fetch_owned_by_user(
+    media = await media_repository.fetch_one_by_user(
         media_id=UUID(request.mediaId), user_id=user_id
     )
 

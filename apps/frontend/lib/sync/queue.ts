@@ -1,56 +1,31 @@
-import {v4} from 'uuid';
-
+import { v4 } from "uuid";
 import type { SyncChange } from "@/types/sync_change";
-import type { EntityUnionType } from '@/types/entity_union';
-type SyncQueue = Record<string, SyncChange>;
-const QUEUE_KEY = "queue"
+import { SyncQueueRepository } from "../db/repositories/sync_queue_repository";
+import { getDatabase } from "../db/database";
 
-export function getQueue(): SyncQueue
-{
-    const queue = localStorage.getItem(QUEUE_KEY);
-    if(!queue)
-        
-        {
-            return {};
-        }
+export async function enqueueChange(syncEntity: SyncChange): Promise<void> {
+  const id = syncEntity.id ?? v4();
+  const change: SyncChange = {
+    ...syncEntity,
+    id,
+  };
 
-    return JSON.parse(queue) as SyncQueue;
+  const db = await getDatabase();
+  const syncQueueRepository = new SyncQueueRepository(db);
+
+  await syncQueueRepository.add(change);
 }
 
+export async function getPendingChanges(): Promise<SyncChange[]> {
+  const db = await getDatabase();
+  const syncQueueRepository = new SyncQueueRepository(db);
 
-export function enqueueChange(syncEntity: SyncChange)
-{
-
-    const id = syncEntity.id ?? v4();
-    const change: SyncChange = {
-        ...syncEntity,
-        id,
-    }
-    
-    const queue = getQueue();
-
-    queue[id] = change;
-
-    localStorage.setItem(
-        QUEUE_KEY,
-        JSON.stringify(queue),
-    );
-
+  return await syncQueueRepository.getPendingChanges();
 }
 
-export function getPendingChanges(): SyncChange[]
-{
-    return Object.values(getQueue());
-}
+export async function removeFromQueue(id: string): Promise<void> {
+  const db = await getDatabase();
+  const syncQueueRepository = new SyncQueueRepository(db);
 
-export function removeFromQueue(id: string)
-{
-    const queue: SyncQueue = getQueue();
-
-    delete queue[id];
-
-    localStorage.setItem(
-        QUEUE_KEY,
-        JSON.stringify(queue),
-    );
+  await syncQueueRepository.remove(id);
 }

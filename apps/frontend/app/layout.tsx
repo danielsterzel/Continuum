@@ -5,6 +5,7 @@ import { Provider } from "./providers";
 import { SlideMenu } from "@/components/_home_components/SlideMenu";
 import { SyncService } from "./worker/SyncService";
 import { BootstrapDb } from "./BootstrapDb";
+import { UserProvider } from "./context/UserContext";
 
 const montserrat = Montserrat({
   subsets: ["latin"],
@@ -26,11 +27,13 @@ export default function RootLayout({
     <html lang="en">
       <body className={montserrat.className}>
         <BootstrapDb >
+          <UserProvider>
         <SyncService />
         <Provider>
           <SlideMenu />
           {children}
         </Provider>
+        </UserProvider>
         </BootstrapDb>
       </body>
     </html>

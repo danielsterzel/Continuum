@@ -11,51 +11,17 @@ import type { LibraryRead } from "@/types/library";
 import { fetchLibraries } from "@/lib/api/library";
 import { DeviceIcon } from "@/components/DeviceIcon";
 import { list } from "@/lib/hardcoded";
-import { Device } from "@/types/device";
-import { getDatabase } from "@/lib/db/database";
-import { UserRepository } from "@/lib/db/repositories/user_repository";
-import { DeviceRepository } from "@/lib/db/repositories/device_repository";
-import { User } from "@/types/user";
 import { useRouter } from "next/navigation";
 import { Clock3, FolderOpen, Plus } from "lucide-react";
+import { useUser } from "../context/UserContext";
+import { useDevice } from "../context/DeviceContext";
 
 export default function Home() {
   const [showLibraryModal, setShowLibraryModal] = useState(false);
   const { items, setItems } = useLibrary();
-  const [device, setDevice] = useState<Device | null>(null);
-  const [user, setUser] = useState<User | null>(null);
+  const { user } = useUser();
+  const { device } = useDevice();
   const router = useRouter();
-
-  useEffect(() => {
-    async function loadLocalState() {
-      const db = await getDatabase();
-
-      const userRepository = new UserRepository(db);
-      const deviceRepository = new DeviceRepository(db);
-
-      let localUser = await userRepository.get();
-
-      if (!localUser) {
-        console.log("NO LOCAL USER");
-
-        router.push("/");
-        return;
-      }
-
-      setUser(localUser);
-
-      const localDevice = await deviceRepository.get();
-
-      if (!localDevice) {
-        router.push("/setup_device");
-        return;
-      }
-
-      setDevice(localDevice);
-    }
-
-    loadLocalState();
-  }, []);
 
   useEffect(() => {
     if (items.length > 0) {
@@ -78,6 +44,15 @@ export default function Home() {
 
     getLibs();
   }, [items.length, setItems]);
+
+  if (!user) {
+    router.replace("/login");
+    return null;
+  }
+  if (!device) {
+    router.replace("/setup_device");
+    return null;
+  }
 
   return (
     <>

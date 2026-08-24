@@ -144,7 +144,6 @@ export function mapMediaProgressToSyncChange(
 export function deviceToSyncChange(
   entity: EntityUnionType,
   operation: SyncOperation,
-  deviceId: string,
 ) {
   const syncId = v4();
   let { id, version, entityType, ...originalPayload } = entity;
@@ -156,7 +155,7 @@ export function deviceToSyncChange(
   }
   const syncChange = {
     id: syncId,
-    deviceId: deviceId,
+    deviceId: id,
     entityType: entityType,
     entityId: id,
     operation: operation,
@@ -173,8 +172,15 @@ export function deviceToSyncChange(
 export function mapEntityToSync(
   entity: EntityUnionType,
   operation: SyncOperation,
-  deviceId: string,
+  deviceId?: string,
 ) {
+  if (entity.entityType === EntityType.Device) {
+    return deviceToSyncChange(entity, operation);
+  }
+
+  if (!deviceId) {
+    throw new Error("deviceId is required for synced entity");
+  }
   switch (entity.entityType) {
     case EntityType.Library:
       return mapLibraryToSyncChange(entity, operation, deviceId);
@@ -187,8 +193,5 @@ export function mapEntityToSync(
 
     case EntityType.Note:
       return mapNoteToSyncChange(entity, operation, deviceId);
-
-    case EntityType.Device:
-      return deviceToSyncChange(entity, operation, deviceId);
   }
 }

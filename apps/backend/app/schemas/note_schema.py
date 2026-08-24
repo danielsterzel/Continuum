@@ -24,6 +24,7 @@ class NoteRead(BaseModel):
     title: str = Field(..., max_length=50)
     content: str = Field(..., max_length=300)
     timestamp: float | None
+    version: int
     deleted_at: datetime | None
     created_at: datetime
     updated_at: datetime

@@ -32,11 +32,21 @@ class MediaRepository(BaseRepository[Media]):
         res = await self.db.execute(query)
 
         return res.scalar_one_or_none()
+    async def fetch_all_by_user(self, user_id) -> list[Media]:
+        query = (
+            select(self.model)
+            .join(Library, self.model.library_id == Library.id)
+            .where(Library.user_id == user_id)
+        )
 
-    async def fetch_owned_by_user(self, media_id: UUID, user_id: UUID) -> Media | None:
+        res = await self.db.execute(query)
+
+        return list(res.scalars().all())
+
+    async def fetch_one_by_user(self, media_id: UUID, user_id: UUID) -> Media | None:
 
         query = (
-            select(Media)
+            select(self.model)
             .join(Library, Media.library_id == Library.id)
             .where(Media.id == media_id, Library.user_id == user_id)
         )

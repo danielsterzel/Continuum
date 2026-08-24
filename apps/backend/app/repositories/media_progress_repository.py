@@ -2,7 +2,7 @@ from app.repositories.base_repository import BaseRepository
 from app.models.media_progress import MediaProgress
 from app.models.media import Media
 from app.models.libraries import Library
-from sqlalchemy import select, update
+from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
 
 from uuid import UUID
@@ -28,6 +28,18 @@ class MediaProgressRepository(BaseRepository[MediaProgress]):
         result = await self.db.execute(stmt)
 
         return result.scalar_one_or_none()
+
+    async def fetch_all_by_user(self, user_id: UUID) -> list[MediaProgress]:
+
+        query = (
+            select(self.model)
+            .join(Media, self.model.media_id == Media.id)
+            .join(Library, Media.library_id == Library.id)
+            .where(Library.user_id == user_id)
+        )
+        res = await self.db.execute(query)
+
+        return list(res.scalars().all())
 
     async def save_or_update(self, media_progress: MediaProgress):
 

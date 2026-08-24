@@ -17,7 +17,8 @@ class MediaProgressRead(BaseModel):
     current_position: timedelta | None
     last_watched: datetime
     last_device_id: UUID | None
-
+    version: int
+    deleted_at: datetime | None
 
 class MediaProgressWrite(BaseModel):
     model_config = ConfigDict(

@@ -14,7 +14,7 @@ export enum SyncOperation{
     DELETE="delete"
 }
 export type SyncChange = {
-    id?: string;
+    id: string;
     deviceId: string;
 
     entityType: EntityType;

@@ -1,15 +1,15 @@
 import type { SyncChangeWrite, SyncOperation } from "@/types/sync_change";
-import { enqueueChange, getQueue, removeFromQueue } from "./queue";
+import { enqueueChange, getPendingChanges, removeFromQueue } from "./queue";
 import { EntityUnionType } from "@/types/entity_union";
 import { mapEntityToSync } from "../entity_sync_mapper";
 
 const BATCH_SIZE = 20;
 
-
 async function postSyncChanges(
   syncChangeWrites: SyncChangeWrite[],
+  userId: string
 ): Promise<void> {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/sync/initiate`, {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/sync/initiate/${userId}`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -22,35 +22,33 @@ async function postSyncChanges(
   }
 }
 
-export async function batchAndSend(): Promise<void> {
-  const entries = Object.entries(getQueue());
+export async function batchAndSend(userId: string): Promise<void> {
+  const pendingChanges = await getPendingChanges();
 
-  if (entries.length === 0) {
+  if (pendingChanges.length === 0) {
     return;
   }
 
-  const batch = entries.slice(0, BATCH_SIZE);
+  const batch = pendingChanges.slice(0, BATCH_SIZE);
 
-  const changes = batch.map(([, change]) => {
+  const changes = batch.map((change) => {
     const { id, createdAt, ...syncChange } = change;
     return syncChange;
   });
 
-  await postSyncChanges(changes);
+  await postSyncChanges(changes, userId);
 
-  for (const [id] of batch) {
-    removeFromQueue(id);
+  for (const change of batch) {
+    await removeFromQueue(change.id);
   }
 }
 
-export function queueEntityChange(
+export async function queueEntityChange(
   entityArg: EntityUnionType,
   operation: SyncOperation,
-  deviceId: string
-)
-{
-  const {syncChange} = mapEntityToSync(entityArg, operation, deviceId);
+  deviceId: string,
+): Promise<void> {
+  const { syncChange } = mapEntityToSync(entityArg, operation, deviceId);
 
-  enqueueChange(syncChange);
-
+  await enqueueChange(syncChange);
 }
