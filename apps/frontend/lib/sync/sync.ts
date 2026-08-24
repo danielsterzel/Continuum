@@ -2,7 +2,8 @@ import type { SyncChangeWrite, SyncOperation } from "@/types/sync_change";
 import { enqueueChange, getPendingChanges, removeFromQueue } from "./queue";
 import { EntityUnionType } from "@/types/entity_union";
 import { mapEntityToSync } from "../entity_sync_mapper";
-
+import { fetchSyncState } from "../api/sync";
+import { applySyncState } from "./apply_sync_state";
 const BATCH_SIZE = 20;
 
 async function postSyncChanges(
@@ -20,6 +21,21 @@ async function postSyncChanges(
   if (!res.ok) {
     throw new Error(`SYNC: HTTP error ${res.status}`);
   }
+}
+
+export async function syncCycle(userId: string): Promise<void> {
+  
+  await batchAndSend(userId);
+
+  const remainingChanges = await getPendingChanges();
+
+  if (remainingChanges.length > 0) {
+    return;
+  }
+
+  const state = await fetchSyncState(userId);
+
+  await applySyncState(state);
 }
 
 export async function batchAndSend(userId: string): Promise<void> {

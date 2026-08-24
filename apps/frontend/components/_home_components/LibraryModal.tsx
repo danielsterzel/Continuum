@@ -3,9 +3,17 @@
 import { useEffect, useRef, useState } from "react";
 import { Check, ImageIcon } from "lucide-react";
 
-import type { LibraryRead, LibraryCreate } from "@/types/library";
+import type {LibraryCreate, Library } from "@/types/library";
 import { useLibrary } from "@/app/context/LibraryContext";
-import { createLibrary } from "@/lib/api/library";
+import { v4 } from "uuid";
+import { saveLocalFile } from "@/lib/files/localFileStorage";
+import { useUser } from "@/app/context/UserContext";
+import { EntityType, SyncOperation } from "@/types/sync_change";
+import { getDatabase } from "@/lib/db/database";
+import { LibraryRepository } from "@/lib/db/repositories/library_repository";
+import { queueEntityChange } from "@/lib/sync/sync";
+import { useDevice } from "@/app/context/DeviceContext";
+
 
 type LibraryModalProps = {
   show: boolean;
@@ -25,6 +33,8 @@ export function LibraryModal({ show, onClose }: LibraryModalProps) {
   const imgInputRef = useRef<HTMLInputElement>(null);
 
   const { setItems } = useLibrary();
+  const {user} = useUser();
+  const {device} = useDevice();
 
   useEffect(() => {
     if (!err) return;
@@ -32,11 +42,44 @@ export function LibraryModal({ show, onClose }: LibraryModalProps) {
     return () => window.clearTimeout(timeoutId);
   }, [err]);
 
-  async function createLib(bodyArg: LibraryCreate, icon: File | null) {
+  // async function createLib(bodyArg: LibraryCreate, icon: File | null) {
 
-    const data = await createLibrary(bodyArg, icon);
+  //   const data = await createLibrary(bodyArg, icon);
 
-    setItems(prev => [...prev, data as LibraryRead]);
+  // }
+
+  async function createLibrary(bodyArg: LibraryCreate, icon: File | null)
+  {
+      const id = v4();
+      let iconUrl: string | undefined;
+  
+      if(icon)
+          {
+              iconUrl = `${id}/icon.png`;
+              await saveLocalFile(
+                  icon,iconUrl
+              );
+          }
+  
+      const library: Library = {
+          id,
+          userId: user!.id,
+          name: bodyArg.name,
+          description: bodyArg.description,
+          iconUrl: iconUrl ?? "",
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          deletedAt: "",
+          version: 0,
+          entityType: EntityType.Library,
+      };
+      const db = await getDatabase();
+      const repository = new LibraryRepository(db);
+      
+      await repository.add(library);
+      await queueEntityChange(library, SyncOperation.CREATE, device!.id);
+      setItems((prev) => [...prev, library]);
+
   }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -45,7 +88,7 @@ export function LibraryModal({ show, onClose }: LibraryModalProps) {
     try {
       setErr(false);
       setIsSubmitting(true);
-      await createLib(library, currImg);
+      await createLibrary(library, currImg);
       setLibrary((prev) => ({ ...prev, name: "", description: "" }));
       onClose();
     } catch (error) {

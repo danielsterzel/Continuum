@@ -1,29 +1,33 @@
 "use client";
 
 import { useEffect } from "react";
-import { batchAndSend } from "@/lib/sync/sync";
 import { useUser } from "../context/UserContext";
+import { syncCycle } from "@/lib/sync/sync";
 
+export function SyncService() {
+  const { user } = useUser();
 
-export function SyncService()
-{   
-    const {user} = useUser();
+  useEffect(() => {
+    if (!user) {
+      return;
+    }
 
+    const runSync = async () => {
+      try {
+        await syncCycle(user.id);
+      } catch (error) {
+        console.error("SYNC CYCLE ERROR:", error);
+      }
+    };
 
-    useEffect(() => {
-        if(!user)
-        {
-            return;
-        }
-        console.log("I AM WORKING");
-        const interval = setInterval(async () => {
-            await batchAndSend(user.id);
-        }, 30_000);
+    void runSync();
 
-    
-        return () => clearInterval(interval);
-    }, [user]);
+    const interval = setInterval(() => {
+      void runSync();
+    }, 30_000);
 
-    return null;
+    return () => clearInterval(interval);
+  }, [user]);
+
+  return null;
 }
-

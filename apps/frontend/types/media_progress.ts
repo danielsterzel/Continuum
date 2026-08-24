@@ -3,7 +3,7 @@ import { EntityType } from "./sync_change";
 
 export type MediaProgressRead = {
     id: string;
-    media_id: string;
+    mediaId: string;
     currentPosition: number | null;
     lastWatched: number;
     lastDeviceId: string;

@@ -9,13 +9,12 @@ export type NoteRead = {
     title: string;
     content: string;
     timestamp: number | null;
-    deleted_at: number | null;
     createdAt: number;
     updatedAt: number;
 };
 
 export type Note = NoteRead & {
-    deletedAt: number;
+    deletedAt: number | null;
     version: number;
     entityType: EntityType.Note
 }

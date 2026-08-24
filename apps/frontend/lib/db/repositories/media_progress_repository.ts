@@ -1,18 +1,15 @@
+import { MediaProgress } from "@/types/media_progress";
 import { SQLiteDBConnection } from "@capacitor-community/sqlite";
+import { persistDatabase } from "../database";
 
+export class MediaProgressRepository {
+  private db: SQLiteDBConnection;
 
-
-export class MediaProgressRepository
-{
-    private db: SQLiteDBConnection
-
-    constructor(dbConnection : SQLiteDBConnection)
-    {
-        this.db = dbConnection;
-    }
-    async initTable(): Promise<void>
-    {
-        await this.db.execute(`
+  constructor(dbConnection: SQLiteDBConnection) {
+    this.db = dbConnection;
+  }
+  async initTable(): Promise<void> {
+    await this.db.execute(`
         CREATE TABLE IF NOT EXISTS media_progress (
             id TEXT PRIMARY KEY NOT NULL,
 
@@ -35,6 +32,41 @@ export class MediaProgressRepository
             UNIQUE (media_id)
         );
         `);
-    }
+  }
 
+  async upsertFromSync(progress: MediaProgress): Promise<void> {
+    await this.db.run(
+      `
+    INSERT INTO media_progress (
+      id,
+      media_id,
+      current_position,
+      last_watched,
+      last_device_id,
+      deleted_at,
+      version
+    )
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+
+    ON CONFLICT(id) DO UPDATE SET
+      media_id = excluded.media_id,
+      current_position = excluded.current_position,
+      last_watched = excluded.last_watched,
+      last_device_id = excluded.last_device_id,
+      deleted_at = excluded.deleted_at,
+      version = excluded.version;
+    `,
+      [
+        progress.id,
+        progress.mediaId,
+        progress.currentPosition,
+        progress.lastWatched,
+        progress.lastDeviceId,
+        progress.deletedAt,
+        progress.version,
+      ],
+    );
+
+    await persistDatabase();
+  }
 }

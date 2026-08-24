@@ -2,18 +2,18 @@
 
 import { createContext, Dispatch, SetStateAction, useContext, useState} from "react";
 
-import type { LibraryRead } from "@/types/library";
+import type { Library } from "@/types/library";
 
 type LibraryContextType = {
-    items: LibraryRead[];
-    setItems: Dispatch<SetStateAction<LibraryRead[]>>;
+    items: Library[];
+    setItems: Dispatch<SetStateAction<Library[]>>;
 }
 
 const LibraryContext = createContext<LibraryContextType | null> (null);
 
 export function LibraryProvider({children} : {children: React.ReactNode})
 {
-    const [items, setItems] = useState<LibraryRead[]>([]);
+    const [items, setItems] = useState<Library[]>([]);
 
     return (<LibraryContext.Provider value={{items, setItems}}>
         {children}

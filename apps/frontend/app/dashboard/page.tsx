@@ -7,14 +7,13 @@ import { LibraryList } from "@/components/_home_components/_library_list/Library
 import { PrimaryButton } from "@/components/_buttons/PrimaryButton";
 import { LibraryModal } from "@/components/_home_components/LibraryModal";
 import { useLibrary } from "@/app/context/LibraryContext";
-import type { LibraryRead } from "@/types/library";
-import { fetchLibraries } from "@/lib/api/library";
 import { DeviceIcon } from "@/components/DeviceIcon";
 import { list } from "@/lib/hardcoded";
 import { useRouter } from "next/navigation";
 import { Clock3, FolderOpen, Plus } from "lucide-react";
 import { useUser } from "../context/UserContext";
 import { useDevice } from "../context/DeviceContext";
+import { getLibraries } from "@/lib/queries/library";
 
 export default function Home() {
   const [showLibraryModal, setShowLibraryModal] = useState(false);
@@ -24,35 +23,25 @@ export default function Home() {
   const router = useRouter();
 
   useEffect(() => {
+    
+    if (!user) {
+      router.replace("/login");
+      return;
+    }
+    if (!device) {
+      router.replace("/setup_device");
+      return;
+    }
     if (items.length > 0) {
       return;
     }
-    async function getLibs() {
-      try {
-        const res = await fetchLibraries();
-        if (!res.ok) {
-          return;
-        }
-        const data = (await res.json()) as LibraryRead[];
-        setItems(data);
-
-        data.forEach((e) => {
-          console.log("ID:", e.id);
-        });
-      } catch (e) {}
+    async function getLibs(userId: string) {
+      setItems(await getLibraries(userId));
     }
+    
 
-    getLibs();
+    getLibs(user.id);
   }, [items.length, setItems]);
-
-  if (!user) {
-    router.replace("/login");
-    return null;
-  }
-  if (!device) {
-    router.replace("/setup_device");
-    return null;
-  }
 
   return (
     <>

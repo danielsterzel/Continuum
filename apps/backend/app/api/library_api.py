@@ -142,6 +142,7 @@ async def get_file(
     return media
 
 
+# TODO: cos tam z zapisame do pliku i relative path i abs path.
 @router.post("/{library_id}/media/upload", response_model=list[MediaRead])
 async def upload_files(
     library_id: UUID,
@@ -172,6 +173,7 @@ async def upload_files(
         lib_folder = MEDIA_ROOT / str(library_id)
         folder = lib_folder / str(media_id)
         folder.mkdir(parents=True, exist_ok=True)
+        filepath = str(Path(str(library_id)) / str(media_id) / safe_name)
         dest = folder / safe_name
 
         size = 0
@@ -187,7 +189,7 @@ async def upload_files(
             id=media_id,
             library_id=library_id,
             filename=safe_name,
-            filepath=str(dest),
+            filepath=filepath,
             file_size=size,
             media_type=media_type,
         )

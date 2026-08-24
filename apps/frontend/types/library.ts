@@ -4,7 +4,7 @@ import { EntityType } from "./sync_change";
 
 export type LibraryRead = {
     id: string;
-    user_id?: string;
+    userId: string;
     name: string;
     description?: string;
     iconUrl: string;
@@ -19,9 +19,19 @@ export type LibraryCreate = {
 
 }
 
-export type Library = LibraryRead &  {
-    deletedAt: number;
-    createdAt: number;
-    version: number;
-    entityType: EntityType.Library
-}
+export type Library = {
+  id: string;
+  userId: string;
+
+  name: string;
+  description?: string;
+
+  iconUrl: string | null;
+
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
+
+  version: number;
+  entityType: EntityType.Library;
+};

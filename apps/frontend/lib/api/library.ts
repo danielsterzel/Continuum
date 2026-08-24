@@ -1,6 +1,8 @@
-import { LibraryRead } from "@/types/library";
+import { Library, LibraryRead } from "@/types/library";
 import { MediaRead } from "@/types/media";
 import { LibraryCreate } from "@/types/library";
+import { v4 } from "uuid";
+import { saveLocalFile } from "../files/localFileStorage";
 
 
 const API_ORIGIN = "http://127.0.0.1:8000";
@@ -26,35 +28,6 @@ export async function fetchLibraries()
           },
         );
     return res;
-}
-
-export async function createLibrary(bodyArg: LibraryCreate, icon: File | null)
-{
-    const formData = new FormData();
-
-    formData.append("name", bodyArg.name);
-
-    if(bodyArg.description){
-        formData.append("description", bodyArg.description);
-    }
-    if(icon)
-        {
-            formData.append("icon", icon);
-        }
-
-     const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/library/create`, {
-      method: "POST",
-      body: formData,
-    });
-
-    if (!response.ok) {
-
-        throw new Error(`Creating library failed: ${response.status}`); 
-    }
-
-
-    const data = await response.json();
-    return data;
 }
 
 
