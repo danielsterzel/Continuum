@@ -9,11 +9,17 @@ from sqlalchemy import (
     BigInteger,
     CheckConstraint,
     Interval,
-    DateTime
 )
 from enum import Enum
 from datetime import timedelta
+from typing import TYPE_CHECKING
+
 from app.models.mixins import TimestampMixin, UUIDMixin, TombstoneMixin, VersionMixin
+
+if TYPE_CHECKING:
+    from app.models.libraries import Library
+    from app.models.media_progress import MediaProgress
+    from app.models.note import Note
 
 
 class MediaType(str, Enum):
@@ -36,7 +42,7 @@ class Media(Base, UUIDMixin, TimestampMixin, TombstoneMixin, VersionMixin):
     __tablename__ = "media"
 
     __table_args__ = (
-        CheckConstraint("rating >= 1 AND rating <= 5", name="rating_betwen_1_and_5"),
+        CheckConstraint("rating >= 1 AND rating <= 5", name="rating_between_1_and_5"),
     )
 
     library_id: Mapped[UUID] = mapped_column(
@@ -51,7 +57,7 @@ class Media(Base, UUIDMixin, TimestampMixin, TombstoneMixin, VersionMixin):
     file_size: Mapped[int] = mapped_column(BigInteger)
 
     duration: Mapped[timedelta | None] = mapped_column(Interval, nullable=True)
-    thumbnail_url: Mapped[str | None] = mapped_column(String(256))
+    thumbnail_url: Mapped[str | None] = mapped_column(String(256), nullable=True)
 
     media_type: Mapped["MediaType"] = mapped_column(
         SqlEnum(

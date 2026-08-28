@@ -31,3 +31,4 @@ class DeviceSyncWrite(BaseModel):
     user_id: UUID = Field(...)
     name: str | None = Field(default=None, max_length=50)
     last_seen: datetime
+    deleted_at: datetime | None = None

@@ -1,29 +1,40 @@
 "use client";
 
-import type { LibraryRead } from "@/types/library";
+import type { Library, LibraryRead } from "@/types/library";
 import { BookOpen, Calendar, FileStack } from "lucide-react";
 import { formatDate } from "@/lib/datetime";
 import { MetaChip } from "./MetaChip";
 import { PrimaryArrowButton } from "../_buttons/PrimaryArrowButton";
 import {MultipleHiddenInput } from "@/app/UI/HiddenInput";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { RenderInputFiles } from "@/app/UI/RenderInputFiles";
 import { uploadMedia, getAssetUrl } from "@/lib/api/library";
-import { MediaRead } from "@/types/media";
+import { Media, MediaRead } from "@/types/media";
+import { getFullFilepath } from "@/lib/files/localFileStorage";
 
 type LibraryHeroProps = {
-    library: LibraryRead;
+    library: Library;
     mediaCount?: number;
-    onMediaUploaded: (uploaded: MediaRead[]) => void;
+    onMediaUploaded: (uploaded: Media[]) => void;
 };
 
 export function LibraryHero({ library, mediaCount = 0, onMediaUploaded }: Readonly<LibraryHeroProps>) {
 
     const [files, setFile] = useState<File[]>([]);
-    const [media, setMedia] = useState<MediaRead[]>(library.media ?? []);
     const fileInputRef = useRef<HTMLInputElement | null>(null);
+    const [iconPath, setIconPath] = useState("");
 
-    console.log("ICON URL:", library.iconUrl);
+    const callGetFullpath = async() => {
+        const iconUrl = await getFullFilepath(library.iconUrl);
+        
+        if(!iconUrl){return;}
+        
+        setIconPath(iconUrl);
+    }
+
+    callGetFullpath();
+
+    console.log("ICON URL:", iconPath);
     
     return (
         <div className="animate-fade-in flex flex-col sm:flex-row gap-6 sm:gap-10 items-start sm:items-center">
@@ -35,7 +46,7 @@ export function LibraryHero({ library, mediaCount = 0, onMediaUploaded }: Readon
                 
                 {library.iconUrl ? (
                     <img
-                        src={getAssetUrl(library.iconUrl)}
+                        src={getAssetUrl(iconPath)}
                         alt={library.name}
                         className="w-full h-full object-cover"
                     />
@@ -51,6 +62,7 @@ export function LibraryHero({ library, mediaCount = 0, onMediaUploaded }: Readon
                 <span className="text-xs tracking-widest text-emerald-400 uppercase">
                     Library
                 </span>
+                <p className="text-red-500">ICON URL: {library.iconUrl}</p>
 
                 <h1 className="text-3xl sm:text-5xl font-semibold text-text-primary leading-tight">
                     {library.name}
@@ -83,9 +95,9 @@ export function LibraryHero({ library, mediaCount = 0, onMediaUploaded }: Readon
                     setFile((prev) => prev.filter((_, i) => i !== index))
                 }} onSubmit={async () => {
                     // TODO: wywołanie API do wysłania `files`
-                    const uploaded = await uploadMedia(library.id, files);
-                    onMediaUploaded(uploaded);
-                    setFile([]);
+                    // const uploaded = await uploadMedia(library.id, files);
+                    // onMediaUploaded(uploaded);
+                    // setFile([]);
                 }}/>
             </div>
             <MultipleHiddenInput styling="" onChange={(e) => {

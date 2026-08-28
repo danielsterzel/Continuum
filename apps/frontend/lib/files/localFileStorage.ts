@@ -22,7 +22,17 @@ export async function saveLocalFile(
     await Filesystem.writeFile({
         path: relativePath,
         data: base64,
-        directory: Directory.Data,
+        directory: Directory.Data, // Documents for iOS but .Data is mapped to documents for iOS NOT for android that's why .Data
         recursive: true
     });
+}
+export async function getFullFilepath(filepath: string | null)
+{
+    if(!filepath){return;}
+    const {uri} = await Filesystem.getUri({
+        directory: Directory.Data,
+        path:filepath
+    });
+
+    return uri;
 }

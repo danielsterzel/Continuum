@@ -3,15 +3,17 @@
 import { useEffect, useState } from "react";
 
 import { getDatabase } from "@/lib/db/database";
+import { initializeDatabase } from "@/lib/db/initialize";
+import { resetDatabaseConnection } from "@/lib/db/database";
 
 const TABLES = [
   "users",
-  "device",
+  "devices",
   "libraries",
   "media",
-  "media_progress",
-  "note",
-  "sync_queue",
+  "media_progresses",
+  "notes",
+  "sync_changes",
 ] as const;
 
 type TableData = Record<string, unknown[]>;
@@ -58,6 +60,24 @@ export default function DatabaseDebugPage() {
             className="rounded-lg border border-card-border px-4 py-2"
           >
             Refresh
+          </button>
+
+          <button
+            onClick={async () => {
+              const db = await getDatabase();
+
+              if ((await db.isExists()).result) {
+                await db.delete();
+                await resetDatabaseConnection();
+
+              }
+
+              await initializeDatabase();
+
+              location.reload();
+            }}
+          >
+            RESET DATABASE
           </button>
         </div>
 

@@ -10,7 +10,6 @@ import { DeviceRepository } from "@/lib/db/repositories/device_repository";
 import { getDatabase } from "@/lib/db/database";
 import { useUser } from "../context/UserContext";
 import { useDevice } from "../context/DeviceContext";
-import { enqueueChange } from "@/lib/sync/queue";
 import { queueEntityChange } from "@/lib/sync/sync";
 
 export default function SetupDevice() {
@@ -48,6 +47,7 @@ export default function SetupDevice() {
       id: v4(),
       name: inputRef.current?.value || "default",
       lastSeen: new Date().toISOString(),
+      deletedAt: null,
       version: 1,
       entityType: EntityType.Device,
     };

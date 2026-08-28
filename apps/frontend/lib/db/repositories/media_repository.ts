@@ -1,13 +1,33 @@
 import { Media } from "@/types/media";
 import { SQLiteDBConnection } from "@capacitor-community/sqlite";
 import { persistDatabase } from "../database";
+import { EntityType } from "@/types/sync_change";
 export class MediaRepository {
   private db: SQLiteDBConnection;
 
   constructor(dbConnection: SQLiteDBConnection) {
     this.db = dbConnection;
   }
+  mapRowsToMedia(row: any): Media
+  {
+    return {
+      id: row.id,
+      libraryId: row.library_id,
+      filename: row.filename,
+      fileSize: row.file_size,
+      mediaType: row.media_type,
+      duration: row.duration,
+      thumbnailUrl: row.thumbnail_url ?? "",
+      rating: row.rating,
 
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+      deletedAt: row.deleted_at,
+      version: row.number,
+      entityType: EntityType.Media,
+      filepath: row.filepath
+    }
+  }
   async initTable(): Promise<void> {
     await this.db.execute(`
         CREATE TABLE IF NOT EXISTS media (
@@ -105,5 +125,23 @@ export class MediaRepository {
     );
 
     await persistDatabase();
+  }
+  async getTotalSizeByLibraryId(libraryId: string): Promise<number>
+  {
+    const res = await this.db.query(
+      `
+      SELECT COALESCE(SUM(file_size), 0) AS total_size FROM media WHERE library_id = ?
+      `,[libraryId]
+    );
+
+    return res.values?.[0].total_size ?? 0;
+  }
+
+  async getAllByLibraryId(userId: string, libraryId: string)
+  {
+    const res = await this.db.query(`SELECT * FROM media m JOIN libraries l ON(m.library_id = l.id) where l.user_id = ? AND m.library_id = ?`, [userId, libraryId]);
+    const rows = res.values?? [];
+
+    return rows.map((row, _) => this.mapRowsToMedia(row));
   }
 }

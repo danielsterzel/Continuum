@@ -11,7 +11,7 @@ export class SyncQueueRepository {
 
   async initTable(): Promise<void> {
     await this.db.execute(`
-      CREATE TABLE IF NOT EXISTS sync_queue (
+      CREATE TABLE IF NOT EXISTS sync_changes (
         id TEXT PRIMARY KEY NOT NULL,
 
         device_id TEXT NOT NULL,
@@ -21,14 +21,14 @@ export class SyncQueueRepository {
 
         operation TEXT NOT NULL,
 
-        base_version INTEGER NOT NULL,
+        expected_version INTEGER NOT NULL,
 
         payload TEXT,
 
         created_at TEXT NOT NULL,
 
         FOREIGN KEY (device_id)
-          REFERENCES device(id)
+          REFERENCES devices(id)
           ON DELETE CASCADE,
 
         CHECK (
@@ -50,18 +50,18 @@ export class SyncQueueRepository {
         )
       );
 
-      CREATE INDEX IF NOT EXISTS ix_sync_queue_entity
-      ON sync_queue(entity_type, entity_id);
+      CREATE INDEX IF NOT EXISTS ix_sync_changes_entity
+      ON sync_changes(entity_type, entity_id);
 
-      CREATE INDEX IF NOT EXISTS ix_sync_queue_device
-      ON sync_queue(device_id);
+      CREATE INDEX IF NOT EXISTS ix_sync_changes_device
+      ON sync_changes(device_id);
     `);
   }
 
   async remove(syncId: string) {
     await this.db.run(
       `
-      DELETE from sync_queue where sync_queue.id = ?`,
+      DELETE FROM sync_changes WHERE sync_changes.id = ?`,
       [syncId],
     );
 
@@ -71,13 +71,13 @@ export class SyncQueueRepository {
     const payload = JSON.stringify(syncChange.payload);
     await this.db.run(
       `
-    INSERT INTO sync_queue (
+    INSERT INTO sync_changes (
       id,
       device_id,
       entity_type,
       entity_id,
       operation,
-      base_version,
+      expected_version,
       payload,
       created_at
     )
@@ -89,7 +89,7 @@ export class SyncQueueRepository {
         syncChange.entityType,
         syncChange.entityId,
         syncChange.operation,
-        syncChange.baseVersion,
+        syncChange.expectedVersion,
         payload,
         syncChange.createdAt,
       ],
@@ -98,7 +98,7 @@ export class SyncQueueRepository {
   }
 
   async getPendingChanges(): Promise<SyncChange[]> {
-    const res = await this.db.query(`SELECT * from sync_queue`);
+    const res = await this.db.query(`SELECT * FROM sync_changes`);
     const rows = res.values ?? [];
 
     return rows.map((row) => ({
@@ -107,7 +107,7 @@ export class SyncQueueRepository {
       entityType: row.entity_type,
       entityId: row.entity_id,
       operation: row.operation,
-      baseVersion: row.base_version,
+      expectedVersion: row.expected_version,
       payload: JSON.parse(row.payload),
       createdAt: row.created_at,
     }));

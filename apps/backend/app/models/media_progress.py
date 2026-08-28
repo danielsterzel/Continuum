@@ -4,13 +4,20 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import Interval, DateTime, ForeignKey, UniqueConstraint, func
 
 from datetime import datetime, timedelta
-from app.models.mixins import UUIDMixin, TombstoneMixin, VersionMixin
+from typing import TYPE_CHECKING
+
+from app.models.mixins import UUIDMixin, VersionMixin
+
+if TYPE_CHECKING:
+    from app.models.media import Media
 
 
-class MediaProgress(Base, UUIDMixin, TombstoneMixin, VersionMixin):
-    __tablename__ = "media_progress"
+class MediaProgress(Base, UUIDMixin, VersionMixin):
+    __tablename__ = "media_progresses"
 
-    __table_args__ = (UniqueConstraint("media_id", name="unique_media_for_progress"),)
+    __table_args__ = (
+        UniqueConstraint("media_id", name="uq_media_progresses_media_id"),
+    )
 
     media_id: Mapped[UUID] = mapped_column(ForeignKey("media.id", ondelete="CASCADE"))
 
@@ -20,7 +27,7 @@ class MediaProgress(Base, UUIDMixin, TombstoneMixin, VersionMixin):
     )
 
     last_device_id: Mapped[UUID | None] = mapped_column(
-        ForeignKey("device.id", ondelete="SET NULL")
+        ForeignKey("devices.id", ondelete="SET NULL"), nullable=True
     )
 
     media: Mapped["Media"] = relationship(back_populates="media_progress")

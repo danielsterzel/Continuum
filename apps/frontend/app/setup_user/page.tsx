@@ -42,12 +42,6 @@ function getPasswordError(password: string): string | null {
   return null;
 }
 
-function getErrorMessage(error: unknown): string {
-  return error instanceof Error
-    ? error.message
-    : "Couldn't create your account. Please try again.";
-}
-
 export default function SetupUser() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
@@ -101,7 +95,8 @@ export default function SetupUser() {
       await userRepository.add(user);
       router.replace("/login");
     } catch (submitError) {
-      setError(getErrorMessage(submitError));
+      console.error("Account creation failed:", submitError);
+      setError("Couldn't create your account. Please try again.");
     } finally {
       setIsSubmitting(false);
     }

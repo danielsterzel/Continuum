@@ -10,18 +10,18 @@ export class LibraryRepository {
   }
 
   private mapRowToLibrary(row: any): Library {
-  return {
-    id: row.id,
-    userId: row.user_id,
-    name: row.name,
-    description: row.description ?? undefined,
-    iconUrl: row.icon_url ?? "",
+    return {
+      id: row.id,
+      userId: row.user_id,
+      name: row.name,
+      description: row.description ?? undefined,
+      iconUrl: row.icon_url ?? "",
 
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
-    deletedAt: row.deleted_at,
-    version: row.version,
-    entityType: EntityType.Library,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+      deletedAt: row.deleted_at,
+      version: row.version,
+      entityType: EntityType.Library,
     };
   }
 
@@ -55,6 +55,13 @@ export class LibraryRepository {
   }
 
   async upsertFromSync(library: Library): Promise<void> {
+    // get local iconUrl
+
+    console.log("UPSERT FROM SYNC");
+    console.log("library:", library);
+    console.log("createdAt:", library.createdAt);
+    console.log("updatedAt:", library.updatedAt);
+
     await this.db.run(
       `
     INSERT INTO libraries (
@@ -94,16 +101,38 @@ export class LibraryRepository {
     );
   }
 
-  async getAllForUser(userId: string): Promise<Library[]>
-  {
-    const res = await this.db.query(`SELECT * from libraries WHERE libraries.user_id = ?`, [userId]);
+  async getByLibId(userId: string, libraryId: string): Promise<Library | null> {
+    const res = await this.db.query(
+      `SELECT * FROM libraries WHERE user_id = ? AND id = ?`,
+      [userId, libraryId],
+    );
+
+    const row = res.values?.[0];
+
+    if (!row) {
+      return null;
+    }
+
+    return this.mapRowToLibrary(row);
+  }
+
+  async getAllForUser(userId: string): Promise<Library[]> {
+    const res = await this.db.query(
+      `SELECT * from libraries WHERE libraries.user_id = ?`,
+      [userId],
+    );
 
     const rows = res.values ?? [];
 
     return rows.map((row) => this.mapRowToLibrary(row));
-  } 
+  }
 
-  async add(library: Library){
+  async add(library: Library) {
+    console.log("ADD LIBRARY");
+    console.log("library:", library);
+    console.log("createdAt:", library.createdAt);
+    console.log("updatedAt:", library.updatedAt);
+
     await this.db.run(
       `
       INSERT INTO libraries (
@@ -118,7 +147,7 @@ export class LibraryRepository {
       version
     )
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [
+      [
         library.id,
         library.userId,
         library.name,
@@ -128,7 +157,7 @@ export class LibraryRepository {
         library.updatedAt,
         library.deletedAt,
         library.version,
-      ]
-    )
+      ],
+    );
   }
 }

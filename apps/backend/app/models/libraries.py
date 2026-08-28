@@ -2,6 +2,7 @@ from uuid import UUID
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from app.models.media import Media
     from app.models.user import User
 
 from app.models.mixins import TimestampMixin, UUIDMixin, TombstoneMixin, VersionMixin

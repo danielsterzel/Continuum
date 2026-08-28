@@ -1,5 +1,3 @@
-from typing import Literal
-
 from app.repositories.base_repository import BaseRepository
 from app.models.device import Device
 from uuid import UUID
@@ -10,13 +8,19 @@ from sqlalchemy.orm import selectinload
 class DeviceRepository(BaseRepository):
 
     model = Device
-    allowed_updates = {'name', 'lastSeen'}
+    allowed_updates = {"name", "last_seen"}
 
     async def fetch_device_by_id_and_user_id(self, device_id: UUID, user_id: UUID) -> Device | None:
 
         query = (
             select(Device)
-            .where(and_(Device.id == device_id, Device.user_id == user_id))
+            .where(
+                and_(
+                    Device.id == device_id,
+                    Device.user_id == user_id,
+                    Device.deleted_at.is_(None),
+                )
+            )
             .options(selectinload(Device.user))
         )
 
@@ -30,7 +34,8 @@ class DeviceRepository(BaseRepository):
             self.model.id
         ).where(
             self.model.user_id == user_id,
-            self.model.id == device_id
+            self.model.id == device_id,
+            self.model.deleted_at.is_(None),
         )
 
         return await self.update_entity_validate(permissions=permitted_device, **kwargs)

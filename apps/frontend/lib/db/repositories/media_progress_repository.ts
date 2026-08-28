@@ -10,7 +10,7 @@ export class MediaProgressRepository {
   }
   async initTable(): Promise<void> {
     await this.db.execute(`
-        CREATE TABLE IF NOT EXISTS media_progress (
+        CREATE TABLE IF NOT EXISTS media_progresses (
             id TEXT PRIMARY KEY NOT NULL,
 
             media_id TEXT NOT NULL,
@@ -18,7 +18,6 @@ export class MediaProgressRepository {
             last_watched TEXT NOT NULL,
             last_device_id TEXT,
 
-            deleted_at TEXT,
             version INTEGER NOT NULL DEFAULT 0,
 
             FOREIGN KEY (media_id)
@@ -26,7 +25,7 @@ export class MediaProgressRepository {
             ON DELETE CASCADE,
 
             FOREIGN KEY (last_device_id)
-            REFERENCES device(id)
+            REFERENCES devices(id)
             ON DELETE SET NULL,
 
             UNIQUE (media_id)
@@ -37,23 +36,21 @@ export class MediaProgressRepository {
   async upsertFromSync(progress: MediaProgress): Promise<void> {
     await this.db.run(
       `
-    INSERT INTO media_progress (
+    INSERT INTO media_progresses (
       id,
       media_id,
       current_position,
       last_watched,
       last_device_id,
-      deleted_at,
       version
     )
-    VALUES (?, ?, ?, ?, ?, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?)
 
     ON CONFLICT(id) DO UPDATE SET
       media_id = excluded.media_id,
       current_position = excluded.current_position,
       last_watched = excluded.last_watched,
       last_device_id = excluded.last_device_id,
-      deleted_at = excluded.deleted_at,
       version = excluded.version;
     `,
       [
@@ -62,7 +59,6 @@ export class MediaProgressRepository {
         progress.currentPosition,
         progress.lastWatched,
         progress.lastDeviceId,
-        progress.deletedAt,
         progress.version,
       ],
     );

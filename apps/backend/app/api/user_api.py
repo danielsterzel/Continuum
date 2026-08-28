@@ -18,7 +18,7 @@ async def setup_user(request: UserWrite, db: Annotated[AsyncSession, Depends(get
 
     user_repository = UserRepository(db)
 
-    is_saved_user = user_repository.fetch_by_email(email=request.email)
+    is_saved_user = await user_repository.fetch_by_email(email=request.email)
     if is_saved_user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Couldn't process request")
 

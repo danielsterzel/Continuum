@@ -13,8 +13,17 @@ export type NoteRead = {
     updatedAt: number;
 };
 
-export type Note = NoteRead & {
-    deletedAt: number | null;
+export type Note = {
+    id: string;
+    mediaId: string;
+    media: MediaRead;
+    title: string;
+    content: string;
+    timestamp: number | null;
+    createdAt: string;
+    updatedAt: string;
+
+    deletedAt: string | null;
     version: number;
     entityType: EntityType.Note
 }

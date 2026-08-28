@@ -3,42 +3,64 @@
 import { useSearchParams } from "next/navigation";
 import { LibraryHero } from "@/components/_library_components/LibraryHero";
 import { MediaList } from "@/components/_library_components/MediaList";
-import type { LibraryRead } from "@/types/library";
+import type { Library, LibraryRead } from "@/types/library";
 import type {MediaRead } from "@/types/media";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { fetchSingleLib } from "@/lib/api/library";
 import { GoBackButton } from "@/app/UI/GoBackButton";
 import { useLibrary } from "@/app/context/LibraryContext";
+import { getDatabase } from "@/lib/db/database";
+import { LibraryRepository } from "@/lib/db/repositories/library_repository";
+import { useUser } from "../context/UserContext";
+import { MediaRepository } from "@/lib/db/repositories/media_repository";
 
 export function LibraryClient()
 {
-     const router = useRouter();
-        const searchParams = useSearchParams();
-        
-        const libraryId = searchParams.get("libraryId");
+    const router = useRouter();
+    const searchParams = useSearchParams();
+    
+    const libraryId = searchParams.get("libraryId");
 
-        if(!libraryId)
-            {
-                return null;
-            }
-            
-        const {setItems} = useLibrary();
-    
-        const [library, setLibrary] = useState<LibraryRead | null>(null);
-        const [media, setMedia] = useState<MediaRead[]>([]);
-    
+    if(!libraryId)
+        {
+            return null;
+        }
+        
+    const {setItems} = useLibrary();
+
+    const [library, setLibrary] = useState<Library | null>(null);
+    const [media, setMedia] = useState<MediaRead[]>([]);
+    const {user} = useUser();
     
         useEffect(() => {
-            const handleFetch = async () => {
-                const lib = await fetchSingleLib(libraryId);
+
+        }, [user]);
+
+        useEffect(() => {
+            async function fetchLibraryAndMedia()
+            {
+                if(!user)
+                {
+                    router.replace("/login");
+                    return;
+                }
+
+                const db = await getDatabase();
+                const libraryRepository = new LibraryRepository(db);
+                const mediaRepository = new MediaRepository(db);
+                
+                const lib = await libraryRepository.getByLibId(user.id, libraryId!);
                 setLibrary(lib);
-                setMedia(lib.media ?? []);
+
+                if(lib)
+                {
+                    const media = await mediaRepository.getAllByLibraryId(user.id, lib.id);
+                    setMedia(media);
+                }
             }
-    
-            handleFetch();
-    
-        }, [libraryId])
+            fetchLibraryAndMedia();
+        }, [libraryId, user, router]);
+
     
         function touchUpdatedAt() {
             const now = new Date().toISOString();

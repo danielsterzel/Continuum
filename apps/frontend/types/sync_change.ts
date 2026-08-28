@@ -20,7 +20,7 @@ export type SyncChange = {
     entityType: EntityType;
     entityId: string;
     operation: SyncOperation
-    baseVersion: number;
+    expectedVersion: number;
     payload: Record<string, any>;
     createdAt: string;
 }
@@ -30,7 +30,7 @@ export type SyncChangeWrite = {
     entityType: string;
     entityId: string;
     operation: string
-    baseVersion: number;
+    expectedVersion: number;
     payload: Record<string, any>;
 }
 

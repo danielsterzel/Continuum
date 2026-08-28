@@ -38,7 +38,7 @@ export function mapNoteToSyncChange(
     entityType: entityType,
     entityId: id,
     operation: operation,
-    baseVersion: version,
+    expectedVersion: version,
     payload: payload,
     createdAt: new Date().toISOString(),
   };
@@ -53,7 +53,7 @@ export function mapLibraryToSyncChange(
   deviceId: string,
 ): SyncAndEntity {
   const syncId = v4();
-  let { id, media, version, entityType, ...originalPayload } = entity;
+  let { id, version, entityType, ...originalPayload } = entity;
 
   const payload = snakecaseKeys(originalPayload);
 
@@ -67,7 +67,7 @@ export function mapLibraryToSyncChange(
     entityType: entityType,
     entityId: id,
     operation: operation,
-    baseVersion: version,
+    expectedVersion: version,
     payload: payload,
     createdAt: new Date().toISOString(),
   };
@@ -96,7 +96,7 @@ export function mapMediaToSyncChange(
     entityType: entityType,
     entityId: id,
     operation: operation,
-    baseVersion: version,
+    expectedVersion: version,
     payload: payload,
     createdAt: new Date().toISOString(),
   };
@@ -131,7 +131,7 @@ export function mapMediaProgressToSyncChange(
     entityType: entityType,
     entityId: id,
     operation: operation,
-    baseVersion: version,
+    expectedVersion: version,
     payload: payload,
     createdAt: new Date().toISOString(),
   };
@@ -159,7 +159,7 @@ export function deviceToSyncChange(
     entityType: entityType,
     entityId: id,
     operation: operation,
-    baseVersion: version,
+    expectedVersion: version,
     payload: payload,
     createdAt: new Date().toISOString(),
   };

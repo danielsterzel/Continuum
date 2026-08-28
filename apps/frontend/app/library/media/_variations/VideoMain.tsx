@@ -94,7 +94,6 @@ export function VideoMain() {
       "This is some sort of text area and here I will have" +
       "the like... timestamp where the note is and the note description etc etc.",
     timestamp: 125,
-    deleted_at: null,
     createdAt: 0,
     updatedAt: 0,
   };

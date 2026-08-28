@@ -1,19 +1,36 @@
 "use client";
 
-import type { LibraryRead } from "@/types/library";
+import type { Library } from "@/types/library";
 import { Clapperboard, Trash } from "lucide-react";
 import { formatDate } from "@/lib/datetime";
 import Link from "next/link";
 import { LibraryDeleteModal } from "./LibraryDeleteModal";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { getDatabase } from "@/lib/db/database";
+import { MediaRepository } from "@/lib/db/repositories/media_repository";
 
 type LibraryListItemProps = {
-  library: LibraryRead;
+  library: Library;
   onDeleted: () => void;
 };
 
 export function LibraryListItem({ library, onDeleted }: Readonly<LibraryListItemProps>) {
   const [show, setShow] = useState(false);
+  const [libraryTotalSize, setLibraryTotalSize] = useState(0);
+
+  useEffect(() => {
+    async function loadLibrarySize()
+    {
+      const db = await getDatabase();
+      const repository = new MediaRepository(db);
+
+      const totalSize = await repository.getTotalSizeByLibraryId(library.id);
+      setLibraryTotalSize(totalSize);
+    }
+
+    loadLibrarySize();
+  }, [library.id])
+
   return (
     <>
       <div className="w-full flex flex-col transition-colors duration-200 hover:bg-card-hover">
@@ -30,7 +47,7 @@ export function LibraryListItem({ library, onDeleted }: Readonly<LibraryListItem
             </div>
             <p className="hidden sm:block text-text-secondary text-sm">{}</p>
             <p className="hidden sm:block text-text-secondary text-sm">{formatDate(library.updatedAt)}</p>
-            <p className="hidden sm:block text-text-secondary text-sm">{library.size ?? "—"}</p>
+            <p className="hidden sm:block text-text-secondary text-sm">{libraryTotalSize ?? "—"}</p>
           </Link>
           <div className="pr-4">
             <div

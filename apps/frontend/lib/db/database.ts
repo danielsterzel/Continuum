@@ -9,6 +9,16 @@ const sqlite = new SQLiteConnection(CapacitorSQLite);
 let db: SQLiteDBConnection | null = null;
 let webMode = false;
 
+export async function resetDatabaseConnection(): Promise<void> {
+    if (db) {
+        try {
+            await sqlite.closeConnection("continuum", false);
+        } catch {}
+
+        db = null;
+    }
+}
+
 async function initWebDb()
 {
     if (Capacitor.getPlatform() !== "web" || webMode)
@@ -32,9 +42,21 @@ async function initWebDb()
 }
 
 export async function getDatabase(): Promise<SQLiteDBConnection> {
-    if (db) return db;
 
     await initWebDb();
+
+    if (db) {
+        const opened = await db.isDBOpen();
+
+        if(!opened.result)
+            {
+                await db.open();
+                await db.execute(`PRAGMA foreign_keys = ON;`)
+            }
+
+        return db;
+    }
+
 
     const connection = await sqlite.createConnection(
         "continuum",

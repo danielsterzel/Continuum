@@ -12,7 +12,10 @@ class ResolveDevice(ResolveBase[DeviceRepository]):
     @staticmethod
     def deserialize_device(entity_id: UUID, payload: dict[str, Any]):
 
+
         payload = DeviceSyncWrite.model_validate(payload)
+        print(repr(payload))
+
 
         return Device(id=entity_id,
                       user_id=payload.user_id,

@@ -24,10 +24,10 @@ class SyncOperation(str, Enum):
 
 
 class SyncChange(Base, UUIDMixin):
-    __tablename__ = "sync_change"
+    __tablename__ = "sync_changes"
 
     device_id: Mapped[UUID] = mapped_column(
-        ForeignKey("device.id", ondelete="CASCADE"), index=True
+        ForeignKey("devices.id", ondelete="CASCADE"), index=True
     )
     entity_type: Mapped["EntityType"] = mapped_column(
         SqlEnum(
@@ -45,13 +45,13 @@ class SyncChange(Base, UUIDMixin):
             values_callable=lambda enum: [item.value for item in enum],
         )
     )
-    base_version: Mapped[int] = mapped_column(Integer, server_default=text("1"))
+    expected_version: Mapped[int] = mapped_column(Integer, server_default=text("1"))
     payload: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     __table_args__ = (
         Index(
-            "ix_sync_change_entity",
+            "ix_sync_changes_entity",
             "entity_type",
             "entity_id",
         ),

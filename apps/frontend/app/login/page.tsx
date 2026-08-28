@@ -14,17 +14,12 @@ import {
 } from "lucide-react";
 
 import { loginUser } from "@/lib/api/user";
-import { getDatabase } from "@/lib/db/database";
-import { UserRepository } from "@/lib/db/repositories/user_repository";
 import type { UserLogin } from "@/types/user";
 import { useUser } from "../context/UserContext";
 import { useDevice } from "../context/DeviceContext";
-
-function getErrorMessage(error: unknown): string {
-  return error instanceof Error
-    ? error.message
-    : "Couldn't log you in. Please try again.";
-}
+import { getDatabase } from "@/lib/db/database";
+import { UserRepository } from "@/lib/db/repositories/user_repository";
+import type { User } from "@/types/user";
 
 export default function Login() {
   const router = useRouter();
@@ -35,6 +30,16 @@ export default function Login() {
   const { user, setUser } = useUser();
   const { device } = useDevice();
 
+
+  async function createIfExistsOnRemoteNotLocaly(user: User)
+  {
+    const db = await getDatabase();
+    const userRepository = new UserRepository(db);
+
+
+    await userRepository.add(user);
+
+  }
   useEffect(() => {
     if (!user) {
       return;
@@ -73,15 +78,18 @@ export default function Login() {
 
       const loggedInUser = await loginUser(request);
 
-      const db = await getDatabase();
-      const userRepository = new UserRepository(db);
-
-      await userRepository.add(loggedInUser);
+      createIfExistsOnRemoteNotLocaly(loggedInUser);
 
       setUser(loggedInUser);
-    } catch (submitError) {
-      setError(getErrorMessage(submitError));
-    } finally {
+
+    } 
+    catch (submitError) 
+    {
+      console.error("Login failed:", submitError);
+      setError("Couldn't log you in. Please try again.");
+
+    } finally 
+    {
       setIsSubmitting(false);
     }
   }

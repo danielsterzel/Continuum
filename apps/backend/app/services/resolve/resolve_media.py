@@ -1,5 +1,6 @@
 
 from app.repositories.media_repository import MediaRepository
+from app.schemas.media_schema import MediaSyncPayload
 from app.services.resolve.resolve_base import ResolveBase
 from app.models.media import Media
 from uuid import UUID
@@ -12,8 +13,8 @@ class ResolveMedia(ResolveBase[MediaRepository]):
 
     @staticmethod
     def deserialize_payload(entity_id, payload: dict,):
-        """TODO: does this pass in the library_id?"""
-        return Media(id=entity_id, **payload)
+
+        return Media(id=entity_id, **MediaSyncPayload.model_validate(payload).model_dump())
 
     async def sync_create(self, entity_id: UUID, payload: dict[str, Any]) -> None:
 

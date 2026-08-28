@@ -24,7 +24,7 @@ class SyncChangeWrite(BaseModel):
     entity_type: EntityType
     entity_id: UUID
     operation: SyncOperation
-    base_version: int
+    expected_version: int
     payload: dict[str, Any] | None = None
 
 
@@ -41,7 +41,7 @@ class SyncChangeRead(BaseModel):
     entity_type: EntityType
     entity_id: UUID
     operation: SyncOperation
-    base_version: int
+    expected_version: int
     payload: dict[str, Any] | None = None
     created_at: datetime
 

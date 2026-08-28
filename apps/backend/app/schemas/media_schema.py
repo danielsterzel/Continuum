@@ -27,3 +27,13 @@ class MediaRead(BaseModel):
     updated_at: datetime
     version: int
     deleted_at: datetime | None
+
+class MediaSyncPayload(BaseModel):
+    model_config = ConfigDict(
+        from_attributes=True,
+        alias_generator=to_camel,
+        validate_by_alias=True,
+        validate_by_name=True,
+    )
+
+

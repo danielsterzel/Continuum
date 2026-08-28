@@ -1,4 +1,4 @@
-from sqlalchemy import Index, String, UniqueConstraint, func, ForeignKey
+from sqlalchemy import Index, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from typing import TYPE_CHECKING
@@ -45,5 +45,7 @@ class User(Base, TimestampMixin, UUIDMixin):
     )
 
     devices: Mapped[list["Device"]] = relationship(
-        back_populates="user", cascade="all, delete-orphan"
+        back_populates="user",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
     )

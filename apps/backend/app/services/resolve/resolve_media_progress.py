@@ -1,4 +1,5 @@
 from app.repositories.media_progress_repository import MediaProgressRepository
+from app.schemas.media_progress_schema import MediaProgressSyncPayload
 from app.services.resolve.resolve_base import ResolveBase
 from app.models.media_progress import MediaProgress
 
@@ -15,7 +16,7 @@ class ResolveMediaProgress(ResolveBase[MediaProgressRepository]):
 
     @staticmethod
     def deserialize_payload(entity_id: UUID, payload: dict[str, Any]):
-        return MediaProgress(id=entity_id, **payload)
+        return MediaProgress(id=entity_id, **MediaProgressSyncPayload.model_validate(payload).model_dump())
 
     async def sync_create(self, entity_id, payload) -> None:
 

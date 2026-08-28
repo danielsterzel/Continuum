@@ -54,3 +54,17 @@ class NoteCreate(BaseModel):
     title: str = Field(..., max_length=50)
     content: str = Field(..., max_length=300)
     timestamp: float | None
+
+class NoteSyncPayload(BaseModel):
+    model_config = ConfigDict(
+        from_attributes=True, alias_generator=to_camel, validate_by_alias=True,
+        validate_by_name=True
+    )
+    media_id: UUID
+    title: str
+    content: str
+    timestamp: int | None
+    created_at: datetime
+    updated_at: datetime
+
+    deleted_at: datetime

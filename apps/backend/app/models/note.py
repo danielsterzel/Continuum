@@ -4,12 +4,17 @@ from uuid import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import String, ForeignKey, Interval
 
-from datetime import datetime, timedelta
+from datetime import timedelta
+from typing import TYPE_CHECKING
+
 from app.models.mixins import TimestampMixin, UUIDMixin, TombstoneMixin, VersionMixin
+
+if TYPE_CHECKING:
+    from app.models.media import Media
 
 
 class Note(Base, TimestampMixin, UUIDMixin, TombstoneMixin, VersionMixin):
-    __tablename__ = "note"
+    __tablename__ = "notes"
 
     __table_args__ = ()
 

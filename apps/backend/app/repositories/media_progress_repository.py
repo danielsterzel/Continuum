@@ -78,18 +78,3 @@ class MediaProgressRepository(BaseRepository[MediaProgress]):
         )
 
         return await self.update_entity_validate(permissions=permitted_progress, **kwargs)
-
-    async def soft_delete_one_by_id(self, entity_id: UUID, user_id: UUID) -> bool:
-
-        query = (
-            select(self.model)
-            .join(Media, Media.id == self.model.media_id)
-            .join(Library, Library.id == Media.library_id)
-            .where(Library.user_id == user_id, self.model.id == entity_id)
-        )
-
-        res = await self.db.execute(query)
-
-        media_progress: MediaProgress | None = res.scalar_one_or_none()
-
-        return self.soft_delete_entity(media_progress)

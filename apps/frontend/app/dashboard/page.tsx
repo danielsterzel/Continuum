@@ -14,6 +14,7 @@ import { Clock3, FolderOpen, Plus } from "lucide-react";
 import { useUser } from "../context/UserContext";
 import { useDevice } from "../context/DeviceContext";
 import { getLibraries } from "@/lib/queries/library";
+import Link from "next/link";
 
 export default function Home() {
   const [showLibraryModal, setShowLibraryModal] = useState(false);
@@ -53,6 +54,7 @@ export default function Home() {
           <header className="animate-fade-in flex flex-col justify-between gap-6 rounded-3xl border border-card-border bg-card p-6 shadow-sm sm:p-8 md:flex-row md:items-center">
             <HomeTitle />
             <DeviceIcon device={device} />
+            <Link href={"/db_debug"}>DB_DEBUG</Link>
           </header>
 
           <section

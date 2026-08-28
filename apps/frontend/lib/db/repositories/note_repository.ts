@@ -16,7 +16,7 @@ export class NoteRepository{
     async initTable(): Promise<void>
     {
         await this.db.execute(`
-        CREATE TABLE IF NOT EXISTS note (
+        CREATE TABLE IF NOT EXISTS notes (
             id TEXT PRIMARY KEY NOT NULL,
 
             media_id TEXT NOT NULL,
@@ -40,7 +40,7 @@ export class NoteRepository{
     async upsertFromSync(note: Note): Promise<void> {
   await this.db.run(
     `
-    INSERT INTO note (
+    INSERT INTO notes (
       id,
       media_id,
       title,

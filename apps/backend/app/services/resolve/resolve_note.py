@@ -1,5 +1,6 @@
 
 from app.repositories.note_repository import NoteRepository
+from app.schemas.note_schema import NoteSyncPayload
 from app.services.resolve.resolve_base import ResolveBase
 from app.models.note import Note
 
@@ -16,7 +17,7 @@ class ResolveNote(ResolveBase[NoteRepository]):
         dlatego nie ma deleted_at
         """
         return Note(
-            id=entity_id,**payload
+            id=entity_id,**NoteSyncPayload.model_validate(payload).model_dump()
         )
 
     async def sync_create(self, entity_id: UUID, payload: dict[str, Any]) -> None:

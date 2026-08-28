@@ -1,5 +1,6 @@
 
 from app.repositories.library_repository import LibraryRepository
+from app.schemas.library_schema import LibrarySyncPayload
 from app.services.resolve.resolve_base import ResolveBase
 from app.models.libraries import Library
 from typing import Any
@@ -12,14 +13,13 @@ class ResolveLibrary(ResolveBase[LibraryRepository]):
     @staticmethod
     def deserialize_library(entity_id: UUID, payload: dict[str, Any]):
 
-        return Library(id=entity_id, **payload)
+        return Library(id=entity_id, **LibrarySyncPayload.model_validate(payload).model_dump())
 
     async def sync_create(self, entity_id: UUID, payload: dict[str, Any]) -> None:
 
         if payload["user_id"] != str(self.user_id):
             raise ValueError("Library owner does not match sync user")
 
-        payload["user_id"] = self.user_id # bo string vs UUID type mismatch :/
         library = self.deserialize_library(entity_id=entity_id, payload=payload,)
         await self.repository.save(library)
 

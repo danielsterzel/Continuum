@@ -13,11 +13,12 @@ export class DeviceRepository {
   async initTable(): Promise<void> {
     await this.db.execute(
       `
-            CREATE TABLE IF NOT EXISTS device (
+            CREATE TABLE IF NOT EXISTS devices (
                 id TEXT PRIMARY KEY NOT NULL,
                 user_id TEXT NOT NULL,
                 name TEXT NOT NULL,
                 last_seen TEXT NOT NULL,
+                deleted_at TEXT,
                 version INTEGER NOT NULL DEFAULT 0,
 
                 FOREIGN KEY (user_id)
@@ -30,16 +31,24 @@ export class DeviceRepository {
   async add(device: Device): Promise<void> {
     await this.db.run(
       `
-    INSERT INTO device (
+    INSERT INTO devices (
       id,
       user_id,
       name,
       last_seen,
+      deleted_at,
       version
     )
-    VALUES (?, ?, ?, ?, ?);
+    VALUES (?, ?, ?, ?, ?, ?);
     `,
-      [device.id, device.userId, device.name, device.lastSeen, device.version],
+      [
+        device.id,
+        device.userId,
+        device.name,
+        device.lastSeen,
+        device.deletedAt,
+        device.version,
+      ],
     );
     await persistDatabase();
   }
@@ -47,7 +56,8 @@ export class DeviceRepository {
   async get(): Promise<Device | null> {
     const result = await this.db.query(`
       SELECT *
-      FROM device
+      FROM devices
+      WHERE deleted_at IS NULL
       LIMIT 1;
     `);
 
@@ -62,6 +72,7 @@ export class DeviceRepository {
       userId: row.user_id,
       name: row.name,
       lastSeen: row.last_seen,
+      deletedAt: row.deleted_at,
       version: row.version,
       entityType: EntityType.Device,
     };

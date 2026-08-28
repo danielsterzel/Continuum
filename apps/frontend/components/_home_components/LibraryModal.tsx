@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Check, ImageIcon } from "lucide-react";
 
-import type {LibraryCreate, Library } from "@/types/library";
+import type { LibraryCreate, Library } from "@/types/library";
 import { useLibrary } from "@/app/context/LibraryContext";
 import { v4 } from "uuid";
 import { saveLocalFile } from "@/lib/files/localFileStorage";
@@ -13,7 +13,6 @@ import { getDatabase } from "@/lib/db/database";
 import { LibraryRepository } from "@/lib/db/repositories/library_repository";
 import { queueEntityChange } from "@/lib/sync/sync";
 import { useDevice } from "@/app/context/DeviceContext";
-
 
 type LibraryModalProps = {
   show: boolean;
@@ -33,8 +32,8 @@ export function LibraryModal({ show, onClose }: LibraryModalProps) {
   const imgInputRef = useRef<HTMLInputElement>(null);
 
   const { setItems } = useLibrary();
-  const {user} = useUser();
-  const {device} = useDevice();
+  const { user } = useUser();
+  const { device } = useDevice();
 
   useEffect(() => {
     if (!err) return;
@@ -42,59 +41,67 @@ export function LibraryModal({ show, onClose }: LibraryModalProps) {
     return () => window.clearTimeout(timeoutId);
   }, [err]);
 
-  // async function createLib(bodyArg: LibraryCreate, icon: File | null) {
 
-  //   const data = await createLibrary(bodyArg, icon);
+  async function createLibrary(bodyArg: LibraryCreate, icon: File | null) {
+    if (!user || !device) {
+      throw new Error("User or device not initialized");
+    }
+    const id = v4();
+    let iconUrl: string | undefined;
+    const extension = icon?.name.split(".").pop() ?? "bin";
+    if (icon) {
+      iconUrl = `${id}/icon.${extension}`;
+      console.log("ICON URL SAVED IN:", iconUrl);
+      await saveLocalFile(icon, iconUrl);
+    }
 
-  // }
+    const library: Library = {
+      id,
+      userId: user.id,
+      name: bodyArg.name,
+      description: bodyArg.description,
+      iconUrl: iconUrl ?? "",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      deletedAt: null,
+      version: 0,
+      entityType: EntityType.Library,
+    };
+    const db = await getDatabase();
+    const repository = new LibraryRepository(db);
 
-  async function createLibrary(bodyArg: LibraryCreate, icon: File | null)
-  {
-      const id = v4();
-      let iconUrl: string | undefined;
-  
-      if(icon)
-          {
-              iconUrl = `${id}/icon.png`;
-              await saveLocalFile(
-                  icon,iconUrl
-              );
-          }
-  
-      const library: Library = {
-          id,
-          userId: user!.id,
-          name: bodyArg.name,
-          description: bodyArg.description,
-          iconUrl: iconUrl ?? "",
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          deletedAt: "",
-          version: 0,
-          entityType: EntityType.Library,
-      };
-      const db = await getDatabase();
-      const repository = new LibraryRepository(db);
-      
-      await repository.add(library);
-      await queueEntityChange(library, SyncOperation.CREATE, device!.id);
-      setItems((prev) => [...prev, library]);
-
+    await repository.add(library);
+    await queueEntityChange(library, SyncOperation.CREATE, device.id);
+    setItems((prev) => [...prev, library]);
   }
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
+
     e.preventDefault();
-    console.log("Handle submit called");
-    try {
+
+    try 
+    {
       setErr(false);
       setIsSubmitting(true);
       await createLibrary(library, currImg);
       setLibrary((prev) => ({ ...prev, name: "", description: "" }));
+
+      setCurrImg(null);
+
+      if (imgInputRef.current) {
+        imgInputRef.current.value = "";
+      }
+
       onClose();
-    } catch (error) {
+
+    } catch (error) 
+    {
+
       console.error(error);
       setErr(true);
-    } finally {
+    } 
+    finally 
+    {
       setIsSubmitting(false);
     }
   }
@@ -120,7 +127,9 @@ export function LibraryModal({ show, onClose }: LibraryModalProps) {
           )}
 
           <div>
-            <span className="text-xs tracking-widest text-emerald-400 uppercase">New</span>
+            <span className="text-xs tracking-widest text-emerald-400 uppercase">
+              New
+            </span>
             <h1 className="text-2xl sm:text-3xl font-semibold text-text-primary mt-0.5">
               Create a library
             </h1>
@@ -146,7 +155,11 @@ export function LibraryModal({ show, onClose }: LibraryModalProps) {
             />
             <div className="flex flex-col items-center justify-center gap-3">
               <div className="p-3 bg-primary/10 rounded-xl">
-                <ImageIcon size={28} className="text-primary" strokeWidth={1.5} />
+                <ImageIcon
+                  size={28}
+                  className="text-primary"
+                  strokeWidth={1.5}
+                />
               </div>
               {currImg ? (
                 <div className="flex items-center gap-2 text-text-secondary text-sm">
@@ -154,13 +167,18 @@ export function LibraryModal({ show, onClose }: LibraryModalProps) {
                   <span className="max-w-40 truncate">{currImg.name}</span>
                 </div>
               ) : (
-                <span className="text-text-tertiary text-sm">Add cover image</span>
+                <span className="text-text-tertiary text-sm">
+                  Add cover image
+                </span>
               )}
             </div>
           </button>
 
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="library-name" className="text-sm font-medium text-text-secondary">
+            <label
+              htmlFor="library-name"
+              className="text-sm font-medium text-text-secondary"
+            >
               Name
             </label>
             <input
@@ -183,9 +201,14 @@ export function LibraryModal({ show, onClose }: LibraryModalProps) {
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="library-description" className="text-sm font-medium text-text-secondary">
+            <label
+              htmlFor="library-description"
+              className="text-sm font-medium text-text-secondary"
+            >
               Description
-              <span className="ml-1 text-text-tertiary font-normal">(optional)</span>
+              <span className="ml-1 text-text-tertiary font-normal">
+                (optional)
+              </span>
             </label>
             <textarea
               id="library-description"

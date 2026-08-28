@@ -6,17 +6,21 @@ export type MediaProgressRead = {
     mediaId: string;
     currentPosition: number | null;
     lastWatched: number;
-    lastDeviceId: string;
+    lastDeviceId: string | null;
 }
 
 export type MediaProgressWrite = {
     currentPosition: number | null;
-    lastDeviceId: number | null;
+    lastDeviceId: string | null;
 }
 
-export type MediaProgress = MediaProgressRead &  {
-    deletedAt: number;
-    version: number;
-    entityType: EntityType.MediaProgress
+export type MediaProgress = {
+    id: string;
+    mediaId: string;
+    currentPosition: number | null;
+    lastWatched: string;
+    lastDeviceId: string | null;
 
+    version: number;
+    entityType: EntityType.MediaProgress;
 }

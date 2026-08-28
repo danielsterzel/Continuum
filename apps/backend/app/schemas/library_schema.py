@@ -33,9 +33,9 @@ class LibraryCreate(BaseModel):
 
 class LibraryRead(BaseModel):
     model_config = ConfigDict(
-        from_attributes=True, alias_generator=to_camel, populate_by_name=True
+        from_attributes=True,
+        alias_generator=to_camel, validate_by_alias=True, validate_by_name=True
     )
-
     id: UUID = Field(...)
     user_id: UUID = Field(...)
     name: str = Field(..., max_length=100, min_length=1)
@@ -44,4 +44,19 @@ class LibraryRead(BaseModel):
     media: list[MediaRead]
     updated_at: datetime
     version: int
+    deleted_at: datetime | None
+
+class LibrarySyncPayload(BaseModel):
+    model_config = ConfigDict(
+        from_attributes=True,
+        alias_generator=to_camel, validate_by_alias=True, validate_by_name=True
+    )
+    user_id: UUID
+
+    name: str
+    description: str | None
+    icon_url: str | None
+
+    created_at: datetime
+    updated_at: datetime
     deleted_at: datetime | None
