@@ -1,6 +1,6 @@
 import { SQLiteDBConnection } from "@capacitor-community/sqlite";
-import type { Device } from "@/types/device";
-import { EntityType } from "@/types/sync_change";
+import type { Device } from "@/lib/types/Device";
+import { EntityType } from "@/lib/types/EntityType";
 import { persistDatabase } from "../database";
 
 export class DeviceRepository {

@@ -1,4 +1,4 @@
-import { Note } from "@/types/note";
+import { Note } from "@/lib/types/Note";
 import { SQLiteDBConnection } from "@capacitor-community/sqlite";
 import { persistDatabase } from "../database";
 

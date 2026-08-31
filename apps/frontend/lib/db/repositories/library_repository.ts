@@ -1,5 +1,5 @@
-import { Library } from "@/types/library";
-import { EntityType } from "@/types/sync_change";
+import type { Library } from "@/lib/types/Library";
+import { EntityType } from "@/lib/types/EntityType";
 import { SQLiteDBConnection } from "@capacitor-community/sqlite";
 
 export class LibraryRepository {
@@ -55,12 +55,6 @@ export class LibraryRepository {
   }
 
   async upsertFromSync(library: Library): Promise<void> {
-    // get local iconUrl
-
-    console.log("UPSERT FROM SYNC");
-    console.log("library:", library);
-    console.log("createdAt:", library.createdAt);
-    console.log("updatedAt:", library.updatedAt);
 
     await this.db.run(
       `
@@ -159,5 +153,9 @@ export class LibraryRepository {
         library.version,
       ],
     );
+  }
+  async deleteLibraryById(userId: string, libraryId: string)
+  {
+    await this.db.run(`DELETE FROM libraries where libraries.user_id = ? AND libraries.id = ?`, [userId, libraryId]);
   }
 }

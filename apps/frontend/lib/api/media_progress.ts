@@ -1,7 +1,4 @@
-import type {
-  MediaProgressRead,
-  MediaProgressWrite,
-} from "@/types/media_progress";
+import type { MediaProgressRead, MediaProgressWrite } from "../types/MediaProgress";
 
 const API_BASE = "http://127.0.0.1:8000";
 const API_PREFIX = API_BASE + "/media_progress";

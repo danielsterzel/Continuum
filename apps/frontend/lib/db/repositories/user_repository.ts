@@ -1,5 +1,5 @@
 import { SQLiteDBConnection } from "@capacitor-community/sqlite";
-import type { User } from "@/types/user";
+import type { User } from "@/lib/types/User";
 import { persistDatabase } from "../database";
 
 export class UserRepository {

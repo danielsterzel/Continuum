@@ -1,16 +1,17 @@
 "use client";
 
 import { ArrowRight, Smartphone } from "lucide-react";
-import type { Device } from "@/types/device";
 import { v4 } from "uuid";
 import { useRef, useEffect  } from "react";
-import { EntityType, SyncOperation } from "@/types/sync_change";
+import { EntityType } from "@/lib/types/EntityType";
+import { SyncOperation } from "@/lib/types/SyncOperation";
+import type { Device } from "@/lib/types/Device";
 import { useRouter } from "next/navigation";
 import { DeviceRepository } from "@/lib/db/repositories/device_repository";
 import { getDatabase } from "@/lib/db/database";
 import { useUser } from "../context/UserContext";
 import { useDevice } from "../context/DeviceContext";
-import { queueEntityChange } from "@/lib/sync/sync";
+import { queueEntityChange } from "@/lib/sync/Sync";
 
 export default function SetupDevice() {
   const inputRef = useRef<HTMLInputElement | null>(null);

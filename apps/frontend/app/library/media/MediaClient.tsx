@@ -3,15 +3,15 @@
 import { useSearchParams, useRouter } from "next/navigation";
 import { useEffect} from "react";
 import { fetchSingleMedia } from "@/lib/api/library";
-import { GoBackButton } from "@/app/UI/GoBackButton";
-import { getMediaIcon } from "@/components/_library_components/MediaListItem";
+import { GoBackButton } from "@/components/buttons/GoBackButton";
+import { getMediaIcon } from "@/components/library_components/MediaListItem";
 import { formatFileSize } from "@/lib/UxMedia";
 import { VideoMain } from "./_variations/VideoMain";
 import { ImageMain } from "./_variations/ImageMain";
 import { PdfMain } from "./_variations/PdfMain";
 import { AudioMain } from "./_variations/AudioMain";
-import { MetaChip } from "@/components/_library_components/MetaChip";
-import { formatDate } from "@/lib/datetime";
+import { MetaChip } from "@/components/library_components/MetaChip";
+import { formatDate } from "@/lib/Datetime";
 import { HardDrive, Tag, Calendar, CalendarClock } from "lucide-react";
 import { useMedia } from "@/app/context/MediaContext";
 

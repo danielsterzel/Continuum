@@ -2,7 +2,7 @@
 
 import { createContext, Dispatch, SetStateAction, useContext, useState} from "react";
 
-import type { Library } from "@/types/library";
+import type { Library } from "@/lib/types/Library";
 
 type LibraryContextType = {
     items: Library[];

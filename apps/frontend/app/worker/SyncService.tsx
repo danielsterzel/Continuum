@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { useUser } from "../context/UserContext";
-import { syncCycle } from "@/lib/sync/sync";
+import { syncCycle } from "@/lib/sync/Sync";
 
 export function SyncService() {
   const { user } = useUser();

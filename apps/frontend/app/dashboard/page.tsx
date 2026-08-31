@@ -1,19 +1,19 @@
 "use client";
 
-import { RecentlyUsedList } from "@/components/_home_components/_recently_used/RecentlyUsedList";
-import { HomeTitle } from "@/components/_home_components/_title_shelf/HomeTitle";
+import { RecentlyUsedList } from "@/components/home_components/_recently_used/RecentlyUsedList";
+import { HomeTitle } from "@/components/home_components/title_shelf/HomeTitle";
 import { useState, useEffect } from "react";
-import { LibraryList } from "@/components/_home_components/_library_list/LibraryList";
-import { PrimaryButton } from "@/components/_buttons/PrimaryButton";
-import { LibraryModal } from "@/components/_home_components/LibraryModal";
+import { LibraryList } from "@/components/home_components/_library_list/LibraryList";
+import { PrimaryButton } from "@/components/buttons/PrimaryButton";
+import { LibraryModal } from "@/components/home_components/LibraryModal";
 import { useLibrary } from "@/app/context/LibraryContext";
 import { DeviceIcon } from "@/components/DeviceIcon";
-import { list } from "@/lib/hardcoded";
+import { list } from "@/lib/Hardcoded";
 import { useRouter } from "next/navigation";
 import { Clock3, FolderOpen, Plus } from "lucide-react";
 import { useUser } from "../context/UserContext";
 import { useDevice } from "../context/DeviceContext";
-import { getLibraries } from "@/lib/queries/library";
+import { getLibraries } from "@/lib/db/services/library_service";
 import Link from "next/link";
 
 export default function Home() {

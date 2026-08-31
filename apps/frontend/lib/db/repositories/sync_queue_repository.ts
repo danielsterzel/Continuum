@@ -1,4 +1,4 @@
-import { SyncChange } from "@/types/sync_change";
+import { SyncChange } from "@/lib/types/SyncChange";
 import { SQLiteDBConnection } from "@capacitor-community/sqlite";
 import { persistDatabase } from "../database";
 

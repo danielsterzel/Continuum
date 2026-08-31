@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Montserrat } from "next/font/google";
 import "./globals.css";
 import { Provider } from "./providers";
-import { SlideMenu } from "@/components/_home_components/SlideMenu";
+import { SlideMenu } from "@/components/home_components/SlideMenu";
 import { SyncService } from "./worker/SyncService";
 import { BootstrapDb } from "./BootstrapDb";
 import { UserProvider } from "./context/UserContext";

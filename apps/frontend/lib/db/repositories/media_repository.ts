@@ -1,7 +1,7 @@
-import { Media } from "@/types/media";
+import { Media } from "@/lib/types/Media";
 import { SQLiteDBConnection } from "@capacitor-community/sqlite";
 import { persistDatabase } from "../database";
-import { EntityType } from "@/types/sync_change";
+import { EntityType } from "@/lib/types/EntityType";
 export class MediaRepository {
   private db: SQLiteDBConnection;
 

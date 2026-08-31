@@ -5,7 +5,7 @@ import { useMedia } from "@/app/context/MediaContext";
 import { Edit } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 
-import type { NoteRead } from "@/types/note";
+import type { Note } from "@/lib/types/Note";
 import { getMediaColor, getMediaBg } from "../MediaClient";
 import {
   fetchMediaProgresForMedia,
@@ -14,6 +14,7 @@ import {
 
 import { NoteItem } from "./video_components/NoteItem";
 import { CreateNote } from "./video_components/CreateNote";
+import { EntityType } from "@/lib/types/EntityType";
 
 const CRON_TIME = 30_000;
 
@@ -85,7 +86,7 @@ export function VideoMain() {
   const color = getMediaColor(media.mediaType);
   const bg = getMediaBg(media.mediaType);
 
-  const noteMock: NoteRead = {
+  const noteMock: Note = {
     id: "MOCK_ID",
     mediaId: media?.id,
     media: media,
@@ -94,8 +95,11 @@ export function VideoMain() {
       "This is some sort of text area and here I will have" +
       "the like... timestamp where the note is and the note description etc etc.",
     timestamp: 125,
-    createdAt: 0,
-    updatedAt: 0,
+    createdAt: "",
+    updatedAt: "",
+    entityType: EntityType.Note,
+    version:1,
+    deletedAt: null
   };
 
   const saveProgress = async () => {

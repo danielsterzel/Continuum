@@ -1,6 +1,6 @@
 
-import type { DeviceRead } from "@/types/device";
-import type { DeviceWrite } from "@/types/device";
+import { DeviceRead, DeviceWrite } from "../types/Device";
+
 
 export async function fetchDevice(deviceId: string): Promise<DeviceRead>
 {

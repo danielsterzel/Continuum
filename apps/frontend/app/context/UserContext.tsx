@@ -9,7 +9,7 @@ import {
   useContext,
 } from "react";
 
-import type { User } from "@/types/user";
+import type { User } from "@/lib/types/User";
 import { getDatabase } from "@/lib/db/database";
 import { UserRepository } from "@/lib/db/repositories/user_repository";
 

@@ -1,4 +1,4 @@
-import type { User, UserLogin, UserSetupRequest } from "@/types/user";
+import type { User, UserLogin, UserSetupRequest } from "../types/User";
 
 async function getErrorMessage(
   response: Response,

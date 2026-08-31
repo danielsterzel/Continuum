@@ -14,12 +14,12 @@ import {
 } from "lucide-react";
 
 import { loginUser } from "@/lib/api/user";
-import type { UserLogin } from "@/types/user";
+
 import { useUser } from "../context/UserContext";
 import { useDevice } from "../context/DeviceContext";
 import { getDatabase } from "@/lib/db/database";
 import { UserRepository } from "@/lib/db/repositories/user_repository";
-import type { User } from "@/types/user";
+import type { UserLogin, User } from "@/lib/types/User";
 
 export default function Login() {
   const router = useRouter();

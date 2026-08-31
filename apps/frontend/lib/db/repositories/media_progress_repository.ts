@@ -1,4 +1,4 @@
-import { MediaProgress } from "@/types/media_progress";
+import { MediaProgress } from "@/lib/types/MediaProgress";
 import { SQLiteDBConnection } from "@capacitor-community/sqlite";
 import { persistDatabase } from "../database";
 

@@ -1,4 +1,4 @@
-type TypeBadge = { label: string; className: string };
+// type TypeBadge = { label: string; className: string };
 
 export function formatDuration(seconds?: number): string {
   if (!seconds) return "-";

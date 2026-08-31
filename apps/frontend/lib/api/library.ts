@@ -1,8 +1,9 @@
-import { Library, LibraryRead } from "@/types/library";
-import { MediaRead } from "@/types/media";
-import { LibraryCreate } from "@/types/library";
+import { Library, LibraryCreate, LibraryRead } from "../types/Library";
+import { Media, MediaRead } from "../types/Media";
+
 import { v4 } from "uuid";
-import { saveLocalFile } from "../files/localFileStorage";
+import { saveLocalFile } from "../files/LocalFileStorage";
+import { EntityType } from "../types/EntityType";
 
 
 const API_ORIGIN = "http://127.0.0.1:8000";
@@ -16,35 +17,35 @@ export function getAssetUrl(path?: string | null): string | undefined {
 }
 
 
-export async function fetchLibraries()
-{
-    const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/library/collection`,
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-            },
-          },
-        );
-    return res;
-}
+// export async function fetchLibraries()
+// {
+//     const res = await fetch(
+//           `${process.env.NEXT_PUBLIC_API_URL}/library/collection`,
+//           {
+//             method: "GET",
+//             headers: {
+//               "Content-Type": "application/json",
+//             },
+//           },
+//         );
+//     return res;
+// }
 
 
-export async function deleteLibrary(libraryId: string)
-{
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/library/collection/${libraryId}`, {
-        method: "DELETE"   
-    });
+// export async function deleteLibrary(libraryId: string)
+// {
+//     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/library/collection/${libraryId}`, {
+//         method: "DELETE"   
+//     });
 
-    if(!res.ok)
-        {
-            console.log(res.statusText)
-            throw new Error(`HTTP error ${res.status}`);
-        }
-}
+//     if(!res.ok)
+//         {
+//             console.log(res.statusText)
+//             throw new Error(`HTTP error ${res.status}`);
+//         }
+// }
 
-export async function fetchSingleLib(libraryId: string): Promise<LibraryRead>
+export async function fetchSingleLibByWeb(libraryId: string): Promise<LibraryRead>
 {
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/library/collection/${libraryId}`, {
         method: "GET"
@@ -86,7 +87,7 @@ export async function uploadMedia(libraryId: string, files: File[]): Promise<Med
     return returnedFiles
 }
 
-export async function fetchSingleMedia(libraryId: string, mediaId: string): Promise<MediaRead>
+export async function fetchSingleMedia(libraryId: string, mediaId: string): Promise<Media>
 {
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/library/${libraryId}/media/${mediaId}`, {
         method: "GET",
@@ -101,7 +102,7 @@ export async function fetchSingleMedia(libraryId: string, mediaId: string): Prom
         }
 
     const data = await res.json();
-    return data as MediaRead;
+    return {...data, deletedAt: null, version: 1, entityType: EntityType.Media, filepath: ""};
 
 }
 

@@ -21,6 +21,10 @@ class ResolveLibrary(ResolveBase[LibraryRepository]):
             raise ValueError("Library owner does not match sync user")
 
         library = self.deserialize_library(entity_id=entity_id, payload=payload,)
+        existing = await self.repository.fetch_single_by_user(library_id=entity_id, user_id=self.user_id)
+        if existing:
+            return
+
         await self.repository.save(library)
 
     async def sync_update(self, entity_id: UUID, payload: dict[str, Any]) -> None:

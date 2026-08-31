@@ -3,10 +3,9 @@
 
 import { useState, createContext, Dispatch, SetStateAction, useContext, useEffect } from "react";
 
-import { Device } from "@/types/device";
+import type { Device } from "@/lib/types/Device";
 import { getDatabase } from "@/lib/db/database";
 import { DeviceRepository } from "@/lib/db/repositories/device_repository";
-import { useUser } from "./UserContext";
 
 type DeviceContextType = {
     device: Device | null;

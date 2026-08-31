@@ -1,5 +1,5 @@
 import { v4 } from "uuid";
-import type { SyncChange } from "@/types/sync_change";
+import type { SyncChange } from "../types/SyncChange";
 import { SyncQueueRepository } from "../db/repositories/sync_queue_repository";
 import { getDatabase } from "../db/database";
 

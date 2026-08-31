@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 
 import { createUser } from "@/lib/api/user";
-import type { User, UserSetupRequest } from "@/types/user";
+import type { UserSetupRequest, User } from "@/lib/types/User";
 import { UserRepository } from "@/lib/db/repositories/user_repository";
 import { getDatabase } from "@/lib/db/database";
 import { useUser } from "../context/UserContext";

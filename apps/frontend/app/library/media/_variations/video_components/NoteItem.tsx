@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import type { NoteRead } from "@/types/note";
-import { formatDate } from "@/lib/datetime";
+import type { Note } from "@/lib/types/Note";
+import { formatDate } from "@/lib/Datetime";
 import { Notebook, Clock, ChevronDown } from "lucide-react";
 
 
@@ -13,7 +13,7 @@ function formatTimestamp(seconds: number) {
 }
 
 type NoteMetaDataProps = {
-  note: NoteRead;
+  note: Note;
   color: string;
 };
 
@@ -39,7 +39,7 @@ function NoteMetaData({ note, color }: NoteMetaDataProps) {
 }
 
 export type NoteItemProps = {
-  note: NoteRead;
+  note: Note;
   styling?: string;
   iconColor?: string;
   iconBg?: string;

@@ -2,11 +2,11 @@
 
 import { createContext, Dispatch, SetStateAction, useContext, useState } from "react";
 
-import type { MediaRead } from "@/types/media";
+import type { Media } from "@/lib/types/Media";
 
 type MediaContextType = {
-    media: MediaRead | null;
-    setMedia: Dispatch<SetStateAction<MediaRead | null>>
+    media: Media | null;
+    setMedia: Dispatch<SetStateAction<Media | null>>
 }
 
 const MediaContext = createContext<MediaContextType | null>(null);
@@ -14,7 +14,7 @@ const MediaContext = createContext<MediaContextType | null>(null);
 
 export function MediaProvider({children}: {children: React.ReactNode})
 {
-    const [media, setMedia] = useState<MediaRead | null>(null);
+    const [media, setMedia] = useState<Media | null>(null);
     return <MediaContext.Provider value={{media, setMedia}}>
         {children}
     </MediaContext.Provider>

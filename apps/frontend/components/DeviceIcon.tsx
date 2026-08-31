@@ -1,5 +1,5 @@
 import { MonitorSmartphone } from "lucide-react";
-import type { Device } from "@/types/device";
+import type { Device } from "@/lib/types/Device";
 
 type DeviceIconProps = {
   device: Pick<Device, "name"> | null;
