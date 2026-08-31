@@ -10,6 +10,8 @@ import { useEffect, useRef, useState } from "react";
 import { RenderInputFiles } from "@/components/input/RenderInputFiles";
 import { Media } from "@/lib/types/Media";
 import { getFullFilepath } from "@/lib/files/LocalFileStorage";
+import { createMedia } from "@/lib/db/services/media_service";
+import { useDevice } from "@/app/context/DeviceContext";
 
 type LibraryHeroProps = {
   library: Library;
@@ -25,6 +27,8 @@ export function LibraryHero({
   const [files, setFile] = useState<File[]>([]);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [iconPath, setIconPath] = useState("");
+
+  const {device} = useDevice();
 
   useEffect(() => {
     async function loadIcon() {
@@ -110,6 +114,13 @@ export function LibraryHero({
             // const uploaded = await uploadMedia(library.id, files);
             // onMediaUploaded(uploaded);
             // setFile([]);
+            await Promise.all(
+            files.map(async (file, _) => {
+              await createMedia(file, library.id, device!.id);
+
+            }));
+            
+            setFile([]);
           }}
         />
       </div>

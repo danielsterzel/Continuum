@@ -8,8 +8,7 @@ export class MediaRepository {
   constructor(dbConnection: SQLiteDBConnection) {
     this.db = dbConnection;
   }
-  mapRowsToMedia(row: any): Media
-  {
+  mapRowsToMedia(row: any): Media {
     return {
       id: row.id,
       libraryId: row.library_id,
@@ -25,8 +24,8 @@ export class MediaRepository {
       deletedAt: row.deleted_at,
       version: row.number,
       entityType: EntityType.Media,
-      filepath: row.filepath
-    }
+      filepath: row.filepath,
+    };
   }
   async initTable(): Promise<void> {
     await this.db.execute(`
@@ -126,21 +125,57 @@ export class MediaRepository {
 
     await persistDatabase();
   }
-  async getTotalSizeByLibraryId(libraryId: string): Promise<number>
-  {
+  async getTotalSizeByLibraryId(libraryId: string): Promise<number> {
     const res = await this.db.query(
       `
       SELECT COALESCE(SUM(file_size), 0) AS total_size FROM media WHERE library_id = ?
-      `,[libraryId]
+      `,
+      [libraryId],
     );
 
     return res.values?.[0].total_size ?? 0;
   }
-
-  async getAllByLibraryId(userId: string, libraryId: string)
-  {
-    const res = await this.db.query(`SELECT * FROM media m JOIN libraries l ON(m.library_id = l.id) where l.user_id = ? AND m.library_id = ?`, [userId, libraryId]);
-    const rows = res.values?? [];
+  async add(media: Media) {
+    await this.db.run(
+      `INSERT INTO media (
+      id,
+      library_id,
+      filename,
+      filepath,
+      file_size,
+      duration,
+      thumbnail_url,
+      media_type,
+      rating,
+      created_at,
+      updated_at,
+      deleted_at,
+      version
+    )
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        media.id,
+        media.libraryId,
+        media.filename,
+        media.filepath,
+        media.fileSize,
+        media.duration ?? null,
+        media.thumbnailUrl ?? null,
+        media.mediaType,
+        media.rating ?? null,
+        media.createdAt,
+        media.updatedAt,
+        media.deletedAt ?? null,
+        media.version,
+      ],
+    );
+  }
+  async getAllByLibraryId(userId: string, libraryId: string) {
+    const res = await this.db.query(
+      `SELECT * FROM media m JOIN libraries l ON(m.library_id = l.id) where l.user_id = ? AND m.library_id = ?`,
+      [userId, libraryId],
+    );
+    const rows = res.values ?? [];
 
     return rows.map((row, _) => this.mapRowsToMedia(row));
   }

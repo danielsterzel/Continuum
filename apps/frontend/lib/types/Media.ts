@@ -27,7 +27,7 @@ export type Media = {
 
   createdAt: string;
   updatedAt: string;
-  deletedAt: number;
+  deletedAt: string | null;
 
   version: number;
   entityType: EntityType.Media;
