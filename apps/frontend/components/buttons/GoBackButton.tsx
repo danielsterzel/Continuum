@@ -8,6 +8,7 @@ export function GoBackButton({onBack} : Readonly<{onBack: () => void}>)
             <button
                 onClick={onBack}
                 className="group flex items-center gap-2 mb-8
+                    mt-12 sm:mt-0
                     text-text-tertiary hover:text-text-primary
                     transition-colors duration-200
                     cursor-pointer"

@@ -1,13 +1,15 @@
-
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 from pydantic.alias_generators import to_camel
 from uuid import UUID
 from datetime import datetime
 
+
 class UserWrite(BaseModel):
     model_config = ConfigDict(
-        from_attributes=True, alias_generator=to_camel,
-        validate_by_name=True, validate_by_alias=True
+        from_attributes=True,
+        alias_generator=to_camel,
+        validate_by_name=True,
+        validate_by_alias=True,
     )
 
     display_name: str = Field(max_length=100)
@@ -34,10 +36,13 @@ class UserWrite(BaseModel):
 
         return value
 
+
 class UserRead(BaseModel):
     model_config = ConfigDict(
-        from_attributes=True, alias_generator=to_camel,
-        validate_by_name=True, validate_by_alias=True
+        from_attributes=True,
+        alias_generator=to_camel,
+        validate_by_name=True,
+        validate_by_alias=True,
     )
     id: UUID
     display_name: str
@@ -45,11 +50,13 @@ class UserRead(BaseModel):
     created_at: datetime
     updated_at: datetime
 
-class UserLogin(BaseModel):
 
+class UserLogin(BaseModel):
     model_config = ConfigDict(
-        from_attributes=True, alias_generator=to_camel,
-        validate_by_name=True, validate_by_alias=True
+        from_attributes=True,
+        alias_generator=to_camel,
+        validate_by_name=True,
+        validate_by_alias=True,
     )
     email: str
     password: str

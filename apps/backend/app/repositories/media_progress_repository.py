@@ -7,9 +7,10 @@ from sqlalchemy.dialects.postgresql import insert
 
 from uuid import UUID
 
+
 class MediaProgressRepository(BaseRepository[MediaProgress]):
     model = MediaProgress
-    allowed_updates = {'current_position', 'last_watched', 'last_device_id'}
+    allowed_updates = {"current_position", "last_watched", "last_device_id"}
 
     async def fetch_media_progress_validate(
         self, user_id, media_id
@@ -68,7 +69,9 @@ class MediaProgressRepository(BaseRepository[MediaProgress]):
         res = await self.db.execute(query)
         return res.scalar_one_or_none() is not None
 
-    async def update_media_progress_validate(self, entity_id: UUID, user_id: UUID, **kwargs) -> bool:
+    async def update_media_progress_validate(
+        self, entity_id: UUID, user_id: UUID, **kwargs
+    ) -> bool:
 
         permitted_progress = (
             select(self.model.id)
@@ -77,4 +80,6 @@ class MediaProgressRepository(BaseRepository[MediaProgress]):
             .where(self.model.id == entity_id, Library.user_id == user_id)
         )
 
-        return await self.update_entity_validate(permissions=permitted_progress, **kwargs)
+        return await self.update_entity_validate(
+            permissions=permitted_progress, **kwargs
+        )

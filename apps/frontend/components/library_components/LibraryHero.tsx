@@ -110,15 +110,10 @@ export function LibraryHero({
             setFile((prev) => prev.filter((_, i) => i !== index));
           }}
           onSubmit={async () => {
-            // TODO: wywołanie API do wysłania `files`
-            // const uploaded = await uploadMedia(library.id, files);
-            // onMediaUploaded(uploaded);
-            // setFile([]);
-            await Promise.all(
-            files.map(async (file, _) => {
-              await createMedia(file, library.id, device!.id);
+            const uploaded = await Promise.all(
+            files.map((file, _) => createMedia(file, library.id, device!.id)));
 
-            }));
+            onMediaUploaded(uploaded);
             
             setFile([]);
           }}

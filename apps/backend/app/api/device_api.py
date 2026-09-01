@@ -22,7 +22,9 @@ async def get_device(
 
     device_repository = DeviceRepository(db)
 
-    device = await device_repository.fetch_device_by_id_and_user_id(device_id=device_id, user_id=user_id)
+    device = await device_repository.fetch_device_by_id_and_user_id(
+        device_id=device_id, user_id=user_id
+    )
 
     if not device:
         raise HTTPException(

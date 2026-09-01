@@ -19,6 +19,7 @@ class MediaProgressRead(BaseModel):
     last_device_id: UUID | None
     version: int
 
+
 class MediaProgressWrite(BaseModel):
     model_config = ConfigDict(
         from_attributes=True,
@@ -29,6 +30,7 @@ class MediaProgressWrite(BaseModel):
 
     current_position: timedelta | None
     last_device_id: str | None
+
 
 class MediaProgressSyncPayload(BaseModel):
     model_config = ConfigDict(

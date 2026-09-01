@@ -34,7 +34,9 @@ class LibraryCreate(BaseModel):
 class LibraryRead(BaseModel):
     model_config = ConfigDict(
         from_attributes=True,
-        alias_generator=to_camel, validate_by_alias=True, validate_by_name=True
+        alias_generator=to_camel,
+        validate_by_alias=True,
+        validate_by_name=True,
     )
     id: UUID = Field(...)
     user_id: UUID = Field(...)
@@ -47,10 +49,13 @@ class LibraryRead(BaseModel):
     version: int
     deleted_at: datetime | None
 
+
 class LibrarySyncPayload(BaseModel):
     model_config = ConfigDict(
         from_attributes=True,
-        alias_generator=to_camel, validate_by_alias=True, validate_by_name=True
+        alias_generator=to_camel,
+        validate_by_alias=True,
+        validate_by_name=True,
     )
     user_id: UUID
 

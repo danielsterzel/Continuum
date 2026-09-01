@@ -9,10 +9,9 @@ from sqlalchemy import select, and_
 
 
 class MediaRepository(BaseRepository[Media]):
-
     model = Media
 
-    allowed_updates = {'filename', 'thumbnail_url', 'rating'}
+    allowed_updates = {"filename", "thumbnail_url", "rating"}
 
     async def fetch_by_library(self, library_id: UUID) -> list[Media]:
 
@@ -32,6 +31,7 @@ class MediaRepository(BaseRepository[Media]):
         res = await self.db.execute(query)
 
         return res.scalar_one_or_none()
+
     async def fetch_all_by_user(self, user_id) -> list[Media]:
         query = (
             select(self.model)
@@ -57,9 +57,8 @@ class MediaRepository(BaseRepository[Media]):
 
     async def resolve_media_user(self, library_id: UUID, user_id: UUID) -> bool:
 
-        query = (
-            select(Library)
-            .where(Library.user_id == user_id, Library.id == library_id)
+        query = select(Library).where(
+            Library.user_id == user_id, Library.id == library_id
         )
 
         res = await self.db.execute(query)
@@ -67,31 +66,24 @@ class MediaRepository(BaseRepository[Media]):
         return res.scalar_one_or_none() is not None
 
     async def update_media_validate(
-            self,
-            entity_id: UUID,
-            user_id: UUID,
-            **kwargs
+        self, entity_id: UUID, user_id: UUID, **kwargs
     ) -> bool:
 
         permitted_media = (
             select(self.model.id)
             .join(Library, Library.id == self.model.library_id)
-            .where(
-                Library.user_id == user_id,
-                self.model.id == entity_id
-            )
+            .where(Library.user_id == user_id, self.model.id == entity_id)
         )
 
         return await self.update_entity_validate(permissions=permitted_media, **kwargs)
 
     async def soft_delete_one_by_id(self, entity_id: UUID, user_id: UUID) -> bool:
 
-        query = (select(self.model)
+        query = (
+            select(self.model)
             .join(Library, Library.id == self.model.library_id)
-            .where(
-            Library.user_id == user_id,
-            self.model.id == entity_id
-            ))
+            .where(Library.user_id == user_id, self.model.id == entity_id)
+        )
 
         res = await self.db.execute(query)
 

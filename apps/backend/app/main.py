@@ -54,6 +54,7 @@ async def database_health(db: DbSession):
     result = await db.execute(text("SELECT 1"))
     return {"database": result.scalar()}
 
+
 MEDIA_STORAGE_DIR = settings.media_storage_dir
 MEDIA_STORAGE_DIR.mkdir(parents=True, exist_ok=True)
 

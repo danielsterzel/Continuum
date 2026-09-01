@@ -41,7 +41,6 @@ class NoteRepository(BaseRepository[Note]):
         note = await self.db.execute(query)
         return note.scalar_one_or_none()
 
-
     async def fetch_permitted(self, note_id: UUID, user_id: UUID) -> Note | None:
 
         query = (
@@ -69,7 +68,9 @@ class NoteRepository(BaseRepository[Note]):
 
         return self.soft_delete_entity(note)
 
-    async def update_note_validate(self, entity_id: UUID, user_id: UUID, **kwargs) -> bool:
+    async def update_note_validate(
+        self, entity_id: UUID, user_id: UUID, **kwargs
+    ) -> bool:
 
         permitted_note = (
             select(self.model.id)

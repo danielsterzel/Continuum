@@ -22,7 +22,7 @@ export class MediaRepository {
       createdAt: row.created_at,
       updatedAt: row.updated_at,
       deletedAt: row.deleted_at,
-      version: row.number,
+      version: row.version,
       entityType: EntityType.Media,
       filepath: row.filepath,
     };
@@ -137,17 +137,8 @@ export class MediaRepository {
   }
   async add(media: Media) {
     await this.db.run(
-      `INSERT INTO media (
-      id,
-      library_id,
-      filename,
-      filepath,
-      file_size,
-      duration,
-      thumbnail_url,
-      media_type,
-      rating,
-      created_at,
+      `INSERT INTO media (id, library_id, filename, filepath, file_size, duration, thumbnail_url, media_type, rating,
+created_at,
       updated_at,
       deleted_at,
       version
@@ -172,11 +163,47 @@ export class MediaRepository {
   }
   async getAllByLibraryId(userId: string, libraryId: string) {
     const res = await this.db.query(
-      `SELECT * FROM media m JOIN libraries l ON(m.library_id = l.id) where l.user_id = ? AND m.library_id = ?`,
+      `SELECT m.* FROM media m JOIN libraries l ON(m.library_id = l.id) WHERE l.user_id = ? AND m.library_id = ?`,
       [userId, libraryId],
     );
     const rows = res.values ?? [];
 
     return rows.map((row, _) => this.mapRowsToMedia(row));
+  }
+  async getById(
+    userId: string,
+    libraryId: string,
+    mediaId: string,
+  ): Promise<Media | null> {
+    const res = await this.db.query(
+      `
+      SELECT m.* FROM media m JOIN libraries l ON(m.library_id = l.id) WHERE l.user_id = ? AND m.library_id = ? AND m.id = ?`,
+      [userId, libraryId, mediaId],
+    );
+
+    const row = res.values?.[0];
+
+    if (!row) {
+      return null;
+    }
+    console.log(row);
+
+    return this.mapRowsToMedia(res.values![0]);
+  }
+
+  async deleteById(
+    userId: string,
+    libraryId: string,
+    mediaId: string,
+  ): Promise<void> {
+    const res = await this.db.run(
+      `DELETE from media WHERE id = ? AND library_id = ? AND EXISTS(SELECT 1 FROM libraries WHERE libraries.id = media.library_id 
+      AND libraries.user_id = ?)`,
+      [mediaId, libraryId, userId],
+    );
+
+    if (res.changes?.changes !== 1) {
+      throw new Error("ERROR IN DELETE MEDIA");
+    }
   }
 }

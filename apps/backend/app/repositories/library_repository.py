@@ -1,4 +1,3 @@
-
 from app.models.libraries import Library
 from app.repositories.base_repository import BaseRepository
 from sqlalchemy import select, and_, delete, update, func
@@ -11,7 +10,7 @@ from sqlalchemy.orm import selectinload
 class LibraryRepository(BaseRepository[Library]):
     model = Library
 
-    allowed_updates = {'name', 'description', 'icon_url'}
+    allowed_updates = {"name", "description", "icon_url"}
 
     async def fetch_all_by_user(self, user_id: UUID) -> list[Library]:
         libraries = await self.db.execute(
@@ -54,18 +53,19 @@ class LibraryRepository(BaseRepository[Library]):
 
         return result.rowcount == 1
 
+    async def update_library_validate(
+        self, entity_id: UUID, user_id: UUID, **kwargs
+    ) -> bool:
 
-    async def update_library_validate(self, entity_id: UUID, user_id: UUID, **kwargs) -> bool:
-
-        query = (
-            select(self.model.id).where(Library.id == entity_id, Library.user_id == user_id)
+        query = select(self.model.id).where(
+            Library.id == entity_id, Library.user_id == user_id
         )
         return await self.update_entity_validate(permissions=query, **kwargs)
 
     async def soft_delete_one_by_id(self, entity_id, user_id) -> bool:
 
-        query = (
-            select(self.model).where(self.model.id == entity_id, self.model.user_id == user_id)
+        query = select(self.model).where(
+            self.model.id == entity_id, self.model.user_id == user_id
         )
 
         db_result = await self.db.execute(query)

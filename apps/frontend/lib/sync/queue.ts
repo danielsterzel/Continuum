@@ -14,6 +14,7 @@ export async function enqueueChange(syncEntity: SyncChange): Promise<void> {
   const syncQueueRepository = new SyncQueueRepository(db);
 
   await syncQueueRepository.add(change);
+  console.log("aded to queue object:", JSON.stringify(change));
 }
 
 export async function getPendingChanges(): Promise<SyncChange[]> {

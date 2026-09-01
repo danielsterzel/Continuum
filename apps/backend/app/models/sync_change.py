@@ -17,6 +17,7 @@ class EntityType(str, Enum):
     MediaProgress = "media_progress"
     Device = "device"
 
+
 class SyncOperation(str, Enum):
     CREATE = "create"
     UPDATE = "update"
@@ -47,7 +48,9 @@ class SyncChange(Base, UUIDMixin):
     )
     expected_version: Mapped[int] = mapped_column(Integer, server_default=text("1"))
     payload: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
 
     __table_args__ = (
         Index(

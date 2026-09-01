@@ -69,8 +69,6 @@ class Media(Base, UUIDMixin, TimestampMixin, TombstoneMixin, VersionMixin):
 
     rating: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
-
-
     library: Mapped["Library"] = relationship(back_populates="media")
 
     media_progress: Mapped["MediaProgress | None"] = relationship(

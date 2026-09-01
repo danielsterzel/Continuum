@@ -1,16 +1,14 @@
-
 from app.repositories.base_repository import BaseRepository
 from app.models.user import User
 from uuid import UUID
 from sqlalchemy import select
 
+
 class UserRepository(BaseRepository):
     model = User
 
     async def validate_user_exists(self, user_id: UUID) -> bool:
-        query = (
-            select(user_id).where(User.id == user_id)
-        )
+        query = select(user_id).where(User.id == user_id)
 
         res = await self.db.execute(query)
 
@@ -22,10 +20,7 @@ class UserRepository(BaseRepository):
 
     async def fetch_by_email(self, email: str) -> User | None:
 
-        query = (
-            select(self.model)
-            .where(self.model.email == email)
-        )
+        query = select(self.model).where(self.model.email == email)
 
         res = await self.db.execute(query)
 

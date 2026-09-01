@@ -70,6 +70,7 @@ export function LibraryClient() {
           library={library}
           mediaCount={media.length}
           onMediaUploaded={(uploaded) => {
+
             setMedia((prev) => [...prev, ...uploaded]);
             touchUpdatedAt();
           }}

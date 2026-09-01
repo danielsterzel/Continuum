@@ -106,14 +106,14 @@ export async function fetchSingleMedia(libraryId: string, mediaId: string): Prom
 
 }
 
-export async function deleteMediaFromLibrary(libraryId: string, mediaId: string)
-{
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/library/collection/delete_media/${libraryId}/${mediaId}`, {
-        method: "DELETE"
-    });
-    if(!res.ok )
-        {
-            throw new Error(`HTTP error when deleting: ${res.status}`); 
-        }
+// export async function deleteMediaFromLibrary(libraryId: string, mediaId: string)
+// {
+//     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/library/collection/delete_media/${libraryId}/${mediaId}`, {
+//         method: "DELETE"
+//     });
+//     if(!res.ok )
+//         {
+//             throw new Error(`HTTP error when deleting: ${res.status}`); 
+//         }
     
-}
+// }

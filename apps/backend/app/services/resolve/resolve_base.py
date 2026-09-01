@@ -17,36 +17,27 @@ class ResolveBase[T](ABC):
         self.repository: T = self.repository_type(db)
 
     @abstractmethod
-    async def sync_create(self, entity_id: UUID, payload: dict[str, Any]) -> None:
-        ...
+    async def sync_create(self, entity_id: UUID, payload: dict[str, Any]) -> None: ...
     @abstractmethod
-    async def sync_update(self, entity_id: UUID, payload: dict[str, Any]) -> None:
-        ...
+    async def sync_update(self, entity_id: UUID, payload: dict[str, Any]) -> None: ...
     # not abstract because of media_progress
-    async def sync_delete(self, entity_id: UUID) -> None:
-        ...
+    async def sync_delete(self, entity_id: UUID) -> None: ...
 
     async def resolve(self, change: SyncChangeWrite) -> None:
 
         if change.entity_type != self.entity_type:
-            raise ValueError(
-                f"Incorrect resolver - expected {self.entity_type}"
-            )
+            raise ValueError(f"Incorrect resolver - expected {self.entity_type}")
 
         match change.operation:
             case SyncOperation.CREATE:
                 await self.sync_create(
-                    entity_id=change.entity_id,
-                    payload=change.payload
+                    entity_id=change.entity_id, payload=change.payload
                 )
 
             case SyncOperation.UPDATE:
                 await self.sync_update(
-                    entity_id=change.entity_id,
-                    payload=change.payload
+                    entity_id=change.entity_id, payload=change.payload
                 )
 
             case SyncOperation.DELETE:
-                await self.sync_delete(
-                    entity_id=change.entity_id
-                )
+                await self.sync_delete(entity_id=change.entity_id)

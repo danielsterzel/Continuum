@@ -1,9 +1,11 @@
 "use client";
 
-import { deleteMediaFromLibrary } from "@/lib/api/library";
 import { TriangleAlert, Trash2, X } from "lucide-react";
 import { createPortal } from "react-dom";
 import { useState } from "react";
+import { deleteMediaFromLibrary } from "@/lib/db/services/media_service";
+import { useUser } from "@/app/context/UserContext";
+import { useDevice } from "@/app/context/DeviceContext";
 
 type MediaDeleteModalProps = {
   show: boolean;
@@ -23,14 +25,24 @@ export function MediaDeleteModal({
   onDeleted,
 }: Readonly<MediaDeleteModalProps>) {
   const [isDeleting, setIsDeleting] = useState(false);
+  const {user} = useUser();
+  const {device} = useDevice();
 
   async function handleDelete() {
+
+    console.log("DELETE START");
     setIsDeleting(true);
     try {
-      await deleteMediaFromLibrary(libraryId, mediaId);
-      onDeleted();
+
+      console.log("BEFORE DELETE SERVICE");
+      await deleteMediaFromLibrary(user!.id, libraryId, mediaId, device!.id);
+
+      console.log("AFTER DELETE SERVICE");
       onClose();
+      onDeleted();
+
     } finally {
+
       setIsDeleting(false);
     }
   }
@@ -73,14 +85,13 @@ export function MediaDeleteModal({
           <p className="text-text-secondary text-sm text-center leading-relaxed">
             <span className="font-medium text-text-primary">{filename}</span>{" "}
             will be permanently removed from storage. This cannot be undone —
-            you&apos;ll need to upload it again if you change your mind.
+            you'll need to upload it again if you change your mind.
           </p>
         </div>
 
-        {/* Divider */}
+
         <div className="h-px w-full bg-card-border" />
 
-        {/* Actions */}
         <div className="flex gap-3 p-5">
           <button
             onClick={onClose}

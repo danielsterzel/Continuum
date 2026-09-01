@@ -20,8 +20,8 @@ class DeviceRead(BaseModel):
 class DeviceWrite(BaseModel):
     name: str | None = Field(default=None, max_length=50)
 
-class DeviceSyncWrite(BaseModel):
 
+class DeviceSyncWrite(BaseModel):
     model_config = ConfigDict(
         from_attributes=True,
         alias_generator=to_camel,

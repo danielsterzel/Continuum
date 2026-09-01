@@ -25,7 +25,6 @@ async def recent_progress(
     media_id: UUID,
     db: Annotated[AsyncSession, Depends(get_db)],
 ):
-
     """TODO: figure out what to do with library_id...."""
 
     db_client = MediaProgressRepository(db)

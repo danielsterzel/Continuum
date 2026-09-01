@@ -46,8 +46,10 @@ class NoteRead(BaseModel):
 
 class NoteCreate(BaseModel):
     model_config = ConfigDict(
-        from_attributes=True, alias_generator=to_camel, validate_by_alias=True,
-        validate_by_name=True
+        from_attributes=True,
+        alias_generator=to_camel,
+        validate_by_alias=True,
+        validate_by_name=True,
     )
 
     media_id: str
@@ -55,10 +57,13 @@ class NoteCreate(BaseModel):
     content: str = Field(..., max_length=300)
     timestamp: float | None
 
+
 class NoteSyncPayload(BaseModel):
     model_config = ConfigDict(
-        from_attributes=True, alias_generator=to_camel, validate_by_alias=True,
-        validate_by_name=True
+        from_attributes=True,
+        alias_generator=to_camel,
+        validate_by_alias=True,
+        validate_by_name=True,
     )
     media_id: UUID
     title: str

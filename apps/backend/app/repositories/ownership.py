@@ -5,7 +5,10 @@ from sqlalchemy import select
 from app.models.media import Media
 from app.models.libraries import Library
 
-async def is_media_owned_by_user(db: AsyncSession, media_id: UUID, user_id: UUID) -> bool:
+
+async def is_media_owned_by_user(
+    db: AsyncSession, media_id: UUID, user_id: UUID
+) -> bool:
     query = (
         select(Media.id)
         .join(Library, Library.id == Media.library_id)

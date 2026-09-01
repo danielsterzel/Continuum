@@ -5,10 +5,12 @@ Revises: 4ff54c45ef28
 Create Date: 2026-08-28 23:14:53.289395
 
 """
+
 from typing import Sequence, Union
 
 from alembic import op
 import sqlalchemy as sa
+
 # revision identifiers, used by Alembic.
 revision: str = "ed03a37def66"
 down_revision: Union[str, Sequence[str], None] = "4ff54c45ef28"
@@ -29,26 +31,18 @@ def upgrade() -> None:
     # plural table names.
     op.execute("ALTER INDEX idx_device_user RENAME TO ix_devices_user_id")
     op.execute(
-        "ALTER INDEX ix_sync_change_device_id "
-        "RENAME TO ix_sync_changes_device_id"
+        "ALTER INDEX ix_sync_change_device_id RENAME TO ix_sync_changes_device_id"
     )
-    op.execute(
-        "ALTER INDEX ix_sync_change_entity RENAME TO ix_sync_changes_entity"
-    )
+    op.execute("ALTER INDEX ix_sync_change_entity RENAME TO ix_sync_changes_entity")
 
-    op.execute(
-        "ALTER TABLE devices RENAME CONSTRAINT device_pkey TO devices_pkey"
-    )
+    op.execute("ALTER TABLE devices RENAME CONSTRAINT device_pkey TO devices_pkey")
     op.execute(
         "ALTER TABLE devices RENAME CONSTRAINT device_user_id_fkey "
         "TO devices_user_id_fkey"
     )
+    op.execute("ALTER TABLE notes RENAME CONSTRAINT note_pkey TO notes_pkey")
     op.execute(
-        "ALTER TABLE notes RENAME CONSTRAINT note_pkey TO notes_pkey"
-    )
-    op.execute(
-        "ALTER TABLE notes RENAME CONSTRAINT note_media_id_fkey "
-        "TO notes_media_id_fkey"
+        "ALTER TABLE notes RENAME CONSTRAINT note_media_id_fkey TO notes_media_id_fkey"
     )
     op.execute(
         "ALTER TABLE media_progresses RENAME CONSTRAINT media_progress_pkey "
@@ -183,26 +177,18 @@ def downgrade() -> None:
         "TO media_progress_pkey"
     )
     op.execute(
-        "ALTER TABLE notes RENAME CONSTRAINT notes_media_id_fkey "
-        "TO note_media_id_fkey"
+        "ALTER TABLE notes RENAME CONSTRAINT notes_media_id_fkey TO note_media_id_fkey"
     )
-    op.execute(
-        "ALTER TABLE notes RENAME CONSTRAINT notes_pkey TO note_pkey"
-    )
+    op.execute("ALTER TABLE notes RENAME CONSTRAINT notes_pkey TO note_pkey")
     op.execute(
         "ALTER TABLE devices RENAME CONSTRAINT devices_user_id_fkey "
         "TO device_user_id_fkey"
     )
-    op.execute(
-        "ALTER TABLE devices RENAME CONSTRAINT devices_pkey TO device_pkey"
-    )
+    op.execute("ALTER TABLE devices RENAME CONSTRAINT devices_pkey TO device_pkey")
 
+    op.execute("ALTER INDEX ix_sync_changes_entity RENAME TO ix_sync_change_entity")
     op.execute(
-        "ALTER INDEX ix_sync_changes_entity RENAME TO ix_sync_change_entity"
-    )
-    op.execute(
-        "ALTER INDEX ix_sync_changes_device_id "
-        "RENAME TO ix_sync_change_device_id"
+        "ALTER INDEX ix_sync_changes_device_id RENAME TO ix_sync_change_device_id"
     )
     op.execute("ALTER INDEX ix_devices_user_id RENAME TO idx_device_user")
 

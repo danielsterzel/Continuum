@@ -89,6 +89,6 @@ export async function queueEntityChange(
   deviceId: string,
 ): Promise<void> {
   const { syncChange } = mapEntityToSync(entityArg, operation, deviceId);
-
+  console.log("Mapped sync change procedding with adding to queue")
   await enqueueChange(syncChange);
 }

@@ -18,6 +18,7 @@ export type Media = {
   libraryId: string;
 
   filename: string;
+  filepath: string;
   fileSize: number;
 
   mediaType: string;
@@ -31,6 +32,5 @@ export type Media = {
 
   version: number;
   entityType: EntityType.Media;
-  filepath: string;
 };
-export type MediaType = "video" | "audio" | "image" | "document";
+

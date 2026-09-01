@@ -28,6 +28,7 @@ class MediaRead(BaseModel):
     version: int
     deleted_at: datetime | None
 
+
 class MediaSyncPayload(BaseModel):
     model_config = ConfigDict(
         from_attributes=True,
@@ -36,4 +37,15 @@ class MediaSyncPayload(BaseModel):
         validate_by_name=True,
     )
 
+    library_id: UUID
+    filename: str
+    filepath: str
+    file_size: int
+    duration: timedelta | None
+    thumbnail_url: str | None
+    media_type: str
+    rating: int | None
 
+    created_at: datetime
+    updated_at: datetime
+    deleted_at: datetime | None

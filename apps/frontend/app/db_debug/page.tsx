@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
+import { GoBackButton } from "@/components/buttons/GoBackButton";
 import { getDatabase } from "@/lib/db/database";
 import { initializeDatabase } from "@/lib/db/initialize";
 import { resetDatabaseConnection } from "@/lib/db/database";
@@ -19,6 +21,7 @@ const TABLES = [
 type TableData = Record<string, unknown[]>;
 
 export default function DatabaseDebugPage() {
+  const router = useRouter();
   const [data, setData] = useState<TableData>({});
   const [error, setError] = useState<string | null>(null);
 
@@ -52,6 +55,8 @@ export default function DatabaseDebugPage() {
   return (
     <main className="min-h-screen bg-background p-8 text-text-primary">
       <div className="mx-auto flex max-w-6xl flex-col gap-8">
+        <GoBackButton onBack={() => router.back()} />
+
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-semibold">SQLite Debug</h1>
 

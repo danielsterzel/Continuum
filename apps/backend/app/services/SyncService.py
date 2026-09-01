@@ -34,11 +34,12 @@ class SyncService:
         ...
     """
 
-
     def __init__(self, db: AsyncSession):
         self.db = db
 
-    async def __increment_version(self, entity_type: type[ENTITY_UNION], entity_id : UUID):
+    async def __increment_version(
+        self, entity_type: type[ENTITY_UNION], entity_id: UUID
+    ):
 
         query = (
             update(entity_type)
@@ -55,7 +56,9 @@ class SyncService:
 
         device_repository = DeviceRepository(self.db)
 
-        res = await device_repository.fetch_device_by_id_and_user_id(device_id=device_id, user_id=user_id)
+        res = await device_repository.fetch_device_by_id_and_user_id(
+            device_id=device_id, user_id=user_id
+        )
 
         if not res:
             raise ValueError("SYNC PERMISSION DENIED")
@@ -63,16 +66,19 @@ class SyncService:
     async def sync(self, changes: list[SyncChangeWrite], user_id: UUID) -> None:
         try:
             for change in changes:
-
                 is_device_registration = (
                     change.entity_type == EntityType.Device
                     and change.operation == SyncOperation.CREATE
                 )
                 if not is_device_registration:
+                    await self._validate_device(
+                        device_id=change.device_id, user_id=user_id
+                    )
 
-                    await self._validate_device(device_id=change.device_id, user_id=user_id)
-
-                if change.operation == SyncOperation.DELETE and change.entity_type == EntityType.MediaProgress:
+                if (
+                    change.operation == SyncOperation.DELETE
+                    and change.entity_type == EntityType.MediaProgress
+                ):
                     # no delete defined for media_progress
                     continue
 
@@ -83,12 +89,13 @@ class SyncService:
 
                 self.db.add(sync_entity)
 
-                await self.__increment_version(ENTITY_MAPPING[change.entity_type], change.entity_id)
+                await self.__increment_version(
+                    ENTITY_MAPPING[change.entity_type], change.entity_id
+                )
 
             await self.db.commit()
 
         except (SQLAlchemyError, ValueError, KeyError, TypeError, AttributeError):
-
             await self.db.rollback()
             raise
 
@@ -107,4 +114,3 @@ class SyncService:
                 return ResolveDevice(user_id=user_id, db=self.db)
             case _:
                 raise ValueError(f"Unsupported entity type: {change.entity_type}")
-
