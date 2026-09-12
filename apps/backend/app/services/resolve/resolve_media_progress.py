@@ -8,6 +8,7 @@ from app.repositories.ownership import is_media_owned_by_user
 
 from uuid import UUID
 from typing import Any
+from datetime import timedelta
 
 
 class ResolveMediaProgress(ResolveBase[MediaProgressRepository]):
@@ -16,11 +17,12 @@ class ResolveMediaProgress(ResolveBase[MediaProgressRepository]):
 
     @staticmethod
     def deserialize_payload(entity_id: UUID, payload: dict[str, Any]):
+        payload = MediaProgressSyncPayload.model_validate(payload).model_dump()
+
         return MediaProgress(
             id=entity_id,
-            **MediaProgressSyncPayload.model_validate(payload).model_dump(),
+            **payload,
         )
-
     async def sync_create(self, entity_id, payload) -> None:
 
         progress = self.deserialize_payload(entity_id=entity_id, payload=payload)
@@ -35,6 +37,8 @@ class ResolveMediaProgress(ResolveBase[MediaProgressRepository]):
         await self.repository.save(progress)
 
     async def sync_update(self, entity_id, payload) -> None:
+
+        payload = MediaProgressSyncPayload.model_validate(payload).model_dump()
 
         db_res = await self.repository.update_media_progress_validate(
             entity_id=entity_id, user_id=self.user_id, **payload

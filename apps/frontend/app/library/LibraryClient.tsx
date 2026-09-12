@@ -29,20 +29,14 @@ export function LibraryClient() {
   const [media, setMedia] = useState<Media[]>([]);
   const { user } = useUser();
 
-  useEffect(() => {}, [user]);
-
   useEffect(() => {
     async function fetchLibraryAndMedia() {
-      if (!user) {
-        router.replace("/login");
-        return;
-      }
-
-      const lib = await getLibrary(user.id, libraryId!);
+      
+      const lib = await getLibrary(user!.id, libraryId!);
       setLibrary(lib);
-
+      
       if (lib) {
-        const media = await getAllMediaForLibrary(user.id, lib.id);
+        const media = await getAllMediaForLibrary(user!.id, lib.id);
         setMedia(media);
       }
     }

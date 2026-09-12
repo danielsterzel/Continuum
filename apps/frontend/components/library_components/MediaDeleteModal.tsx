@@ -3,9 +3,10 @@
 import { TriangleAlert, Trash2, X } from "lucide-react";
 import { createPortal } from "react-dom";
 import { useState } from "react";
-import { deleteMediaFromLibrary } from "@/lib/db/services/media_service";
+import { deleteMediaFromLibrary, getMediaById } from "@/lib/db/services/media_service";
 import { useUser } from "@/app/context/UserContext";
 import { useDevice } from "@/app/context/DeviceContext";
+import { deleteFileFromLocalStorage } from "@/lib/files/LocalFileStorage";
 
 type MediaDeleteModalProps = {
   show: boolean;
@@ -29,13 +30,20 @@ export function MediaDeleteModal({
   const {device} = useDevice();
 
   async function handleDelete() {
-
-    console.log("DELETE START");
+    
     setIsDeleting(true);
     try {
+      const media = await getMediaById(user!.id, libraryId, mediaId);
+      const filepath = media?.filepath;
 
-      console.log("BEFORE DELETE SERVICE");
       await deleteMediaFromLibrary(user!.id, libraryId, mediaId, device!.id);
+
+      if(!filepath)
+      {
+        throw new Error("Cannot delete media file where filepath is null");
+      }
+
+      await deleteFileFromLocalStorage(filepath);
 
       console.log("AFTER DELETE SERVICE");
       onClose();

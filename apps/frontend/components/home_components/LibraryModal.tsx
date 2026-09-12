@@ -9,7 +9,7 @@ import { useUser } from "@/app/context/UserContext";
 import { useLibrary } from "@/app/context/LibraryContext";
 import { useDevice } from "@/app/context/DeviceContext";
 
-import { queueEntityChange } from "@/lib/sync/Sync";
+import { queueEntityChange } from "@/lib/sync/sync";
 import { saveLibraryToDb } from "@/lib/db/services/library_service";
 import { saveLocalFile } from "@/lib/files/LocalFileStorage";
 

@@ -84,7 +84,7 @@ async def get_sync_state(
 
 
 @router.post("/icon/{user_id}")
-async def sync_file(
+async def sync_icon(
     user_id: UUID, path: Annotated[str, Form()], file: Annotated[UploadFile, File()]
 ):
 
@@ -97,4 +97,16 @@ async def sync_file(
             out.write(chunk)
 
 
-# @router.post("/media/{user_id}/{library_id}")
+@router.post("/media/video/")
+async def sync_video(
+        user_id: Annotated[UUID, Form()],
+        library_id: Annotated[UUID, Form()],
+        path: Annotated[str, Form()],
+        file: Annotated[UploadFile, File()]):
+
+    filepath = MEDIA_ROOT / str(user_id) / str(library_id) / path
+    filepath.mkdir(parents=True, exist_ok=True)
+
+    with open(filepath, 'wb') as out:
+        while chunk := await file.read(CHUNK_SIZE):
+            out.write(chunk)

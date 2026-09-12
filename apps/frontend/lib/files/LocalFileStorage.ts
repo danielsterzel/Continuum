@@ -1,10 +1,8 @@
 import { Capacitor } from "@capacitor/core";
 import { Directory, Filesystem } from "@capacitor/filesystem";
 
-export async function saveLocalFile(
-  file: File,
-  relativePath: string,
-): Promise<void> {
+export async function saveLocalFile(file: File, relativePath: string): Promise<void> {
+  
   if (Capacitor.getPlatform() === "web") {
     await Filesystem.writeFile({
       path: relativePath,
@@ -17,7 +15,6 @@ export async function saveLocalFile(
   }
 
   const buffer = await file.arrayBuffer();
-
   const bytes = new Uint8Array(buffer);
 
   let binary = "";
@@ -33,6 +30,7 @@ export async function saveLocalFile(
     directory: Directory.Data, // Documents for iOS but .Data is mapped to documents for iOS NOT for android that's why .Data
     recursive: true,
   });
+
 }
 export async function getFullFilepath(filepath: string | null) {
   if (!filepath) {
@@ -56,7 +54,8 @@ export async function getFullFilepath(filepath: string | null) {
     path: filepath,
   });
 
-  return Capacitor.convertFileSrc(uri);
+  const filesrc = Capacitor.convertFileSrc(uri);
+  return filesrc;
 }
 
 export async function getFullFile(filepath?: string) {
@@ -79,4 +78,12 @@ export async function getFullFile(filepath?: string) {
   }
 
   return new Blob([bytes]);
+}
+
+export async function deleteFileFromLocalStorage(filepath: string)
+{
+  await Filesystem.deleteFile({
+    path: filepath,
+    directory: Directory.Data
+  });
 }

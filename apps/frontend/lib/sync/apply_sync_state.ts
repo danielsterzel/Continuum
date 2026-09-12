@@ -42,13 +42,17 @@ export async function applySyncState(state: SyncState, userId: string): Promise<
   }
 
   for (const media of state.media) {
-    if(media.deletedAt)
-      {
-        // delete by media
-        continue;
-      }
-    await mediaRepository.upsertFromSync(media);
 
+    if(media.deletedAt)
+    {
+        const localMedia = await mediaRepository.getById(userId, media.libraryId, media.id);
+        if(!localMedia){
+          continue;
+        }
+        await mediaRepository.deleteById(userId, media.libraryId, media.id);
+        continue;
+    }
+    await mediaRepository.upsertFromSync(media);
   }
 
   for (const note of state.notes) {
@@ -103,6 +107,5 @@ export async function applyFileSync(state: SyncState, userId: string) {
       });
     }
   }
-
-  // other file sync
+  // TODO: Download media files from the backend and save their local filepaths.
 }

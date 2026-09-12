@@ -89,7 +89,7 @@ export class MediaRepository {
       deleted_at,
       version
     )
-    VALUES (?, ?, ?, NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 
     ON CONFLICT(id) DO UPDATE SET
       library_id = excluded.library_id,
@@ -111,6 +111,7 @@ export class MediaRepository {
         media.id,
         media.libraryId,
         media.filename,
+        media.filepath,
         media.fileSize,
         media.duration,
         media.thumbnailUrl,
@@ -205,5 +206,6 @@ created_at,
     if (res.changes?.changes !== 1) {
       throw new Error("ERROR IN DELETE MEDIA");
     }
+    await persistDatabase();
   }
 }

@@ -4,9 +4,12 @@ import { Video, Music, Image, FileText, File, Trash2 } from "lucide-react";
 import { formatDate } from "@/lib/Datetime";
 import { formatDuration, formatFileSize } from "@/lib/UxMedia";
 import Link from "next/link"
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { MediaDeleteModal } from "./MediaDeleteModal";
 import { useLibrary } from "@/app/context/LibraryContext";
+import { useUser } from "@/app/context/UserContext";
+import { useDevice } from "@/app/context/DeviceContext";
+import { useRouter } from "next/navigation";
 
 export function getMediaIcon(type: string, styling?: string, strokeWidth: number = 1.5) {
   const t = type.toLowerCase();
@@ -49,12 +52,13 @@ export function MediaListItem({ media, idx, onDeleted }: Readonly<MediaListItemP
   const badge = getTypeBadge(media.mediaType);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
+  const linkToMainPageForMediaItem = `/library/media?libraryId=${media.libraryId}&mediaId=${media.id}`;
 
   return (
     <div
       className="animate-fade-in-up"
       style={{ animationDelay: `${idx * 0.05}s` }}
-    ><Link href={`/library?libraryId=${media.libraryId}&media?mediaId=${media.id}`}>
+    ><Link href={`${linkToMainPageForMediaItem}`}>
       <div
         className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr_minmax(2.5rem,auto)] items-center px-4 py-3
                     hover:bg-card-hover transition-colors duration-200 cursor-pointer"

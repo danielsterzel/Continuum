@@ -11,7 +11,7 @@ import { DeviceRepository } from "@/lib/db/repositories/device_repository";
 import { getDatabase } from "@/lib/db/database";
 import { useUser } from "../context/UserContext";
 import { useDevice } from "../context/DeviceContext";
-import { queueEntityChange } from "@/lib/sync/Sync";
+import { queueEntityChange } from "@/lib/sync/sync";
 
 export default function SetupDevice() {
   const inputRef = useRef<HTMLInputElement | null>(null);

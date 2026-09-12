@@ -18,9 +18,6 @@ export function RenderInputFiles({
   const hasFiles = items.length > 0;
 
   return (
-    // Always mounted so the space is reserved from the start. Height animates
-    // via grid-template-rows (0fr <-> 1fr) instead of the box popping in/out
-    // and shoving the rest of the layout around.
     <div
       className={`grid w-full sm:w-80 transition-[grid-template-rows] duration-300 ease-out ${
         hasFiles ? "grid-rows-[1fr]" : "grid-rows-[0fr]"

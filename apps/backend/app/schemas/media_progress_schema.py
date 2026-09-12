@@ -41,6 +41,6 @@ class MediaProgressSyncPayload(BaseModel):
     )
 
     media_id: UUID
-    current_position: int | None
+    current_position: timedelta | None
     last_watched: datetime
     last_device_id: UUID | None

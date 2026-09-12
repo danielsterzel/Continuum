@@ -14,6 +14,9 @@ import { MetaChip } from "@/components/library_components/MetaChip";
 import { formatDate } from "@/lib/Datetime";
 import { HardDrive, Tag, Calendar, CalendarClock } from "lucide-react";
 import { useMedia } from "@/app/context/MediaContext";
+import { useUser } from "@/app/context/UserContext";
+import { useDevice } from "@/app/context/DeviceContext";
+import { getMediaById } from "@/lib/db/services/media_service";
 
 function formatName(name: string) {
   return name.split(".")[0];
@@ -73,25 +76,26 @@ export function MediaClient()
   const libraryId = searchParams.get("libraryId");
   const mediaId = searchParams.get("mediaId");
 
-  if(!libraryId || !mediaId)
-    {
-        return null;
-    }
-
   const {media, setMedia} = useMedia();
-  console.log("RENDER MEDIA:", media);
+  const {user} = useUser();
+  const router = useRouter();
 
   useEffect(() => {
-    const fetchMedia = async () => {
-      console.log("FETCH START", libraryId, mediaId);
-      const mediaResponse = await fetchSingleMedia(libraryId, mediaId);
-      console.log("FETCH RESPONSE:", mediaResponse);
-      setMedia(mediaResponse);
-    };
-    fetchMedia();
+    // TODO reaplce with on_mount: VerifyUserAndDevice.tsx
+
+    async function callMediaService()
+    {
+      const savedLocalMedia = await getMediaById(user!.id, libraryId!, mediaId!); 
+      setMedia(savedLocalMedia);
+    }
+    callMediaService();
   }, [libraryId, mediaId, setMedia]);
 
-  const router = useRouter();
+
+  if(!libraryId || !mediaId)
+    {
+      return null;
+    }
 
   if (!media) {
     return;

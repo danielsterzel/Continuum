@@ -1,7 +1,7 @@
 import type { Library } from "@/lib/types/Library";
 import { getDatabase } from "../database";
 import { LibraryRepository } from "../repositories/library_repository";
-import { queueEntityChange } from "@/lib/sync/Sync";
+import { queueEntityChange } from "@/lib/sync/sync";
 import { SyncOperation } from "@/lib/types/SyncOperation";
 
 

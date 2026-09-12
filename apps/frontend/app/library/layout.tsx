@@ -1,3 +1,4 @@
+import { VerifyUserAndDevice } from "@/components/on_mount/VerifyUserAndDevice";
 
 
 
@@ -5,10 +6,8 @@
 export default function Layout({children} : Readonly<{children: React.ReactNode}>)
 {
     return (
-        <div className="">
-
+        <VerifyUserAndDevice>
             {children}
-            
-        </div>
+        </VerifyUserAndDevice>
     )
 }

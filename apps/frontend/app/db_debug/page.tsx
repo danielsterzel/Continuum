@@ -34,10 +34,6 @@ export default function DatabaseDebugPage() {
       for (const table of TABLES) {
         const queryResult = await db.query(`SELECT * FROM ${table};`);
 
-        console.log("TABLE:", table);
-        console.log("QUERY RESULT:", queryResult);
-        console.log("KEYS:", Object.keys(queryResult ?? {}));
-
         result[table] = queryResult.values ?? [];
       }
 

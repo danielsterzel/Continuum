@@ -74,7 +74,6 @@ export function LibraryHero({
         <span className="text-xs tracking-widest text-emerald-400 uppercase">
           Library
         </span>
-        <p className="text-red-500">ICON URL: {library.iconUrl}</p>
 
         <h1 className="text-3xl sm:text-5xl font-semibold text-text-primary leading-tight">
           {library.name}
