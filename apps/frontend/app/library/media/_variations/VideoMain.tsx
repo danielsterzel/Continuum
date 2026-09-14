@@ -1,8 +1,7 @@
 "use client";
 
-import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useMedia } from "@/app/context/MediaContext";
-import { Edit } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 
 import type { Note } from "@/lib/types/Note";
@@ -17,7 +16,7 @@ import {
 } from "@/lib/db/services/media_progress";
 import { useUser } from "@/app/context/UserContext";
 import { useDevice } from "@/app/context/DeviceContext";
-import { getFullFilepath } from "@/lib/files/LocalFileStorage";
+import { getFullFile, getFullFilepath } from "@/lib/files/LocalFileStorage";
 
 const CRON_TIME = 30_000;
 
@@ -26,20 +25,15 @@ export function VideoMain() {
 
   const libraryId = searchParams.get("libraryId");
   const mediaId = searchParams.get("mediaId");
-
-  if (!libraryId || !mediaId) {
-    return null;
-  }
-
   const { media } = useMedia();
-
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [paused, setPaused] = useState(true);
-
   const { user } = useUser();
   const { device } = useDevice();
   const router = useRouter();
   const [videoSource, setVideoSource] = useState<string | null>(null);
+  const mediaFilepath = media?.filepath ?? null;
+  const mediaFilename = media?.filename ?? null;
 
   useEffect(() => {
     if (!user) {
@@ -54,20 +48,55 @@ export function VideoMain() {
   }, [user, device, router]);
 
   useEffect(() => {
+    let legacyObjectUrl: string | null = null;
+    let cancelled = false;
+
     const loadVideoSource = async () => {
-      const source = (await getFullFilepath(media!.filepath)) ?? "";
+      if (!mediaFilepath || !mediaFilename) {
+        return;
+      }
+
+      let source: string;
+
+      if (hasFileExtension(mediaFilepath)) {
+        source = (await getFullFilepath(mediaFilepath)) ?? "";
+      } else {
+        const blob = await getFullFile(mediaFilepath);
+        if (!blob) return;
+
+        const typedBlob = new Blob([blob], {
+          type: getVideoMimeType(mediaFilename),
+        });
+        legacyObjectUrl = URL.createObjectURL(typedBlob);
+        source = legacyObjectUrl;
+      }
+
+      if (cancelled) {
+        if (legacyObjectUrl) {
+          URL.revokeObjectURL(legacyObjectUrl);
+        }
+        return;
+      }
+
       setVideoSource(source);
     };
 
     loadVideoSource();
-  }, [media!.filepath]);
+
+    return () => {
+      cancelled = true;
+      if (legacyObjectUrl) {
+        URL.revokeObjectURL(legacyObjectUrl);
+      }
+    };
+  }, [mediaFilepath, mediaFilename]);
 
   // TODO
   const handleNoteAdd = () => {};
   const initialProgressRef = useRef<number | null>(null);
 
   useEffect(() => {
-    if (!user || !device) return;
+    if (!user || !device || !libraryId || !mediaId) return;
     const mountMediaProgress = async () => {
       const currVideoProgress = await getVideoProgress(
         user!.id,
@@ -92,7 +121,7 @@ export function VideoMain() {
   }, [libraryId, mediaId, user, device]);
 
   useEffect(() => {
-    if (!user || !device) return;
+    if (!user || !device || !libraryId || !mediaId) return;
     if (paused) {
       return;
     }
@@ -111,7 +140,7 @@ export function VideoMain() {
     return () => clearInterval(interval);
   }, [libraryId, mediaId, paused, device, user]);
 
-  if (!media) {
+  if (!libraryId || !mediaId || !media) {
     return null;
   }
   const color = getMediaColor(media.mediaType);
@@ -119,7 +148,7 @@ export function VideoMain() {
 
   const noteMock: Note = {
     id: "MOCK_ID",
-    mediaId: media?.id,
+    mediaId: media.id,
     media: media,
     title: "This is a Note title",
     content:
@@ -134,12 +163,14 @@ export function VideoMain() {
   };
 
   const saveProgress = async () => {
+    if (!user || !device) return;
+
     const currentPosition = videoRef.current?.currentTime ?? null;
     await updateMediaProgress(
-      user!.id,
+      user.id,
       libraryId,
       mediaId,
-      device!.id,
+      device.id,
       currentPosition,
     );
   };
@@ -199,4 +230,23 @@ export function VideoMain() {
       </div>
     </div>
   );
+}
+
+function hasFileExtension(filepath: string): boolean {
+  const filename = filepath.split("/").at(-1) ?? "";
+  return /\.[a-zA-Z0-9]+$/.test(filename);
+}
+
+function getVideoMimeType(filename: string): string {
+  const extension = filename.split(".").at(-1)?.toLowerCase();
+
+  if (extension === "mov" || extension === "qt") {
+    return "video/quicktime";
+  }
+
+  if (extension === "webm") {
+    return "video/webm";
+  }
+
+  return "video/mp4";
 }

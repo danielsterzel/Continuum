@@ -8,6 +8,7 @@ import { LibraryDeleteModal } from "./LibraryDeleteModal";
 import { useEffect, useState } from "react";
 import { getDatabase } from "@/lib/db/database";
 import { MediaRepository } from "@/lib/db/repositories/media_repository";
+import { formatFileSize } from "@/lib/UxMedia";
 
 type LibraryListItemProps = {
   library: Library;
@@ -47,7 +48,7 @@ export function LibraryListItem({ library, onDeleted }: Readonly<LibraryListItem
             </div>
             <p className="hidden sm:block text-text-secondary text-sm">{}</p>
             <p className="hidden sm:block text-text-secondary text-sm">{formatDate(library.updatedAt)}</p>
-            <p className="hidden sm:block text-text-secondary text-sm">{libraryTotalSize ?? "—"}</p>
+            <p className="hidden sm:block text-text-secondary text-sm">{formatFileSize(libraryTotalSize)}</p>
           </Link>
           <div className="pr-4">
             <div

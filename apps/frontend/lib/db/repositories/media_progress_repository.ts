@@ -3,6 +3,15 @@ import { SQLiteDBConnection } from "@capacitor-community/sqlite";
 import { persistDatabase } from "../database";
 import { EntityType } from "@/lib/types/EntityType";
 
+type MediaProgressRow = {
+  id: string;
+  media_id: string;
+  current_position: number | null;
+  last_watched: string;
+  last_device_id: string | null;
+  version: number;
+};
+
 export class MediaProgressRepository {
   private db: SQLiteDBConnection;
 
@@ -25,10 +34,6 @@ export class MediaProgressRepository {
             REFERENCES media(id)
             ON DELETE CASCADE,
 
-            FOREIGN KEY (last_device_id)
-            REFERENCES devices(id)
-            ON DELETE SET NULL,
-
             UNIQUE (media_id)
         );
         `);
@@ -47,8 +52,8 @@ export class MediaProgressRepository {
     )
     VALUES (?, ?, ?, ?, ?, ?)
 
-    ON CONFLICT(id) DO UPDATE SET
-      media_id = excluded.media_id,
+    ON CONFLICT(media_id) DO UPDATE SET
+      id = excluded.id,
       current_position = excluded.current_position,
       last_watched = excluded.last_watched,
       last_device_id = excluded.last_device_id,
@@ -147,7 +152,7 @@ export class MediaProgressRepository {
 
     await persistDatabase();
   }
-  mapRowToObject(row: any) {
+  mapRowToObject(row: MediaProgressRow): MediaProgress {
     return {
       id: row.id,
       mediaId: row.media_id,

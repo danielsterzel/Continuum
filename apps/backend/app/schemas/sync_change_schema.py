@@ -5,6 +5,7 @@ from uuid import UUID
 from typing import Any
 
 from app.models.sync_change import SyncOperation, EntityType
+from app.schemas.device_schema import DeviceRead
 from app.schemas.library_schema import LibraryRead
 from app.schemas.media_progress_schema import MediaProgressRead
 from app.schemas.media_schema import MediaRead
@@ -53,6 +54,7 @@ class SyncStateRead(BaseModel):
         validate_by_alias=True,
         validate_by_name=True,
     )
+    devices: list[DeviceRead]
     libraries: list[LibraryRead]
     media: list[MediaRead]
     notes: list[NoteRead]

@@ -3,10 +3,9 @@
 import { TriangleAlert, Trash2, X } from "lucide-react";
 import { createPortal } from "react-dom";
 import { useState } from "react";
-import { deleteMediaFromLibrary, getMediaById } from "@/lib/db/services/media_service";
+import { deleteMediaFromLibrary } from "@/lib/db/services/media_service";
 import { useUser } from "@/app/context/UserContext";
 import { useDevice } from "@/app/context/DeviceContext";
-import { deleteFileFromLocalStorage } from "@/lib/files/LocalFileStorage";
 
 type MediaDeleteModalProps = {
   show: boolean;
@@ -30,27 +29,19 @@ export function MediaDeleteModal({
   const {device} = useDevice();
 
   async function handleDelete() {
-    
+    if (!user || !device) {
+      console.error("Cannot delete media without user and device context");
+      return;
+    }
+
     setIsDeleting(true);
     try {
-      const media = await getMediaById(user!.id, libraryId, mediaId);
-      const filepath = media?.filepath;
-
-      await deleteMediaFromLibrary(user!.id, libraryId, mediaId, device!.id);
-
-      if(!filepath)
-      {
-        throw new Error("Cannot delete media file where filepath is null");
-      }
-
-      await deleteFileFromLocalStorage(filepath);
-
-      console.log("AFTER DELETE SERVICE");
+      await deleteMediaFromLibrary(user.id, libraryId, mediaId, device.id);
       onClose();
       onDeleted();
-
+    } catch (error) {
+      console.error("Failed to delete media", error);
     } finally {
-
       setIsDeleting(false);
     }
   }
@@ -93,7 +84,7 @@ export function MediaDeleteModal({
           <p className="text-text-secondary text-sm text-center leading-relaxed">
             <span className="font-medium text-text-primary">{filename}</span>{" "}
             will be permanently removed from storage. This cannot be undone —
-            you'll need to upload it again if you change your mind.
+            you&apos;ll need to upload it again if you change your mind.
           </p>
         </div>
 

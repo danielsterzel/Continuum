@@ -1,15 +1,15 @@
-from http.client import HTTPException
 from typing import Annotated
 
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
-from fastapi import HTTPException, status
 
 from app.core.settings import settings
+from app.repositories.device_repository import DeviceRepository
 from app.repositories.library_repository import LibraryRepository
 from app.repositories.media_progress_repository import MediaProgressRepository
 from app.repositories.media_repository import MediaRepository
 from app.repositories.note_repository import NoteRepository
+from app.schemas.device_schema import DeviceRead
 from app.schemas.sync_change_schema import SyncChangeWrite, SyncStateRead
 from fastapi import Form, UploadFile, File
 from app.schemas.library_schema import LibraryRead
@@ -59,11 +59,13 @@ async def get_sync_state(
     media_repository = MediaRepository(db)
     note_repository = NoteRepository(db)
     media_progress_repository = MediaProgressRepository(db)
+    device_repository = DeviceRepository(db)
 
     libraries = await library_repository.fetch_all_by_user(user_id)
     media = await media_repository.fetch_all_by_user(user_id)
     notes = await note_repository.fetch_all_by_user(user_id)
     media_progress = await media_progress_repository.fetch_all_by_user(user_id)
+    devices = await device_repository.all_devices(user_id)
 
     libraries_read = [LibraryRead.model_validate(library) for library in libraries]
 
@@ -75,7 +77,11 @@ async def get_sync_state(
         MediaProgressRead.model_validate(progress) for progress in media_progress
     ]
 
+    devices_read = [DeviceRead.model_validate(device) for device in devices]
+
+
     return SyncStateRead(
+        devices=devices_read,
         libraries=libraries_read,
         media=media_read,
         notes=notes_read,
@@ -104,8 +110,8 @@ async def sync_video(
         path: Annotated[str, Form()],
         file: Annotated[UploadFile, File()]):
 
-    filepath = MEDIA_ROOT / str(user_id) / str(library_id) / path
-    filepath.mkdir(parents=True, exist_ok=True)
+    filepath = MEDIA_ROOT / str(user_id) / path
+    filepath.parent.mkdir(parents=True, exist_ok=True)
 
     with open(filepath, 'wb') as out:
         while chunk := await file.read(CHUNK_SIZE):

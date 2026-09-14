@@ -31,20 +31,33 @@ export class UserRepository {
   }): Promise<void> {
     await this.db.run(
       `
-    INSERT INTO users (
-      id,
-      email,
-      display_name,
-      created_at,
-      updated_at
-    )
-    VALUES (?, ?, ?, ?, ?);
-    `,
+      INSERT INTO users (
+        id,
+        email,
+        display_name,
+        created_at,
+        updated_at
+      )
+      VALUES (?, ?, ?, ?, ?);
+      `,
       [user.id, user.email, user.displayName, user.createdAt, user.updatedAt],
     );
 
     await persistDatabase();
   }
+
+  async deleteById(userId: string): Promise<void> {
+    await this.db.run(
+      `
+      DELETE FROM users
+      WHERE id = ?;
+      `,
+      [userId],
+    );
+
+    await persistDatabase();
+  }
+
   async get(): Promise<User | null> {
   const result = await this.db.query(`
     SELECT *

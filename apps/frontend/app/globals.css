@@ -43,6 +43,7 @@
   --color-text-primary: var(--text-primary);
   --color-text-secondary: var(--text-secondary);
   --color-text-tertiary: var(--text-tertiary);
+  --color-text-emerald: var(--primary-subtle-text);
   --color-mainText: var(--text-primary);
   --color-danger: var(--danger);
   --color-foreground: var(--foreground);

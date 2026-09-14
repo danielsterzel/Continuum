@@ -52,3 +52,13 @@ class DeviceRepository(BaseRepository):
         device: Device | None = res.scalar_one_or_none()
 
         return self.soft_delete_entity(device)
+
+    async def all_devices(self, user_id: UUID) -> list[Device]:
+        query = select(self.model).where(
+            self.model.user_id == user_id)
+        res = await self.db.execute(query)
+
+        devices = list(res.scalars().all())
+
+        return devices
+

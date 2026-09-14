@@ -18,6 +18,7 @@ from app.repositories.library_repository import LibraryRepository
 from app.repositories.media_repository import MediaRepository
 from app.models.media import Media, MEDIA_TYPE_MAP
 from app.schemas.media_schema import MediaRead, MediaType
+from app.core.settings import settings
 
 
 from pathlib import Path
@@ -25,7 +26,7 @@ from uuid import UUID, uuid4
 
 MAX_ALLOWED_ICON_SIZE = 1024 * 1024 * 1024
 
-MEDIA_ROOT = Path("media_storage")
+MEDIA_ROOT = Path(settings.media_storage_dir)
 CHUNK_SIZE = 1024 * 1024
 router = APIRouter(prefix="/library")
 

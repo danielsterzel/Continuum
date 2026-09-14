@@ -3,11 +3,11 @@ import { SyncOperation } from "../types/SyncOperation";
 import { enqueueChange, getPendingChanges, removeFromQueue } from "./queue";
 import { EntityUnionType } from "../types/EntityUnion";
 import { mapEntityToSync } from "../EntitySyncMapper";
-import { fetchSyncState, pushIconFileData } from "../api/sync";
+import { fetchSyncState, pushIconFileData, pushVideoFileData } from "../api/sync";
 import { applySyncState } from "./apply_sync_state";
 import { EntityType } from "../types/EntityType";
 import { getLibrary } from "../db/services/library_service";
-import { getFullFilepath, getFullFile } from "../files/LocalFileStorage";
+import { getFullFile } from "../files/LocalFileStorage";
 const BATCH_SIZE = 20;
 
 async function postSyncChanges(
@@ -44,6 +44,25 @@ async function postSyncChanges(
         continue;
       }
       await pushIconFileData(localFile, lib.iconUrl, userId);
+    }
+
+    if (
+      syncChangeWrite.entityType === EntityType.Media &&
+      syncChangeWrite.operation !== SyncOperation.DELETE
+    ) {
+      const filepath = syncChangeWrite.payload.filepath;
+      const libraryId = syncChangeWrite.payload.library_id;
+
+      if (typeof filepath !== "string" || typeof libraryId !== "string") {
+        throw new Error("Media sync payload is missing filepath or library_id");
+      }
+
+      const localFile = await getFullFile(filepath);
+      if (!localFile) {
+        throw new Error(`Local media file not found: ${filepath}`);
+      }
+
+      await pushVideoFileData(localFile, filepath, userId, libraryId);
     }
   }
 }

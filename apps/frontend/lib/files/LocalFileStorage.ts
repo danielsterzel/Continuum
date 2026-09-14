@@ -1,8 +1,13 @@
 import { Capacitor } from "@capacitor/core";
 import { Directory, Filesystem } from "@capacitor/filesystem";
 
-export async function saveLocalFile(file: File, relativePath: string): Promise<void> {
+export async function saveLocalFile(file: File, relativePath: string | null): Promise<void> {
   
+  if(relativePath === "" || relativePath === null)
+  {
+    throw new Error("Cannot save file to blank path");
+  }
+
   if (Capacitor.getPlatform() === "web") {
     await Filesystem.writeFile({
       path: relativePath,
@@ -80,10 +85,23 @@ export async function getFullFile(filepath?: string) {
   return new Blob([bytes]);
 }
 
-export async function deleteFileFromLocalStorage(filepath: string)
-{
+export async function fileExistsLocally(relativePath: string): Promise<boolean> {
+  try {
+    await Filesystem.stat({
+      path: relativePath,
+      directory: Directory.Data,
+    });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export async function deleteFileFromLocalStorage(filepath: string): Promise<void> {
+  if (!(await fileExistsLocally(filepath))) return;
+
   await Filesystem.deleteFile({
     path: filepath,
-    directory: Directory.Data
+    directory: Directory.Data,
   });
 }

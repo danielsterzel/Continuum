@@ -17,7 +17,7 @@ export async function pushVideoFileData(blob: Blob, relpath: string, userId: str
   data.append("user_id", userId);
   data.append("library_id", libraryId);
   
-  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/sync/media/video`, {
+  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/sync/media/video/`, {
     method: "POST",
     body: data
   })

@@ -61,7 +61,7 @@ class SyncService:
         )
 
         if not res:
-            raise ValueError("SYNC PERMISSION DENIED")
+            raise ValueError(f"SYNC PERMISSION DENIED for : {user_id}")
 
     async def sync(self, changes: list[SyncChangeWrite], user_id: UUID) -> None:
         try:
@@ -83,14 +83,16 @@ class SyncService:
                     continue
 
                 resolver = self._get_resolver(change, user_id)
-                await resolver.resolve(change)
+                resolved_entity_id = await resolver.resolve(change)
 
-                sync_entity = SyncChange(**change.model_dump())
+                sync_data = change.model_dump()
+                sync_data["entity_id"] = resolved_entity_id
+                sync_entity = SyncChange(**sync_data)
 
                 self.db.add(sync_entity)
 
                 await self.__increment_version(
-                    ENTITY_MAPPING[change.entity_type], change.entity_id
+                    ENTITY_MAPPING[change.entity_type], resolved_entity_id
                 )
 
             await self.db.commit()

@@ -15,9 +15,7 @@ import {
 } from "lucide-react";
 
 import { createUser } from "@/lib/api/user";
-import type { UserSetupRequest, User } from "@/lib/types/User";
-import { UserRepository } from "@/lib/db/repositories/user_repository";
-import { getDatabase } from "@/lib/db/database";
+import type { UserSetupRequest } from "@/lib/types/User";
 import { useUser } from "../context/UserContext";
 import { useDevice } from "../context/DeviceContext";
 
@@ -87,12 +85,7 @@ export default function SetupUser() {
 
     try {
       setIsSubmitting(true);
-      const user: User = await createUser(request);
-
-      const db = await getDatabase();
-      const userRepository = new UserRepository(db);
-      
-      await userRepository.add(user);
+      await createUser(request);
       router.replace("/login");
     } catch (submitError) {
       console.error("Account creation failed:", submitError);

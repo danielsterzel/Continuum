@@ -36,29 +36,21 @@ export default function Login() {
     const db = await getDatabase();
     const userRepository = new UserRepository(db);
 
-
-    await userRepository.add(user);
-
+    const userExistsLocally = await userRepository.get();
+    if(!userExistsLocally) await userRepository.add(user);
   }
-  useEffect(() => {
-    if (!user) {
-      return;
-    }
 
-    if (device) {
-      router.replace("/dashboard");
-    } else {
-      router.replace("/setup_device");
-    }
+  useEffect(() => {
+    if (!user) return;
+
+    if (device) router.replace("/dashboard");
+    else router.replace("/setup_device");
   }, [user, device, router]);
 
   async function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    if (user) {
-      return;
-    }
-
+    if (user) return;
     setError(null);
 
     const formData = new FormData(event.currentTarget);
@@ -68,7 +60,8 @@ export default function Login() {
       password: String(formData.get("password") ?? ""),
     };
 
-    if (!request.email || !request.password) {
+    if (!request.email || !request.password) 
+    {
       setError("Enter your email and password to continue.");
       return;
     }
@@ -78,17 +71,16 @@ export default function Login() {
 
       const loggedInUser = await loginUser(request);
 
-      createIfExistsOnRemoteNotLocaly(loggedInUser);
+      await createIfExistsOnRemoteNotLocaly(loggedInUser);
 
       setUser(loggedInUser);
 
     } 
     catch (submitError) 
     {
-      console.error("Login failed:", submitError);
       setError("Couldn't log you in. Please try again.");
-
-    } finally 
+    } 
+    finally 
     {
       setIsSubmitting(false);
     }

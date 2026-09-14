@@ -18,6 +18,7 @@ class MediaRead(BaseModel):
     id: UUID
     library_id: UUID
     filename: str = Field(..., max_length=128)
+    filepath: str
     file_size: int
     media_type: MediaType
     duration: timedelta | None

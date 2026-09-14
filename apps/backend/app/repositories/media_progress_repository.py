@@ -5,6 +5,7 @@ from app.models.libraries import Library
 from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
 
+from typing import Any
 from uuid import UUID
 
 
@@ -42,22 +43,32 @@ class MediaProgressRepository(BaseRepository[MediaProgress]):
 
         return list(res.scalars().all())
 
-    async def save_or_update(self, media_progress: MediaProgress):
+    async def save_or_update(self, media_progress: MediaProgress) -> UUID:
 
-        query = insert(MediaProgress).values(
-            media_id=media_progress.media_id,
-            current_position=media_progress.current_position,
-            last_device_id=media_progress.last_device_id,
-        )
+        values: dict[str, Any] = {
+            "media_id": media_progress.media_id,
+            "current_position": media_progress.current_position,
+            "last_device_id": media_progress.last_device_id,
+        }
 
-        query = query.on_conflict_do_update(
+        if media_progress.id is not None:
+            values["id"] = media_progress.id
+        if media_progress.last_watched is not None:
+            values["last_watched"] = media_progress.last_watched
+
+        insert_query = insert(MediaProgress).values(**values)
+
+        query = insert_query.on_conflict_do_update(
             index_elements=[MediaProgress.media_id],
             set_={
-                "current_position": query.excluded.current_position,
-                "last_device_id": query.excluded.last_device_id,
+                "current_position": insert_query.excluded.current_position,
+                "last_watched": insert_query.excluded.last_watched,
+                "last_device_id": insert_query.excluded.last_device_id,
             },
-        )
-        await self.db.execute(query)
+        ).returning(MediaProgress.id)
+
+        result = await self.db.execute(query)
+        return result.scalar_one()
 
     async def is_media_owned_by_user(self, media_id: UUID, user_id: UUID) -> bool:
         query = (
