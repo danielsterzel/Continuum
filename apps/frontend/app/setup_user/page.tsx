@@ -59,7 +59,7 @@ export default function SetupUser() {
         router.replace("/setup_device");
         return;
       }
-  }, [user, router])
+  }, [device, user, router])
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();

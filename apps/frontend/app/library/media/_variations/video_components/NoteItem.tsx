@@ -6,7 +6,7 @@ import { formatDate } from "@/lib/Datetime";
 import { Notebook, Clock, ChevronDown } from "lucide-react";
 
 
-function formatTimestamp(seconds: number) {
+export function formatTimestamp(seconds: number): string {
   const m = Math.floor(seconds / 60);
   const s = Math.floor(seconds % 60);
   return `${m}:${s.toString().padStart(2, "0")}`;
@@ -16,8 +16,6 @@ type NoteMetaDataProps = {
   note: Note;
   color: string;
 };
-
-
 
 function NoteMetaData({ note, color }: NoteMetaDataProps) {
   return (
@@ -51,6 +49,7 @@ export function NoteItem({ note, styling, iconColor, iconBg }: NoteItemProps) {
 
   return (
     <li
+    key={note.id}
       className={`
       w-full flex flex-col gap-3
       bg-card/60 backdrop-blur-sm border border-card-border/60

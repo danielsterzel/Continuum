@@ -8,7 +8,11 @@ import { useEffect, useState } from "react";
 
 import { ErrorLogoutToast } from "./ErrorLogoutToast";
 
-export function LogOutButton()
+
+type LogOutButtonProps = {
+    closeMenu: () => void;
+}
+export function LogOutButton({closeMenu}: Readonly<LogOutButtonProps>)
 {   
     const [logoutToast, setLogoutToast] = useState(false);
 
@@ -27,15 +31,14 @@ export function LogOutButton()
 
     if(!user) return null;
 
-    const userId = user.id;
-
     async function onPress() {
-        const result = await deleteLocalUserAfterLogout(userId);
+        const result = await deleteLocalUserAfterLogout();
         if(!result)
         {
             setLogoutToast(true);
             return;
         }
+        closeMenu();
         setUser(null);
         router.replace("/");
 

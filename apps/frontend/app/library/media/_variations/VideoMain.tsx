@@ -7,8 +7,7 @@ import { useState, useRef, useEffect } from "react";
 import type { Note } from "@/lib/types/Note";
 import { getMediaColor, getMediaBg } from "../MediaClient";
 
-import { NoteItem } from "./video_components/NoteItem";
-import { CreateNote } from "./video_components/CreateNote";
+import { formatTimestamp, NoteItem } from "./video_components/NoteItem";
 import { EntityType } from "@/lib/types/EntityType";
 import {
   getVideoProgress,
@@ -17,17 +16,19 @@ import {
 import { useUser } from "@/app/context/UserContext";
 import { useDevice } from "@/app/context/DeviceContext";
 import { getFullFile, getFullFilepath } from "@/lib/files/LocalFileStorage";
+import { NotePanel } from "./video_components/NotePanel";
 
 const CRON_TIME = 30_000;
 
 export function VideoMain() {
+  const [paused, setPaused] = useState(true);
+  const [openNoteComposer, setOpenNoteComposer] = useState(false);
   const searchParams = useSearchParams();
 
   const libraryId = searchParams.get("libraryId");
   const mediaId = searchParams.get("mediaId");
   const { media } = useMedia();
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  const [paused, setPaused] = useState(true);
   const { user } = useUser();
   const { device } = useDevice();
   const router = useRouter();
@@ -92,7 +93,9 @@ export function VideoMain() {
   }, [mediaFilepath, mediaFilename]);
 
   // TODO
-  const handleNoteAdd = () => {};
+  const writeNote = () => {
+
+  };
   const initialProgressRef = useRef<number | null>(null);
 
   useEffect(() => {
@@ -149,7 +152,6 @@ export function VideoMain() {
   const noteMock: Note = {
     id: "MOCK_ID",
     mediaId: media.id,
-    media: media,
     title: "This is a Note title",
     content:
       "This is some sort of text area and here I will have" +
@@ -185,20 +187,26 @@ export function VideoMain() {
     console.log("PAUSE");
   };
 
-  console.log("Media Filepath: ", media.filepath);
-  console.log("VIDEO SOURCE", videoSource);
+  const currentTimestamp = videoRef.current?.currentTime ?? 0;
 
   return (
     <div className="relative w-full flex flex-col items-center sm:block">
-      <CreateNote videoRef={videoRef} />
       <div className="relative w-full flex flex-col sm:grid sm:grid-cols-4 sm:items-start gap-6">
+
+
+        <NotePanel 
+        currTimestamp={currentTimestamp}
+        openNoteCreation={() => setOpenNoteComposer(true)} 
+        showComposer={openNoteComposer}
+        onExitCloseComposer={() => setOpenNoteComposer(false)}/>
+{/* 
         <ul className="order-2 sm:order-1 sm:col-span-1 w-full flex flex-col gap-3 items-center">
           <NoteItem note={noteMock} iconColor={color} iconBg={bg} />
           <NoteItem note={noteMock} iconColor={color} iconBg={bg} />
           <NoteItem note={noteMock} iconColor={color} iconBg={bg} />
           <NoteItem note={noteMock} iconColor={color} iconBg={bg} />
           <NoteItem note={noteMock} iconColor={color} iconBg={bg} />
-        </ul>
+        </ul> */}
 
         <div
           className="

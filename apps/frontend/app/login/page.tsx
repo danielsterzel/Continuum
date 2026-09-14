@@ -18,6 +18,7 @@ import { loginUser } from "@/lib/api/user";
 import { useUser } from "../context/UserContext";
 import { useDevice } from "../context/DeviceContext";
 import { getDatabase } from "@/lib/db/database";
+import { LocalUserRepository } from "@/lib/db/repositories/local_user.repository";
 import { UserRepository } from "@/lib/db/repositories/user_repository";
 import type { UserLogin, User } from "@/lib/types/User";
 
@@ -35,9 +36,12 @@ export default function Login() {
   {
     const db = await getDatabase();
     const userRepository = new UserRepository(db);
+    const localUserRepository = new LocalUserRepository(db);
 
-    const userExistsLocally = await userRepository.get();
+    const userExistsLocally = await userRepository.getById(user.id);
     if(!userExistsLocally) await userRepository.add(user);
+
+    await localUserRepository.set(user.id);
   }
 
   useEffect(() => {
@@ -76,7 +80,7 @@ export default function Login() {
       setUser(loggedInUser);
 
     } 
-    catch (submitError) 
+    catch
     {
       setError("Couldn't log you in. Please try again.");
     } 
@@ -193,7 +197,7 @@ export default function Login() {
         </form>
 
         <p className="mt-7 text-center text-sm text-text-secondary">
-          Don't have an account?{" "}
+          Don&apos;t have an account?{" "}
           <Link
             href="/setup_user"
             className="font-medium text-primary-active transition-colors hover:text-primary-hover"

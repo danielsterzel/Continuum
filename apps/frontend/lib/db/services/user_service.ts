@@ -1,16 +1,16 @@
 import { getDatabase } from "../database";
-import { UserRepository } from "../repositories/user_repository";
+import { LocalUserRepository } from "../repositories/local_user.repository";
 
 
 
-export async function deleteLocalUserAfterLogout(id: string): Promise<boolean>
+export async function deleteLocalUserAfterLogout(): Promise<boolean>
 {
     const db = await getDatabase();
-    const repository = new UserRepository(db);
+    const repository = new LocalUserRepository(db);
 
     try
     {
-        await repository.deleteById(id);
+        await repository.delete();
         return true
     }
     catch

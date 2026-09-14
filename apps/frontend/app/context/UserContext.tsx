@@ -11,7 +11,7 @@ import {
 
 import type { User } from "@/lib/types/User";
 import { getDatabase } from "@/lib/db/database";
-import { UserRepository } from "@/lib/db/repositories/user_repository";
+import { LocalUserRepository } from "@/lib/db/repositories/local_user.repository";
 
 type UserContextType = {
   user: User | null;
@@ -26,7 +26,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     async function loadUser() {
       const db = await getDatabase();
-      const repository = new UserRepository(db);
+      const repository = new LocalUserRepository(db);
 
       const localUser = await repository.get();
 

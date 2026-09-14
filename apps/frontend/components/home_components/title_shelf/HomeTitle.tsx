@@ -1,3 +1,5 @@
+import { StepForward } from "lucide-react";
+
 export function HomeTitle() {
   return (
     <div className="flex max-w-xl origin-bottom flex-col gap-2">
@@ -5,7 +7,7 @@ export function HomeTitle() {
         Your space
       </div>
       <h1 className="text-3xl font-semibold tracking-tight text-text-primary sm:text-5xl">
-        Welcome back
+        Welcome back 
       </h1>
       <p className="text-sm leading-6 text-text-secondary sm:text-base">
         Pick up right where you left off.

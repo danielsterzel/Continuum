@@ -103,7 +103,7 @@ async def sync_icon(
             out.write(chunk)
 
 
-@router.post("/media/video/")
+@router.post("/media/file/")
 async def sync_video(
         user_id: Annotated[UUID, Form()],
         library_id: Annotated[UUID, Form()],

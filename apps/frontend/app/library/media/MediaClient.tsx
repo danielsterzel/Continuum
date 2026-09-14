@@ -2,7 +2,6 @@
 
 import { useSearchParams, useRouter } from "next/navigation";
 import { useEffect} from "react";
-import { fetchSingleMedia } from "@/lib/api/library";
 import { GoBackButton } from "@/components/buttons/GoBackButton";
 import { getMediaIcon } from "@/components/library_components/MediaListItem";
 import { formatFileSize } from "@/lib/UxMedia";
@@ -15,7 +14,6 @@ import { formatDate } from "@/lib/Datetime";
 import { HardDrive, Tag, Calendar, CalendarClock } from "lucide-react";
 import { useMedia } from "@/app/context/MediaContext";
 import { useUser } from "@/app/context/UserContext";
-import { useDevice } from "@/app/context/DeviceContext";
 import { getMediaById } from "@/lib/db/services/media_service";
 
 function formatName(name: string) {
@@ -83,13 +81,25 @@ export function MediaClient()
   useEffect(() => {
     // TODO reaplce with on_mount: VerifyUserAndDevice.tsx
 
+    if (!user || !libraryId || !mediaId) {
+      return;
+    }
+
+    const userId = user.id;
+    const activeLibraryId = libraryId;
+    const activeMediaId = mediaId;
+
     async function callMediaService()
     {
-      const savedLocalMedia = await getMediaById(user!.id, libraryId!, mediaId!); 
+      const savedLocalMedia = await getMediaById(
+        userId,
+        activeLibraryId,
+        activeMediaId,
+      );
       setMedia(savedLocalMedia);
     }
     callMediaService();
-  }, [libraryId, mediaId, setMedia]);
+  }, [libraryId, mediaId, setMedia, user]);
 
 
   if(!libraryId || !mediaId)

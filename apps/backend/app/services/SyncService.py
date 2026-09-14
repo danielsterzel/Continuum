@@ -18,22 +18,6 @@ from uuid import UUID
 class SyncService:
     """IMPLEMENT CREATE SYNC_CHANGE ROW"""
 
-    """
-    if change.expected_version == entity.version:
-        # normal write
-    else:
-        # concurrent/stale write
-        await resolve_conflict(...)"""
-
-    """
-    if change.expected_version == entity.version:
-        # klient pracował na aktualnej wersji
-        ...
-    else:
-        # klient pracował na starej wersji
-        ...
-    """
-
     def __init__(self, db: AsyncSession):
         self.db = db
 

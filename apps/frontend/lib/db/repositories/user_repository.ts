@@ -2,11 +2,29 @@ import { SQLiteDBConnection } from "@capacitor-community/sqlite";
 import type { User } from "@/lib/types/User";
 import { persistDatabase } from "../database";
 
+type UserRow = {
+  id: string;
+  email: string;
+  display_name: string;
+  created_at: string;
+  updated_at: string;
+};
+
 export class UserRepository {
   private db: SQLiteDBConnection;
 
   constructor(dbConnection: SQLiteDBConnection) {
     this.db = dbConnection;
+  }
+
+  private mapRowToUser(row: UserRow): User {
+    return {
+      id: row.id,
+      email: row.email,
+      displayName: row.display_name,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+    };
   }
 
   async initTable(): Promise<void> {
@@ -46,37 +64,39 @@ export class UserRepository {
     await persistDatabase();
   }
 
-  async deleteById(userId: string): Promise<void> {
-    await this.db.run(
+  async get(): Promise<User | null> {
+    const result = await this.db.query(`
+      SELECT *
+      FROM users
+      LIMIT 1;
+    `);
+
+    const row = result.values?.[0];
+
+    if (!row) {
+      return null;
+    }
+
+    return this.mapRowToUser(row);
+  }
+
+  async getById(userId: string): Promise<User | null> {
+    const result = await this.db.query(
       `
-      DELETE FROM users
-      WHERE id = ?;
+      SELECT *
+      FROM users
+      WHERE id = ?
+      LIMIT 1;
       `,
       [userId],
     );
 
-    await persistDatabase();
+    const row = result.values?.[0];
+
+    if (!row) {
+      return null;
+    }
+
+    return this.mapRowToUser(row);
   }
-
-  async get(): Promise<User | null> {
-  const result = await this.db.query(`
-    SELECT *
-    FROM users
-    LIMIT 1;
-  `);
-
-  const row = result.values?.[0];
-
-  if (!row) {
-    return null;
-  }
-
-  return {
-    id: row.id,
-    email: row.email,
-    displayName: row.display_name,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
-  };
-}
 }

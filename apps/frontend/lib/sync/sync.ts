@@ -95,6 +95,10 @@ export async function batchAndSend(userId: string): Promise<void> {
     return syncChange;
   });
 
+  for(const change of changes)
+    {
+      console.log("CHANGE BODY: ", JSON.stringify(change));
+    }
   await postSyncChanges(changes, userId);
 
   for (const change of batch) {
@@ -107,7 +111,9 @@ export async function queueEntityChange(
   operation: SyncOperation,
   deviceId: string,
 ): Promise<void> {
-  const { syncChange } = mapEntityToSync(entityArg, operation, deviceId);
+  const { syncChange, entity } = mapEntityToSync(entityArg, operation, deviceId);
   console.log("Mapped sync change procedding with adding to queue")
+  console.log("Entity body: ", JSON.stringify(entity));
+  console.log("SyncChange body: ", JSON.stringify(syncChange));
   await enqueueChange(syncChange);
 }

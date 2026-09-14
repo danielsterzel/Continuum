@@ -18,11 +18,6 @@ export function LibraryClient() {
   const searchParams = useSearchParams();
 
   const libraryId = searchParams.get("libraryId");
-
-  if (!libraryId) {
-    return null;
-  }
-
   const { setItems } = useLibrary();
 
   const [library, setLibrary] = useState<Library | null>(null);
@@ -30,18 +25,29 @@ export function LibraryClient() {
   const { user } = useUser();
 
   useEffect(() => {
+    if (!libraryId || !user) {
+      return;
+    }
+
+    const userId = user.id;
+    const activeLibraryId = libraryId;
+
     async function fetchLibraryAndMedia() {
       
-      const lib = await getLibrary(user!.id, libraryId!);
+      const lib = await getLibrary(userId, activeLibraryId);
       setLibrary(lib);
       
       if (lib) {
-        const media = await getAllMediaForLibrary(user!.id, lib.id);
+        const media = await getAllMediaForLibrary(userId, lib.id);
         setMedia(media);
       }
     }
     fetchLibraryAndMedia();
-  }, [libraryId, user, router]);
+  }, [libraryId, user]);
+
+  if (!libraryId) {
+    return null;
+  }
 
   function touchUpdatedAt() {
     const now = new Date().toISOString();

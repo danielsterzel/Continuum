@@ -42,7 +42,7 @@ export default function Home() {
     
 
     getLibs(user.id);
-  }, [items.length, setItems]);
+  }, [device, items.length, router, setItems, user]);
 
   return (
     <>

@@ -3,6 +3,7 @@
 import { getDatabase } from "./database";
 import { DeviceRepository } from "./repositories/device_repository";
 import { LibraryRepository } from "./repositories/library_repository";
+import { LocalUserRepository } from "./repositories/local_user.repository";
 import { MediaProgressRepository } from "./repositories/media_progress_repository";
 import { MediaRepository } from "./repositories/media_repository";
 import { NoteRepository } from "./repositories/note_repository";
@@ -18,6 +19,7 @@ export async function initializeDatabase(): Promise<void>
 
 
   const userRepository = new UserRepository(db);
+  const localUserRepository = new LocalUserRepository(db);
   const deviceRepository = new DeviceRepository(db);
   const libraryRepository = new LibraryRepository(db);
   const mediaRepository = new MediaRepository(db);
@@ -28,6 +30,7 @@ export async function initializeDatabase(): Promise<void>
   
 
   await userRepository.initTable();
+  await localUserRepository.initTable();
   await deviceRepository.initTable();
   await libraryRepository.initTable();
   await mediaRepository.initTable();
