@@ -1,0 +1,59 @@
+sequenceDiagram
+    autonumber
+    actor User as Użytkownik
+    participant UI as Interfejs webowy
+    participant MediaService as Usługa mediów
+    participant Files as Lokalny magazyn plików<br/>(Directory.Data)
+    participant DB as Lokalna baza SQLite
+    participant Queue as Kolejka synchronizacji<br/>(sync_changes)
+    participant Worker as Klient synchronizacji<br/>(SyncService)
+    participant API as API synchronizacji<br/>(FastAPI)
+    participant PG as PostgreSQL
+    participant Storage as Serwerowy magazyn plików<br/>(media_storage)
+
+    User->>UI: Wybór pliku i zatwierdzenie dodawania
+    UI->>MediaService: createMedia(file, libraryId, deviceId)
+    MediaService->>MediaService: Utworzenie UUID, filepath i encji Media
+    MediaService->>Files: saveLocalFile(file, filepath)
+    Files-->>MediaService: Plik zapisany lokalnie
+    MediaService->>DB: Zapis encji Media
+    DB-->>MediaService: Encja zapisana
+    MediaService->>Queue: Dodanie zmiany CREATE Media
+    Queue-->>UI: Operacja lokalna zakończona
+
+    Worker->>Worker: Uruchomienie syncCycle()
+    Worker->>Queue: getPendingChanges()
+    Queue-->>Worker: Oczekujące zmiany
+    Worker->>Worker: Wybór paczki do 20 zmian
+    Worker->>API: POST /sync/initiate/{user_id}<br/>JSON z metadanymi zmian
+    API->>PG: Walidacja urządzenia i wykonanie resolverów
+    API->>PG: Zapis encji i sync_changes,<br/>zwiększenie version, COMMIT
+    PG-->>API: Zatwierdzenie transakcji
+    API-->>Worker: 200 OK
+
+    loop Każda zmiana Media CREATE lub UPDATE w paczce
+        Worker->>Files: getFullFile(filepath)
+        Files-->>Worker: Blob pliku
+        Worker->>API: POST /sync/media/file/<br/>multipart: file, path, user_id, library_id
+        API->>Storage: Zapis {user_id}/{path}
+        Storage-->>API: Plik zapisany
+        API-->>Worker: 200 OK
+    end
+
+    loop Każdy wpis wysłanej paczki
+        Worker->>Queue: removeFromQueue(id)
+        Queue-->>Worker: Wpis usunięty
+    end
+
+    Worker->>Queue: getPendingChanges()
+    Queue-->>Worker: Pozostałe zmiany
+    alt Kolejka zawiera kolejne zmiany
+        Worker->>Worker: Zakończenie cyklu
+    else Kolejka jest pusta
+        Worker->>API: GET /sync/state/{user_id}
+        API->>PG: Pobranie pełnego stanu użytkownika
+        PG-->>API: Encje wraz z tombstones
+        API-->>Worker: SyncState
+        Worker->>DB: applySyncState()
+        DB-->>Worker: Stan lokalny zaktualizowany
+    end

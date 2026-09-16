@@ -1,6 +1,6 @@
 "use client";
 
-import { RecentlyUsedList } from "@/components/home_components/_recently_used/RecentlyUsedList";
+// import { RecentlyUsedList } from "@/components/home_components/_recently_used/RecentlyUsedList";
 import { HomeTitle } from "@/components/home_components/title_shelf/HomeTitle";
 import { useState, useEffect } from "react";
 import { LibraryList } from "@/components/home_components/_library_list/LibraryList";
@@ -8,9 +8,9 @@ import { PrimaryButton } from "@/components/buttons/PrimaryButton";
 import { LibraryModal } from "@/components/home_components/LibraryModal";
 import { useLibrary } from "@/app/context/LibraryContext";
 import { DeviceIcon } from "@/components/DeviceIcon";
-import { list } from "@/lib/Hardcoded";
+// import { list } from "@/lib/Hardcoded";
 import { useRouter } from "next/navigation";
-import { Clock3, FolderOpen, Plus } from "lucide-react";
+import { FolderOpen, Plus } from "lucide-react";
 import { useUser } from "../context/UserContext";
 import { useDevice } from "../context/DeviceContext";
 import { getLibraries } from "@/lib/db/services/library_service";
@@ -57,7 +57,7 @@ export default function Home() {
             <Link href={"/db_debug"}>DB_DEBUG</Link>
           </header>
 
-          <section
+          {/* <section
             className="mt-8 animate-fade-in-up rounded-3xl border border-card-border bg-card/70 p-5 shadow-sm sm:p-7"
             style={{ animationDelay: "0.1s" }}
           >
@@ -80,7 +80,7 @@ export default function Home() {
               </span>
             </div>
             <RecentlyUsedList recentlyUsedList={list} />
-          </section>
+          </section> */}
 
           <section
             className="mt-8 animate-fade-in-up rounded-3xl border border-card-border bg-card/70 p-5 shadow-sm sm:p-7"

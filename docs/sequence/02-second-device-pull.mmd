@@ -1,0 +1,71 @@
+sequenceDiagram
+    autonumber
+    actor User as Użytkownik
+    participant Mobile as Aplikacja mobilna
+    participant DB as Lokalna baza SQLite
+    participant Queue as Kolejka synchronizacji<br/>(sync_changes)
+    participant Worker as Klient synchronizacji<br/>(SyncService)
+    participant API as API aplikacji<br/>(FastAPI)
+    participant PG as PostgreSQL
+    participant Storage as Serwerowy magazyn plików<br/>(media_storage)
+    participant Files as Lokalny magazyn plików<br/>(Directory.Data)
+
+    User->>Mobile: Logowanie na drugim urządzeniu
+    Mobile->>API: POST /user/login
+    API->>PG: Weryfikacja danych logowania
+    PG-->>API: Dane użytkownika
+    API-->>Mobile: Dane użytkownika
+    Mobile->>DB: Zapis użytkownika lokalnego
+    DB-->>Mobile: Użytkownik zapisany
+
+    opt Pierwsze uruchomienie na urządzeniu
+        User->>Mobile: Podanie nazwy urządzenia
+        Mobile->>DB: Zapis encji Device
+        DB-->>Mobile: Urządzenie zapisane
+        Mobile->>Queue: Dodanie zmiany CREATE Device
+        Queue-->>Mobile: Zmiana zapisana
+    end
+
+    Worker->>Worker: Uruchomienie syncCycle()
+    Worker->>Queue: getPendingChanges()
+    Queue-->>Worker: Oczekujące zmiany
+
+    opt W paczce znajduje się CREATE Device
+        Worker->>API: POST /sync/initiate/{user_id}
+        API->>PG: Rejestracja urządzenia i zapis sync_changes
+        API->>PG: Zwiększenie version, COMMIT
+        PG-->>API: Zatwierdzenie transakcji
+        API-->>Worker: 200 OK
+        Worker->>Queue: removeFromQueue(id)
+        Queue-->>Worker: Wpis usunięty
+    end
+
+    Worker->>Queue: getPendingChanges()
+    Queue-->>Worker: Kolejka pusta
+    Worker->>API: GET /sync/state/{user_id}
+    API->>PG: Pobranie bibliotek, mediów,<br/>notatek, postępu i urządzeń
+    PG-->>API: Pełny stan wraz z tombstones
+    API-->>Worker: SyncState
+    Worker->>DB: Upsert aktywnych encji
+    Worker->>DB: Usunięcie encji oznaczonych deletedAt
+    DB-->>Worker: Stan lokalny zaktualizowany
+
+    loop Każda aktywna encja Media
+        Worker->>Files: fileExistsLocally(filepath)
+        Files-->>Worker: Wynik sprawdzenia
+        alt Pliku nie ma lokalnie
+            Worker->>Storage: GET /media_storage/{user_id}/{filepath}
+            Storage-->>Worker: Bajty pliku
+            Worker->>Files: saveLocalFile(file, filepath)
+            Files-->>Worker: Plik zapisany
+        else Plik istnieje lokalnie
+            Worker->>Worker: Przejście do kolejnej encji Media
+        end
+    end
+
+    loop Każda aktywna biblioteka z iconUrl
+        Worker->>Storage: GET /media_storage/{user_id}/{iconUrl}
+        Storage-->>Worker: Bajty ikony
+        Worker->>Files: saveLocalFile(icon, iconUrl)
+        Files-->>Worker: Ikona zapisana
+    end

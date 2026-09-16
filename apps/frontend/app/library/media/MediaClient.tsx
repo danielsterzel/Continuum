@@ -1,7 +1,7 @@
 "use client";
 
 import { useSearchParams, useRouter } from "next/navigation";
-import { useEffect} from "react";
+import { useEffect } from "react";
 import { GoBackButton } from "@/components/buttons/GoBackButton";
 import { getMediaIcon } from "@/components/library_components/MediaListItem";
 import { formatFileSize } from "@/lib/UxMedia";
@@ -11,25 +11,25 @@ import { PdfMain } from "./_variations/PdfMain";
 import { AudioMain } from "./_variations/AudioMain";
 import { MetaChip } from "@/components/library_components/MetaChip";
 import { formatDate } from "@/lib/Datetime";
-import { HardDrive, Tag, Calendar, CalendarClock } from "lucide-react";
+import { HardDrive, Tag, Calendar, CalendarClock, PenLine } from "lucide-react";
 import { useMedia } from "@/app/context/MediaContext";
 import { useUser } from "@/app/context/UserContext";
 import { getMediaById } from "@/lib/db/services/media_service";
+
 
 function formatName(name: string) {
   return name.split(".")[0];
 }
 
-function getMediaMain(type: string)
-{
-    const t = type.toLowerCase();
-    if(t.includes("video")) return VideoMain
-    if(t.includes("pdf")) return PdfMain
-    if(t.includes("audio")) return AudioMain
-    if(t.includes("image")) return ImageMain
+function getMediaMain(type: string) {
+  const t = type.toLowerCase();
+  if (t.includes("video")) return VideoMain;
+  if (t.includes("pdf")) return PdfMain;
+  if (t.includes("audio")) return AudioMain;
+  if (t.includes("image")) return ImageMain;
 
-    return null;
-}   
+  return null;
+}
 
 export function getMediaBg(type: string) {
   const t = type.toLocaleLowerCase();
@@ -42,15 +42,14 @@ export function getMediaBg(type: string) {
   return "bg-card";
 }
 
-export function getMediaColor(type: string)
-{
-    const t = type.toLowerCase();
-    if (t.includes("video")) return "text-emerald-500";
-    if (t.includes("audio")) return "text-blue-400";
-    if (t.includes("image")) return "text-purple-400";
-    if (t.includes("pdf")) return "text-orange-400";
+export function getMediaColor(type: string) {
+  const t = type.toLowerCase();
+  if (t.includes("video")) return "text-emerald-500";
+  if (t.includes("audio")) return "text-blue-400";
+  if (t.includes("image")) return "text-purple-400";
+  if (t.includes("pdf")) return "text-orange-400";
 
-    return "text-text-tertiary";
+  return "text-text-tertiary";
 }
 
 type ImgStyle = {
@@ -58,24 +57,23 @@ type ImgStyle = {
 };
 
 type Color = {
-    bg: string;
-    text: string;
-}
+  bg: string;
+  text: string;
+};
 
 type Pallete = {
-    colors: Color;
-    img: ImgStyle;
-}
+  colors: Color;
+  img: ImgStyle;
+};
 
-export function MediaClient()
-{
+export function MediaClient() {
   const searchParams = useSearchParams();
 
   const libraryId = searchParams.get("libraryId");
   const mediaId = searchParams.get("mediaId");
 
-  const {media, setMedia} = useMedia();
-  const {user} = useUser();
+  const { media, setMedia } = useMedia();
+  const { user } = useUser();
   const router = useRouter();
 
   useEffect(() => {
@@ -89,8 +87,7 @@ export function MediaClient()
     const activeLibraryId = libraryId;
     const activeMediaId = mediaId;
 
-    async function callMediaService()
-    {
+    async function callMediaService() {
       const savedLocalMedia = await getMediaById(
         userId,
         activeLibraryId,
@@ -101,11 +98,9 @@ export function MediaClient()
     callMediaService();
   }, [libraryId, mediaId, setMedia, user]);
 
-
-  if(!libraryId || !mediaId)
-    {
-      return null;
-    }
+  if (!libraryId || !mediaId) {
+    return null;
+  }
 
   if (!media) {
     return;
@@ -119,8 +114,11 @@ export function MediaClient()
     const bg = getMediaBg(media.mediaType);
     const color = getMediaColor(media.mediaType);
 
-    const pallete: Pallete = {colors: {bg: bg, text: color}, img: {icon: mediaIcon}};
-    return pallete
+    const pallete: Pallete = {
+      colors: { bg: bg, text: color },
+      img: { icon: mediaIcon },
+    };
+    return pallete;
   };
 
   const pallete = getMediaPallete();
@@ -136,30 +134,40 @@ export function MediaClient()
           {pallete.img.icon}
         </div>
         <div className="flex flex-col gap-2 items-center sm:items-start animate-slide-in-left">
-        <p className={`${pallete.colors.text} text-xs tracking-widest uppercase`}>media</p>
-          <h1 className="mt-2 sm:mt-6 text-2xl sm:text-3xl md:text-5xl font-bold tracking-wide break-all">{formatName(media.filename)}</h1>
-            <div className="flex flex-wrap gap-2 items-center justify-center sm:justify-start">
-              <MetaChip
-                icon={<Tag className="w-3.5 h-3.5" />}
-                label={media.mediaType}
-              />
-              <MetaChip
-                icon={<HardDrive className="w-3.5 h-3.5" />}
-                label={formatFileSize(media.fileSize)}
-              />
-              <MetaChip
-                icon={<Calendar className="w-3.5 h-3.5" />}
-                label={`Added ${formatDate(media.createdAt)}`}
-              />
-              <MetaChip
-                icon={<CalendarClock className="w-3.5 h-3.5" />}
-                label={`Updated ${formatDate(media.updatedAt)}`}
-              />
-            </div>
+          <p
+            className={`${pallete.colors.text} text-xs tracking-widest uppercase`}
+          >
+            media
+          </p>
+          <div className="mt-2 flex gap-4 items-center sm:mt-6">
+            <h1 className="text-2xl sm:text-3xl md:text-5xl font-bold tracking-wide break-all">
+            {formatName(media.filename)}
+            </h1>
+          {/* <button className="cursor-pointer p-2"><PenLine className="w-6 h-6" /></button> */}
+          </div>
+          <div className="flex flex-wrap gap-2 items-center justify-center sm:justify-start">
+            <MetaChip
+              icon={<Tag className="w-3.5 h-3.5" />}
+              label={media.mediaType}
+            />
+            <MetaChip
+              icon={<HardDrive className="w-3.5 h-3.5" />}
+              label={formatFileSize(media.fileSize)}
+            />
+            <MetaChip
+              icon={<Calendar className="w-3.5 h-3.5" />}
+              label={`Added ${formatDate(media.createdAt)}`}
+            />
+            <MetaChip
+              icon={<CalendarClock className="w-3.5 h-3.5" />}
+              label={`Updated ${formatDate(media.updatedAt)}`}
+            />
+          </div>
         </div>
       </div>
-      <div className="mt-8 sm:mt-12 flex items-center justify-center">{Main && <Main />}</div>
-
+      <div className="mt-8 sm:mt-12 flex items-center justify-center">
+        {Main && <Main />}
+      </div>
     </div>
-  );  
+  );
 }

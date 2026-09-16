@@ -1,4 +1,3 @@
-
 import { CreateNoteButton } from "./OpenNoteComposerButton";
 import { useEffect, useState } from "react";
 import { NoteComposer } from "./NoteComposer";
@@ -10,32 +9,53 @@ import { EmptyNoteListView } from "./EmptyNoteListView";
 import { NoteList } from "./NoteList";
 
 type NotePanelProps = {
-  showComposer: boolean
+  showComposer: boolean;
   onExitCloseComposer: () => void;
   openNoteCreation?: () => void;
   currTimestamp: number;
+  iconColor?: string;
+  iconBg?: string;
 };
 
-export function NotePanel({currTimestamp, showComposer, onExitCloseComposer, openNoteCreation}: NotePanelProps) {
-
+export function NotePanel({
+  currTimestamp,
+  showComposer,
+  onExitCloseComposer,
+  openNoteCreation,
+  iconColor,
+  iconBg,
+}: NotePanelProps) {
   const [notes, setNotes] = useState<Note[]>([]);
-  const {user} = useUser();
+  const { user } = useUser();
 
   const searchParams = useSearchParams();
 
   const mediaId = searchParams.get("mediaId");
 
   useEffect(() => {
-
-    if(!user) return;
-    if(!mediaId) return;
-    const getNotes = async() =>
-    {
+    if (!user) return;
+    if (!mediaId) return;
+    const getNotes = async () => {
       setNotes(await getAllNotesForMedia(user.id, mediaId));
-    }
+    };
     getNotes();
+  }, [user, mediaId]);
 
-  }, [user, mediaId])
+  function handleNoteAdd(addedNote: Note)
+  {
+    setNotes((prev) => [...prev, addedNote]);
+  }
+
+  function handleNoteUpdate(updatedNote: Note) 
+  {
+    setNotes((prev) =>
+      prev.map((note) => (note.id === updatedNote.id ? updatedNote : note)),
+    );
+  }
+  function handleNoteDeleted(noteId: string) 
+  {
+    setNotes((prev) => prev.filter((note) => note.id !== noteId));
+  }
 
   return (
     <aside className="order-2 flex w-full min-w-0 flex-col overflow-hidden rounded-2xl border border-card-border bg-card/80 shadow-sm sm:order-1 sm:col-span-1 sm:max-h-[70vh] sm:sticky sm:top-24 sm:self-start">
@@ -49,11 +69,25 @@ export function NotePanel({currTimestamp, showComposer, onExitCloseComposer, ope
           </h2>
         </div>
 
-        <CreateNoteButton openNoteCreation={openNoteCreation}/>
+        <CreateNoteButton openNoteCreation={openNoteCreation} />
       </header>
 
-      <NoteComposer currTimestamp={currTimestamp} showComposer={showComposer} onExitCloseComposer={onExitCloseComposer}/>
-      {notes.length === 0 ? <EmptyNoteListView />: <NoteList notes={notes}/>}
+      <NoteComposer
+        currTimestamp={currTimestamp}
+        showComposer={showComposer}
+        onNoteAdd={handleNoteAdd}
+        onExitCloseComposer={onExitCloseComposer}
+      />
+      {notes.length === 0 ? (
+        <EmptyNoteListView />
+      ) : (
+        <NoteList notes={notes} 
+        onNoteUpdated={handleNoteUpdate}
+        onNoteDeleted={handleNoteDeleted}
+        iconColor={iconColor}
+        iconBg={iconBg}
+        />  
+      )}
     </aside>
   );
 }

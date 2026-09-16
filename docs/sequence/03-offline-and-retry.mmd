@@ -1,0 +1,45 @@
+sequenceDiagram
+    autonumber
+    participant Worker as Klient synchronizacji<br/>(SyncService)
+    participant Queue as Kolejka synchronizacji<br/>(sync_changes)
+    participant Files as Lokalny magazyn plików<br/>(Directory.Data)
+    participant API as API synchronizacji<br/>(FastAPI)
+    participant PG as PostgreSQL
+    participant Storage as Serwerowy magazyn plików<br/>(media_storage)
+
+    Worker->>Worker: Uruchomienie syncCycle()
+    Worker->>Queue: getPendingChanges()
+    Queue-->>Worker: Paczka do 20 zmian
+
+    alt Brak połączenia lub błąd wysłania metadanych
+        Worker-xAPI: POST /sync/initiate/{user_id}
+        API--xWorker: Błąd sieciowy lub HTTP
+        Worker->>Worker: Zakończenie cyklu z błędem
+    else Metadane zostały przyjęte
+        Worker->>API: POST /sync/initiate/{user_id}
+        API->>PG: Walidacja i wykonanie resolverów
+        API->>PG: Zapis encji i sync_changes,<br/>zwiększenie version, COMMIT
+        PG-->>API: Zatwierdzenie transakcji
+        API-->>Worker: 200 OK
+
+        Worker->>Files: getFullFile(filepath)
+        Files-->>Worker: Blob pliku
+
+        alt Plik został wysłany
+            Worker->>API: POST /sync/media/file/
+            API->>Storage: Zapis {user_id}/{path}
+            Storage-->>API: Plik zapisany
+            API-->>Worker: 200 OK
+            Worker->>Queue: removeFromQueue(id)
+            Queue-->>Worker: Wpis usunięty
+        else Brak pliku lokalnego lub błąd wysyłania
+            Worker-xAPI: POST /sync/media/file/
+            API--xWorker: Błąd
+            Worker->>Worker: Zakończenie cyklu z błędem
+        end
+    end
+
+    Worker->>Worker: Uruchomienie kolejnego syncCycle()
+    Worker->>Queue: getPendingChanges()
+    Queue-->>Worker: Niewysłane wpisy
+    Worker->>API: Ponowienie POST /sync/initiate/{user_id}

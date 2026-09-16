@@ -1,0 +1,142 @@
+digraph ContinuumArchitecture {
+  graph [
+    label="CONTINUUM — ARCHITEKTURA AKTUALNEJ IMPLEMENTACJI",
+    labelloc=t,
+    labeljust=l,
+    fontname="Helvetica Bold",
+    fontsize=26,
+    bgcolor="#F8FAFC",
+    pad=0.35,
+    nodesep=0.58,
+    ranksep=0.86,
+    splines=ortho,
+    compound=true,
+    newrank=true,
+    forcelabels=true
+  ];
+
+  node [
+    shape=box,
+    style="rounded,filled",
+    fontname="Helvetica",
+    fontsize=11,
+    color="#CBD5E1",
+    fillcolor="#FFFFFF",
+    fontcolor="#0F172A",
+    margin="0.16,0.11",
+    penwidth=1.2
+  ];
+
+  edge [
+    fontname="Helvetica",
+    fontsize=9,
+    color="#64748B",
+    fontcolor="#475569",
+    arrowsize=0.72,
+    penwidth=1.25
+  ];
+
+  subgraph cluster_client {
+    label="KLIENT — Next.js 16 + React 19 + Capacitor (Web / iOS)";
+    labeljust=l;
+    fontsize=17;
+    fontname="Helvetica Bold";
+    color="#93C5FD";
+    fillcolor="#EFF6FF";
+    style="rounded,filled";
+    penwidth=1.6;
+
+    ui [label="Interfejs użytkownika\nApp Router: start, logowanie, konfiguracja użytkownika i urządzenia,\ndashboard, biblioteka, widok mediów", fillcolor="#DBEAFE", color="#60A5FA"];
+    contexts [label="Stan aplikacji\nUserContext • DeviceContext\nLibraryContext • MediaContext", fillcolor="#E0F2FE", color="#7DD3FC"];
+    bootstrap [label="BootstrapDb\ninicjalizacja 8 lokalnych tabel", fillcolor="#E0F2FE", color="#7DD3FC"];
+    domain [label="Serwisy klienta\nlibrary_service • media_service • media_progress\nnote_service • user_service", fillcolor="#FFFFFF"];
+    mapper [label="EntitySyncMapper\nencja klienta → snake_case payload\nCREATE / UPDATE / DELETE + expectedVersion", fillcolor="#FFFFFF"];
+    sync_worker [label="SyncService (worker React)\ncykl po logowaniu + co 30 s", fillcolor="#FEF3C7", color="#F59E0B", penwidth=1.6];
+    sync_cycle [label="syncCycle\nPUSH kolejki (partie ≤ 20; usuń po sukcesie)\nPULL pełnego stanu, gdy kolejka jest pusta", fillcolor="#FEF3C7", color="#F59E0B"];
+    apply [label="applySyncState\nupsert metadanych • usunięte biblioteki i media\npobieranie ikon • pobieranie brakujących plików mediów", fillcolor="#FEF3C7", color="#F59E0B"];
+
+    local_repos [label="Repozytoria SQLite\nUser • LocalUser • Device • Library\nMedia • MediaProgress • Note • SyncQueue", fillcolor="#DCFCE7", color="#4ADE80"];
+    local_db [label="Lokalna baza „continuum”\ntabele encji + sync_changes\nNatywnie: SQLite • Web: trwałość w IndexedDB", shape=cylinder, fillcolor="#DCFCE7", color="#22C55E", penwidth=1.6];
+    local_files [label="Lokalne pliki mediów i ikon\nCapacitor Filesystem / Directory.Data\nWeb: magazyn przeglądarki • iOS: prywatny folder aplikacji", shape=folder, fillcolor="#FFEDD5", color="#FB923C", penwidth=1.6];
+    queue [label="Tabela sync_changes — kolejka OUTBOX\ndevice_id • entity_type/id • operation\nexpected_version • JSON payload • created_at", shape=cylinder, fillcolor="#FEF3C7", color="#F59E0B", penwidth=1.6];
+
+    ui -> contexts;
+    ui -> domain;
+    bootstrap -> local_repos;
+    contexts -> local_repos;
+    domain -> local_repos [color="#2563EB"];
+    domain -> local_files [color="#EA580C"];
+    domain -> mapper;
+    mapper -> queue [color="#D97706"];
+    local_repos -> local_db [dir=both];
+    queue -> local_db [arrowhead=none, style=dashed];
+    sync_worker -> sync_cycle;
+    sync_cycle -> queue [dir=both, color="#D97706"];
+    apply -> local_repos [color="#2563EB"];
+    apply -> local_files [color="#EA580C"];
+  }
+
+  subgraph cluster_network {
+    label="GRANICA SIECIOWA — HTTP / JSON + multipart";
+    labeljust=l;
+    fontsize=15;
+    fontname="Helvetica Bold";
+    color="#CBD5E1";
+    fillcolor="#F1F5F9";
+    style="rounded,filled";
+
+    push_meta [label="POST /sync/initiate/{user_id}\nJSON: paczka zmian metadanych", fillcolor="#FEF3C7", color="#F59E0B"];
+    pull_state [label="GET /sync/state/{user_id}\npełny snapshot: devices, libraries, media,\nnotes, media_progress", fillcolor="#FEF3C7", color="#F59E0B"];
+    push_files [label="POST /sync/icon/{user_id}\nPOST /sync/media/file/\nmultipart: pliki po zmianach metadata", fillcolor="#FFEDD5", color="#FB923C"];
+    pull_files [label="GET /media_storage/{user_id}/{path}\npobieranie ikon i brakujących plików mediów", fillcolor="#FFEDD5", color="#FB923C"];
+    auth_api [label="POST /user/setup • /user/login\nrejestracja i logowanie hasłem", fillcolor="#F3E8FF", color="#C084FC"];
+    direct_api [label="Pozostałe aktywne routery backendu\n/device • /library • /media_progress", style="rounded,filled,dashed", fillcolor="#FFFFFF"];
+  }
+
+  subgraph cluster_server {
+    label="SERWER — FastAPI + SQLAlchemy async";
+    labeljust=l;
+    fontsize=17;
+    fontname="Helvetica Bold";
+    color="#C4B5FD";
+    fillcolor="#F5F3FF";
+    style="rounded,filled";
+    penwidth=1.6;
+
+    fastapi [label="FastAPI\nCORS • routery • Pydantic schemas\nStaticFiles: /media_storage", fillcolor="#EDE9FE", color="#A78BFA", penwidth=1.6];
+    sync_service [label="SyncService — transakcja PUSH\nwalidacja urządzenia • wybór resolvera • zapis SyncChange\nbezpośredni UPDATE version = version + 1 • commit / rollback", fillcolor="#FEF3C7", color="#F59E0B", penwidth=1.6];
+    resolvers [label="Resolvery encji\nDevice • Library • Media • Note • MediaProgress\nCREATE • UPDATE • soft-delete\nMediaProgress CREATE: zapis lub aktualizacja", fillcolor="#FEF3C7", color="#F59E0B"];
+    server_repos [label="Warstwa repozytoriów\nBaseRepository + repozytoria encji\nweryfikacja dostępu • zapytania • zapis / aktualizacja", fillcolor="#DCFCE7", color="#4ADE80"];
+    state_builder [label="get_sync_state\npobranie encji przez repozytoria\nmapowanie do SyncStateRead", fillcolor="#FEF3C7", color="#F59E0B"];
+    audit [label="sync_changes — dziennik przyjętych zmian\npayload + expected_version + urządzenie", shape=cylinder, fillcolor="#FEF3C7", color="#F59E0B"];
+
+    fastapi -> sync_service;
+    sync_service -> resolvers;
+    resolvers -> server_repos;
+    sync_service -> audit;
+    sync_service -> server_repos;
+    fastapi -> state_builder;
+    state_builder -> server_repos;
+  }
+
+  postgres [label="PostgreSQL — źródło prawdy dla metadanych\nusers • devices • libraries • media • media_progresses\nnotes • sync_changes", shape=cylinder, fillcolor="#DCFCE7", color="#22C55E", penwidth=1.6];
+  media_volume [label="ContinuumData/media_storage\nkatalog udostępniany jako /media_storage\nikony + pliki użytkowników", shape=folder, fillcolor="#FFEDD5", color="#FB923C", penwidth=1.6];
+
+  server_repos -> postgres [color="#16A34A"];
+  fastapi -> media_volume [color="#EA580C"];
+  sync_service -> postgres [color="#D97706", constraint=false];
+
+  sync_cycle -> push_meta [color="#D97706", penwidth=1.7];
+  push_meta -> fastapi [color="#D97706", penwidth=1.7];
+  sync_cycle -> push_files [color="#EA580C", penwidth=1.7];
+  push_files -> fastapi [color="#EA580C", penwidth=1.7];
+  sync_cycle -> pull_state [color="#2563EB", penwidth=1.7];
+  pull_state -> fastapi [color="#2563EB", penwidth=1.7];
+  pull_state -> apply [color="#2563EB", penwidth=1.7];
+  apply -> pull_files [color="#EA580C", penwidth=1.7];
+  pull_files -> fastapi [color="#EA580C", penwidth=1.7];
+  ui -> auth_api [style=dashed, color="#9333EA"];
+  auth_api -> fastapi [style=dashed, color="#9333EA"];
+  direct_api -> fastapi [style=dashed];
+
+}

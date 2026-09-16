@@ -1,0 +1,94 @@
+digraph ContinuumDataModel {
+  graph [
+    label="CONTINUUM — MODEL DANYCH I REPLIKACJA",
+    labelloc=t,
+    labeljust=l,
+    fontname="Helvetica Bold",
+    fontsize=25,
+    bgcolor="#F8FAFC",
+    pad=0.35,
+    nodesep=0.5,
+    ranksep=0.8,
+    splines=ortho,
+    compound=true
+  ];
+
+  node [
+    shape=record,
+    style="rounded,filled",
+    fontname="Helvetica",
+    fontsize=11,
+    color="#94A3B8",
+    fillcolor="#FFFFFF",
+    fontcolor="#0F172A",
+    margin="0.14,0.1",
+    penwidth=1.2
+  ];
+
+  edge [
+    fontname="Helvetica",
+    fontsize=10,
+    color="#64748B",
+    fontcolor="#475569",
+    arrowsize=0.7,
+    penwidth=1.25,
+    dir=both,
+    arrowtail=none,
+    arrowhead=none
+  ];
+
+  subgraph cluster_domain {
+    label="Dane domenowe — ten sam logiczny model w lokalnym SQLite i PostgreSQL";
+    labeljust=l;
+    fontsize=16;
+    fontname="Helvetica Bold";
+    color="#86EFAC";
+    fillcolor="#F0FDF4";
+    style="rounded,filled";
+    penwidth=1.5;
+
+    users [label="{users|id : UUID / TEXT (PK)\lemail : UNIQUE\ldisplay_name\lpassword_hash : tylko serwer\lcreated_at, updated_at\l}", fillcolor="#ECFDF5", color="#4ADE80"];
+    devices [label="{devices|id (PK)\luser_id (FK)\lname, last_seen\lversion\ldeleted_at\l}"];
+    libraries [label="{libraries|id (PK)\luser_id (FK)\lname, description, icon_url\lcreated_at, updated_at\lversion\ldeleted_at\l}"];
+    media [label="{media|id (PK)\llibrary_id (FK)\lfilename, filepath, file_size\lmedia_type, duration, thumbnail_url, rating\lcreated_at, updated_at\lversion\ldeleted_at\l}"];
+    progress [label="{media_progresses|id (PK)\lmedia_id (FK, UNIQUE)\lcurrent_position, last_watched\llast_device_id (FK, nullable)\lversion\l}"];
+    notes [label="{notes|id (PK)\lmedia_id (FK)\ltitle, content, timestamp\lcreated_at, updated_at\lversion\ldeleted_at\l}"];
+    local_replica [label="lokalna replika SQLite\n5 typów encji", shape=cylinder, fillcolor="#DBEAFE", color="#60A5FA"];
+
+    users -> devices [label="1 — N"];
+    users -> libraries [label="1 — N"];
+    libraries -> media [label="1 — N"];
+    media -> progress [label="1 — 0..1"];
+    media -> notes [label="1 — N"];
+    devices -> progress [label="1 — N (last_device)", style=dashed];
+  }
+
+  subgraph cluster_replication {
+    label="Replikacja zmian";
+    labeljust=l;
+    fontsize=16;
+    fontname="Helvetica Bold";
+    color="#FCD34D";
+    fillcolor="#FFFBEB";
+    style="rounded,filled";
+    penwidth=1.5;
+
+    local_outbox [label="{lokalne sync_changes (OUTBOX)|id (PK)\ldevice_id (FK)\lentity_type + entity_id\loperation: create/update/delete\lexpected_version\lpayload JSON (tekst)\lcreated_at\l}", fillcolor="#FEF3C7", color="#F59E0B"];
+    server_log [label="{serwerowe sync_changes (dziennik)|id (PK)\ldevice_id (FK)\lentity_type + entity_id\loperation\lexpected_version\lpayload JSONB\lcreated_at\l}", fillcolor="#FEF3C7", color="#F59E0B"];
+    postgres_state [label="PostgreSQL / repozytoria\naktualny stan encji", shape=cylinder, fillcolor="#DCFCE7", color="#22C55E"];
+    snapshot [label="{SyncState (PULL)|devices[]\llibraries[]\lmedia[]\lnotes[]\lmedia_progress[]\l}", fillcolor="#DBEAFE", color="#60A5FA"];
+    local_outbox -> server_log [label="PUSH: partie ≤ 20", dir=forward, arrowhead=normal, color="#D97706", fontcolor="#B45309", penwidth=1.7];
+    postgres_state -> snapshot [label="GET /sync/state", dir=forward, arrowhead=normal, style=dashed];
+  }
+
+  devices -> local_outbox [label="device_id", style=dashed];
+  devices -> server_log [label="device_id", style=dashed];
+  snapshot -> local_replica [
+    dir=forward,
+    arrowhead=normal,
+    color="#2563EB",
+    fontcolor="#2563EB",
+    penwidth=1.7
+  ];
+
+}

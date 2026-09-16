@@ -11,7 +11,7 @@ export async function fetchSyncState(userId: string): Promise<SyncState> {
   return res.json();
 }
 
-export async function pushVideoFileData(blob: Blob, relpath: string, userId: string, libraryId: string)
+export async function pushMediaData(blob: Blob, relpath: string, userId: string, libraryId: string)
 {
   const data = prepareMediaDataForPush(blob, relpath);
   data.append("user_id", userId);

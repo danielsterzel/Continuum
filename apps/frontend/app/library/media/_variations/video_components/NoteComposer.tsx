@@ -12,17 +12,20 @@ import { formatTimestamp } from "./NoteItem";
 
 type NoteComposerProps = {
   showComposer: boolean;
+  onNoteAdd: (note: Note) => void;
   onExitCloseComposer: () => void;
   currTimestamp: number;
 };
 export function NoteComposer({
   currTimestamp,
   showComposer,
+  onNoteAdd,
   onExitCloseComposer,
 }: Readonly<NoteComposerProps>) {
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
   const [writtenNote, setWrittenNote] = useState<Partial<Note>>();
   const [currContentLength, setCurrContentLength] = useState(0);
+  const [isCreating, setIsCreating] = useState(false);
   const [errToast, setErrToast] = useState(false);
 
   const { device } = useDevice();
@@ -37,7 +40,12 @@ export function NoteComposer({
   }
 
   const createNote = async () => {
-    const note: Note = {
+
+    if(isCreating) return;
+
+    try
+    {
+      const note: Note = {
       ...writtenNote as Note,
       id: v4(),
       mediaId: mediaId,
@@ -54,27 +62,37 @@ export function NoteComposer({
       setErrToast(true);
       return;
     }
-
+    onNoteAdd(note);
     onExitCloseComposer();
-
+  } finally {setIsCreating(false)}
   };
 
   if (!showComposer) return;
 
   return (
-    <div className="flex flex-col gap-2 m-2">
+    <div className="animate-fade-in-up mx-0 flex w-full flex-col gap-3 rounded-t-3xl border-t border-card-border bg-card p-4 shadow-[0_-12px_30px_-24px_rgba(23,23,23,0.35)] sm:m-2 sm:w-auto sm:gap-2 sm:rounded-none sm:border-0 sm:bg-transparent sm:p-0 sm:shadow-none sm:animate-none">
+      <div
+        aria-hidden="true"
+        className="mx-auto mb-1 h-1 w-12 rounded-full bg-card-border sm:hidden"
+      />
       <div className="w-full flex flex-col gap-2 items-center justify-center">
-        <div className="bg-primary-subtle rounded-2xl p-2">
-          <ClockFading className="w-12 h-12 text-primary" />
-        </div>
-        <p
-          className="text-sm bg-card 
+
+        <div
+          className="
+          flex w-fit max-w-full items-center gap-2
+          text-sm bg-card 
+          border border-card-border 
+          shadow-sm p-2
                 text-text-tertiary
                 rounded-2xl "
         >
-          {textTimestamp}
+                  <div className="bg-primary-subtle rounded-2xl p-2">
+          <ClockFading className="w-6 h-6 text-primary" />
+        </div>
+        <p>
+          Current Timestamp   {textTimestamp}
         </p>
-
+        </div>
         <input
           maxLength={50}
           onChange={(e) => {
@@ -83,12 +101,14 @@ export function NoteComposer({
           placeholder="My awesome title"
           type="text"
           className="
-            text-center
-            text-lg text-text-secondary border-b border-neutral-500 focus-none outline-none"
+            w-full px-2 py-2 text-left sm:w-84
+            text-2xl font-medium text-text-secondary
+            border-b border-card-border outline-none
+            transition-colors focus:border-primary"
         />
       </div>
 
-      <div className="w-full flex items-center justify-center bg-card">
+      <div className="mt-2 flex w-full items-center justify-center bg-card sm:mt-4">
         <textarea
           maxLength={300}
           placeholder="Type here ..."
@@ -100,7 +120,7 @@ export function NoteComposer({
             setCurrContentLength(e.target.textLength);
           }}
           ref={inputRef}
-          className="p-2 w-84 h-32 resize-none border  
+          className="h-36 w-full resize-none border p-2 sm:h-32 sm:w-84
             border-card-border
             rounded-2xl
             focus-none
@@ -110,10 +130,10 @@ export function NoteComposer({
       </div>
       <div className="text-text-tertiary">{currContentLength} / 300</div>
 
-      <div className="w-full flex justify-between">
+      <div className="flex w-full justify-between gap-2">
         <button
           className="cursor-pointer
-            w-32 flex items-center justify-center
+            flex flex-1 items-center justify-center sm:w-32 sm:flex-none
             bg-red-200 text-danger rounded-full
             "
           onClick={onExitCloseComposer}
@@ -122,9 +142,10 @@ export function NoteComposer({
           Cancel
         </button>
         <button
+        disabled={isCreating}
           onClick={createNote}
           className="
-            w-32
+            flex-1 sm:w-32 sm:flex-none
             bg-primary rounded-full p-2
             text-text-emerald
             flex gap-2 items-center justify-center cursor-pointer"

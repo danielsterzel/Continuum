@@ -3,7 +3,7 @@ import { SyncOperation } from "../types/SyncOperation";
 import { enqueueChange, getPendingChanges, removeFromQueue } from "./queue";
 import { EntityUnionType } from "../types/EntityUnion";
 import { mapEntityToSync } from "../EntitySyncMapper";
-import { fetchSyncState, pushIconFileData, pushVideoFileData } from "../api/sync";
+import { fetchSyncState, pushIconFileData, pushMediaData } from "../api/sync";
 import { applySyncState } from "./apply_sync_state";
 import { EntityType } from "../types/EntityType";
 import { getLibrary } from "../db/services/library_service";
@@ -62,7 +62,7 @@ async function postSyncChanges(
         throw new Error(`Local media file not found: ${filepath}`);
       }
 
-      await pushVideoFileData(localFile, filepath, userId, libraryId);
+      await pushMediaData(localFile, filepath, userId, libraryId);
     }
   }
 }
@@ -95,10 +95,6 @@ export async function batchAndSend(userId: string): Promise<void> {
     return syncChange;
   });
 
-  for(const change of changes)
-    {
-      console.log("CHANGE BODY: ", JSON.stringify(change));
-    }
   await postSyncChanges(changes, userId);
 
   for (const change of batch) {

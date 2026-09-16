@@ -104,7 +104,7 @@ async def sync_icon(
 
 
 @router.post("/media/file/")
-async def sync_video(
+async def sync_file(
         user_id: Annotated[UUID, Form()],
         library_id: Annotated[UUID, Form()],
         path: Annotated[str, Form()],

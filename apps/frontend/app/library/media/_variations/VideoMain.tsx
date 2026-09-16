@@ -198,15 +198,9 @@ export function VideoMain() {
         currTimestamp={currentTimestamp}
         openNoteCreation={() => setOpenNoteComposer(true)} 
         showComposer={openNoteComposer}
+        iconColor={color}
+        iconBg={bg}
         onExitCloseComposer={() => setOpenNoteComposer(false)}/>
-{/* 
-        <ul className="order-2 sm:order-1 sm:col-span-1 w-full flex flex-col gap-3 items-center">
-          <NoteItem note={noteMock} iconColor={color} iconBg={bg} />
-          <NoteItem note={noteMock} iconColor={color} iconBg={bg} />
-          <NoteItem note={noteMock} iconColor={color} iconBg={bg} />
-          <NoteItem note={noteMock} iconColor={color} iconBg={bg} />
-          <NoteItem note={noteMock} iconColor={color} iconBg={bg} />
-        </ul> */}
 
         <div
           className="

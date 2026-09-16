@@ -232,4 +232,16 @@ export class NoteRepository {
 
     await persistDatabase();
   }
+  async getByNoteId(userId: string, noteId: string)
+  {
+    const res = await this.db.query(`
+      SELECT n.* from notes n 
+      JOIN media m ON(n.media_id = m.id)
+      JOIN libraries l ON(m.library_id = l.id)
+      WHERE l.user_id = ? AND n.id = ? LIMIT 1`, [userId, noteId]);
+    
+      const rows = res?.values?.[0]
+
+      return rows ? this.mapRowToNote(rows): null;
+  }
 }

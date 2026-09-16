@@ -5,30 +5,79 @@ import { queueEntityChange } from "@/lib/sync/sync";
 import { SyncOperation } from "@/lib/types/SyncOperation";
 
 
+export async function saveNoteToDbAndPushToQueue(
+  note: Note,
+  deviceId: string,
+): Promise<boolean> {
+  const db = await getDatabase();
+  const repository = new NoteRepository(db);
 
-export async function saveNoteToDbAndPushToQueue(note: Note, deviceId: string): Promise<boolean>
+  try {
+    await repository.add(note);
+    await queueEntityChange(note, SyncOperation.CREATE, deviceId);
+    return true;
+  } catch (err) {
+    return false;
+  }
+}
+export async function getAllNotesForMedia(userId: string, mediaId: string) {
+  const db = await getDatabase();
+  const repository = new NoteRepository(db);
+
+  const notes = await repository.getAllByMediaId(userId, mediaId);
+
+  return notes;
+}
+
+export async function updateNoteService(
+  userId: string,
+  noteId: string,
+  deviceId: string,
+  title?: string,
+  timestamp?: number,
+  content?: string
+):Promise<boolean>  {
+
+  if(title === "")
+  {
+    return false;
+  }
+
+  const db = await getDatabase();
+  const repository = new NoteRepository(db);
+
+  const note = await repository.getByNoteId(userId, noteId);
+  if (!note) return false;
+
+  const updatedNote = {...note, timestamp: timestamp ?? note.timestamp, 
+    title: title ?? note.title, content: content ?? note.content
+  };
+
+  try {
+    await repository.update(userId, updatedNote);
+    await queueEntityChange(updatedNote, SyncOperation.UPDATE, deviceId);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export async function deleteNoteService(userId: string, noteId: string, deviceId: string)
 {
     const db = await getDatabase();
     const repository = new NoteRepository(db);
+
+    const existingNote = await repository.getByNoteId(userId, noteId);
+    if(!existingNote) return {deletedNote: null, success: false};
 
     try
     {
-        await repository.add(note)
-        await queueEntityChange(note, SyncOperation.CREATE, deviceId);
-        return true;
+        await queueEntityChange(existingNote, SyncOperation.DELETE, deviceId);
+        await repository.deleteById(userId, noteId)
+        return {deletedNote: existingNote, success:true}
     }
-    catch(err)
-    {   
-        return false;
+    catch
+    {
+        return {deletedNote: null, success: false};
     }
 }
-export async function getAllNotesForMedia(userId: string, mediaId: string)
-{
-    const db = await getDatabase();
-    const repository = new NoteRepository(db);
-    
-    const notes = await repository.getAllByMediaId(userId, mediaId);
-
-    return notes;
-}
-

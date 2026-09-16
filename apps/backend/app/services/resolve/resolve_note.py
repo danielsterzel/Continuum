@@ -33,9 +33,10 @@ class ResolveNote(ResolveBase[NoteRepository]):
         await self.repository.save(note)
 
     async def sync_update(self, entity_id: UUID, payload: dict[str, Any]) -> None:
+        validated_payload = NoteSyncPayload.model_validate(payload).model_dump()
 
         db_res = await self.repository.update_note_validate(
-            entity_id=entity_id, user_id=self.user_id, **payload
+            entity_id=entity_id, user_id=self.user_id, **validated_payload
         )
         if not db_res:
             raise ValueError("Failed to execute sync update")
