@@ -18,6 +18,7 @@ class DeviceRead(BaseModel):
     deleted_at: datetime | None
     version: int
 
+
 class DeviceWrite(BaseModel):
     name: str | None = Field(default=None, max_length=50)
 
@@ -33,3 +34,4 @@ class DeviceSyncWrite(BaseModel):
     name: str | None = Field(default=None, max_length=50)
     last_seen: datetime
     deleted_at: datetime | None = None
+    updated_at: datetime

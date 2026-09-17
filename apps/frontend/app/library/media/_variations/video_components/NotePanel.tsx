@@ -13,12 +13,14 @@ type NotePanelProps = {
   onExitCloseComposer: () => void;
   openNoteCreation?: () => void;
   currTimestamp: number;
+  getCurrentTimestamp: () => number | null;
   iconColor?: string;
   iconBg?: string;
 };
 
 export function NotePanel({
   currTimestamp,
+  getCurrentTimestamp,
   showComposer,
   onExitCloseComposer,
   openNoteCreation,
@@ -84,6 +86,7 @@ export function NotePanel({
         <NoteList notes={notes} 
         onNoteUpdated={handleNoteUpdate}
         onNoteDeleted={handleNoteDeleted}
+        getCurrentTimestamp={getCurrentTimestamp}
         iconColor={iconColor}
         iconBg={iconBg}
         />  

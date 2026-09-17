@@ -42,12 +42,14 @@ export default function SetupDevice() {
 
     const db = await getDatabase();
     const deviceRepository = new DeviceRepository(db);
+    const now = new Date().toISOString();
 
     const newDevice: Device = {
       userId: user.id,
       id: v4(),
       name: inputRef.current?.value || "default",
-      lastSeen: new Date().toISOString(),
+      lastSeen: now,
+      updatedAt: now,
       deletedAt: null,
       version: 1,
       entityType: EntityType.Device,

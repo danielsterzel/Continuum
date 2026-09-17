@@ -3,10 +3,7 @@ from uuid import UUID
 from app.models import Media, Library
 from app.models.note import Note
 from app.repositories.base_repository import BaseRepository
-from sqlalchemy import select, delete, update
-
-from datetime import datetime, timezone
-
+from sqlalchemy import select
 
 class NoteRepository(BaseRepository[Note]):
     model = Note

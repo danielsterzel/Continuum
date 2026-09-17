@@ -18,6 +18,7 @@ export class DeviceRepository {
                 user_id TEXT NOT NULL,
                 name TEXT NOT NULL,
                 last_seen TEXT NOT NULL,
+                updated_at TEXT NOT NULL,
                 deleted_at TEXT,
                 version INTEGER NOT NULL DEFAULT 0,
 
@@ -27,6 +28,13 @@ export class DeviceRepository {
             );
         `,
     );
+
+    const columns = await this.db.query("PRAGMA table_info(devices);");
+    if (!columns.values?.some((column) => column.name === "updated_at")) {
+      await this.db.execute("ALTER TABLE devices ADD COLUMN updated_at TEXT;");
+      await this.db.execute("UPDATE devices SET updated_at = last_seen;");
+      await persistDatabase();
+    }
   }
   async add(device: Device): Promise<void> {
     await this.db.run(
@@ -36,16 +44,18 @@ export class DeviceRepository {
       user_id,
       name,
       last_seen,
+      updated_at,
       deleted_at,
       version
     )
-    VALUES (?, ?, ?, ?, ?, ?);
+    VALUES (?, ?, ?, ?, ?, ?, ?);
     `,
       [
         device.id,
         device.userId,
         device.name,
         device.lastSeen,
+        device.updatedAt,
         device.deletedAt,
         device.version,
       ],
@@ -72,6 +82,7 @@ export class DeviceRepository {
       userId: row.user_id,
       name: row.name,
       lastSeen: row.last_seen,
+      updatedAt: row.updated_at,
       deletedAt: row.deleted_at,
       version: row.version,
       entityType: EntityType.Device,

@@ -1,10 +1,16 @@
 from abc import ABC, abstractmethod
 
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.services.resolve.resolve_library import ResolveLibrary
+from app.services.resolve.resolve_media_progress import ResolveMediaProgress
 from app.schemas.sync_change_schema import SyncChangeWrite
 from uuid import UUID
 from typing import Any
-from app.models.sync_change import SyncOperation
+from app.models.sync_change import SyncOperation, EntityType
+from app.services.resolve.resolve_device import ResolveDevice
+from app.services.resolve.resolve_media import ResolveMedia
+from app.services.resolve.resolve_note import ResolveNote
 
 
 class ResolveBase[T](ABC):
@@ -17,8 +23,9 @@ class ResolveBase[T](ABC):
         self.repository: T = self.repository_type(db)
 
     @abstractmethod
-    async def get_current_entity(self, entity_id: UUID, sync_operation: SyncOperation) -> dict[str, Any]:
-        ...
+    async def get_current_entity(
+        self, entity_id: UUID, sync_operation: SyncOperation
+    ) -> dict[str, Any]: ...
     @abstractmethod
     async def sync_create(
         self, entity_id: UUID, payload: dict[str, Any]
@@ -57,5 +64,5 @@ class ResolveBase[T](ABC):
 
         return resolved_id or change.entity_id
 
-    async def resolve_conflict(self):
-        ...
+    @abstractmethod
+    async def resolve_conflict(self, change: SyncChangeWrite) -> UUID: ...

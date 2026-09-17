@@ -5,13 +5,14 @@ from typing import TYPE_CHECKING
 from uuid import UUID
 
 from app.db.base import Base
+from app.models import TimestampMixin
 from app.models.mixins import TombstoneMixin, UUIDMixin, VersionMixin
 
 if TYPE_CHECKING:
     from app.models.user import User
 
 
-class Device(Base, UUIDMixin, TombstoneMixin, VersionMixin):
+class Device(Base, UUIDMixin, TombstoneMixin, VersionMixin, TimestampMixin):
     __tablename__ = "devices"
 
     __table_args__ = (Index("ix_devices_user_id", "user_id"),)

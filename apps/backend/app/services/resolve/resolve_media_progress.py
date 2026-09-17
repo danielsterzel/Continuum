@@ -3,18 +3,25 @@ from uuid import UUID
 
 from app.repositories.media_progress_repository import MediaProgressRepository
 from app.schemas.media_progress_schema import MediaProgressSyncPayload
+from app.schemas.sync_change_schema import SyncChangeWrite
 from app.services.resolve.resolve_base import ResolveBase
 from app.models.media_progress import MediaProgress
 from app.models.sync_change import SyncOperation
+
+
 class ResolveMediaProgress(ResolveBase[MediaProgressRepository]):
     repository_type = MediaProgressRepository
     entity_type = "media_progress"
 
-    async def get_current_entity(self, entity_id: UUID, sync_operation: SyncOperation) -> dict[str, Any]:
+    async def get_current_entity(
+        self, entity_id: UUID, sync_operation: SyncOperation
+    ) -> dict[str, Any]:
         if sync_operation == SyncOperation.CREATE:
             return {"object": "create"}
 
-        current_entity = self.repository.fetch_by_id_and_user(media_progress_id=entity_id, user_id=self.user_id)
+        current_entity = await self.repository.fetch_by_id_and_user(
+            media_progress_id=entity_id, user_id=self.user_id
+        )
 
         return {"object": current_entity}
 
@@ -26,6 +33,7 @@ class ResolveMediaProgress(ResolveBase[MediaProgressRepository]):
             id=entity_id,
             **payload,
         )
+
     async def sync_create(self, entity_id, payload) -> UUID:
 
         progress = self.deserialize_payload(entity_id=entity_id, payload=payload)
@@ -58,3 +66,34 @@ class ResolveMediaProgress(ResolveBase[MediaProgressRepository]):
             raise ValueError("SYNC UPDATE MEDIA_PROGRESS - FAILED UPDATE")
 
         return saved_progress.id
+
+    async def resolve_conflict(self, change: SyncChangeWrite) -> UUID:
+
+        saved_entity = await self.repository.fetch_by_id_and_user(
+            media_progress_id=change.entity_id, user_id=self.user_id
+        )
+
+        if not saved_entity:
+            raise ValueError("No such entity ID")
+
+        if change.operation == SyncOperation.UPDATE:
+            payload_parsed = self.deserialize_payload(
+                change.entity_id,
+                change.payload
+            )
+
+            allowed = {
+                field: value
+                for field, value in change.payload.items()
+                if field in self.repository.allowed_updates
+            }
+
+            if saved_entity.last_watched < payload_parsed.last_watched:
+                await self.repository.update_media_progress_validate(
+                    entity_id=saved_entity.id,
+                    user_id=self.user_id,
+                    **allowed
+                )
+            return saved_entity.id
+
+        else: raise ValueError("Incorrect operation")

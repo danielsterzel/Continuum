@@ -56,18 +56,6 @@ class BaseRepository[T](ABC):
 
         return res.rowcount == 1
 
-    # async def fetch_by_user_join_media_library(self, entity_id: UUID, user_id: UUID) -> T | None:
-    #
-    #     query = (
-    #         select(self.model)
-    #         .join(Media, Media.id == self.model.media_id)
-    #         .join(Library, Library.id == Media.library_id)
-    #         .where(Library.user_id == user_id, self.model.id == entity_id)
-    #     )
-    #
-    #     entity = await self.db.execute(query)
-    #     return entity.scalar_one_or_none()
-
     @staticmethod
     def soft_delete_entity(saved_entity: T | None) -> bool:
 

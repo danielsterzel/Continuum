@@ -16,6 +16,7 @@ export type Device = {
   userId: string;
   name: string | null;
   lastSeen: string;
+  updatedAt: string;
   deletedAt: string | null;
   version: number;
   entityType: EntityType.Device;

@@ -68,7 +68,7 @@ class NoteSyncPayload(BaseModel):
     media_id: UUID
     title: str = Field(max_length=50)
     content: str = Field(max_length=300)
-    timestamp: timedelta| None
+    timestamp: timedelta | None
     created_at: datetime
     updated_at: datetime
 

@@ -16,7 +16,15 @@ from uuid import UUID
 
 
 class SyncService:
-    """IMPLEMENT CREATE SYNC_CHANGE ROW"""
+    """
+    Synchronization: Receive SyncChange that includes operation, changed entity and it's fields,
+    afterward use a resolver to apply changes in a way that does not yield any merge conflicts
+
+    Synchronization conflict: conflict is based on the version of the saved entity and incoming one
+    version decides whether there is a conflict.
+    """
+
+    # IMPLEMENT CREATE SYNC_CHANGE ROW
 
     def __init__(self, db: AsyncSession):
         self.db = db

@@ -48,11 +48,12 @@ export type NoteItemProps = {
   note: Note;
   onNoteUpdated: (note: Note) => void;
   onNoteDeleted: (noteId: string) => void;
+  getCurrentTimestamp: () => number | null;
   styling?: string;
   iconColor?: string;
   iconBg?: string;
 };
-export function NoteItem({ note, onNoteUpdated, onNoteDeleted, styling, iconColor, iconBg }: NoteItemProps) {
+export function NoteItem({ note, onNoteUpdated, onNoteDeleted, getCurrentTimestamp, styling, iconColor, iconBg }: NoteItemProps) {
   const [show, setShow] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const color = iconColor ?? "text-text-tertiary";
@@ -66,10 +67,23 @@ export function NoteItem({ note, onNoteUpdated, onNoteDeleted, styling, iconColo
   if(!user) return null;
   if(!device) return null;
 
-  const updateNote = async (title?: string, content?: string, timestamp?: number) => {
+  const updateNote = async (content?: string, timestamp?: number) => {
+    const updatedNote = await updateNoteService(
+      user.id,
+      note.id,
+      device.id,
+      undefined,
+      timestamp,
+      content,
+    );
+    if (!updatedNote) throw new Error(`Couldn't update note. Note body: ${JSON.stringify(note)}`);
+    onNoteUpdated(updatedNote);
+  };
 
-    const res = await updateNoteService(user.id, note.id, device.id, title, timestamp, content);
-    if(!res){throw new Error(`Couldn't update note. Note body: ${JSON.stringify(note)}`)}
+  const updateTimestampToCurrent = async () => {
+    const position = getCurrentTimestamp();
+    if (position === null || !Number.isFinite(position)) return;
+    await updateNote(undefined, position);
   };
 
   const handleNoteDelete = async() => {
@@ -137,6 +151,16 @@ export function NoteItem({ note, onNoteUpdated, onNoteDeleted, styling, iconColo
             {formatDate(new Date(note.createdAt).toISOString())}
           </span>
         </p>
+        <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-text-tertiary">
+          <span>Video position: {note.timestamp === null ? "None" : formatTimestamp(note.timestamp)}</span>
+          <button
+            type="button"
+            onClick={updateTimestampToCurrent}
+            className="cursor-pointer rounded-lg border border-card-border px-2 py-1 text-text-primary hover:bg-card-hover"
+          >
+            Set to current time
+          </button>
+        </div>
         <textarea
           ref={textareaInput}
           className="
@@ -151,13 +175,7 @@ export function NoteItem({ note, onNoteUpdated, onNoteDeleted, styling, iconColo
       )}
       {show && !deleteModalOpen && (
         <button
-        onClick={async() => {
-          const newContent = textareaInput.current?.value
-          await updateNote(undefined, newContent);
-          const updatedNote = {...note, content: newContent!};
-
-          onNoteUpdated(updatedNote);
-        }}
+        onClick={() => updateNote(textareaInput.current?.value)}
 
         className="flex gap-2 justify-center items-center px-4 py-2 bg-primary border border-card-border rounded-2xl
         shadow-md

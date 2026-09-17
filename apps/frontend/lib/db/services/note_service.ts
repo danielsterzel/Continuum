@@ -36,29 +36,30 @@ export async function updateNoteService(
   title?: string,
   timestamp?: number,
   content?: string
-):Promise<boolean>  {
+): Promise<Note | null> {
 
   if(title === "")
   {
-    return false;
+    return null;
   }
 
   const db = await getDatabase();
   const repository = new NoteRepository(db);
 
   const note = await repository.getByNoteId(userId, noteId);
-  if (!note) return false;
+  if (!note) return null;
 
   const updatedNote = {...note, timestamp: timestamp ?? note.timestamp, 
-    title: title ?? note.title, content: content ?? note.content
+    title: title ?? note.title, content: content ?? note.content,
+    updatedAt: new Date().toISOString(),
   };
 
   try {
     await repository.update(userId, updatedNote);
     await queueEntityChange(updatedNote, SyncOperation.UPDATE, deviceId);
-    return true;
+    return updatedNote;
   } catch {
-    return false;
+    return null;
   }
 }
 

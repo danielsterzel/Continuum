@@ -79,7 +79,6 @@ async def get_sync_state(
 
     devices_read = [DeviceRead.model_validate(device) for device in devices]
 
-
     return SyncStateRead(
         devices=devices_read,
         libraries=libraries_read,
@@ -105,14 +104,15 @@ async def sync_icon(
 
 @router.post("/media/file/")
 async def sync_file(
-        user_id: Annotated[UUID, Form()],
-        library_id: Annotated[UUID, Form()],
-        path: Annotated[str, Form()],
-        file: Annotated[UploadFile, File()]):
+    user_id: Annotated[UUID, Form()],
+    library_id: Annotated[UUID, Form()],
+    path: Annotated[str, Form()],
+    file: Annotated[UploadFile, File()],
+):
 
     filepath = MEDIA_ROOT / str(user_id) / path
     filepath.parent.mkdir(parents=True, exist_ok=True)
 
-    with open(filepath, 'wb') as out:
+    with open(filepath, "wb") as out:
         while chunk := await file.read(CHUNK_SIZE):
             out.write(chunk)

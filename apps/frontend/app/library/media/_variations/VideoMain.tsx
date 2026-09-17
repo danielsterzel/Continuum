@@ -23,6 +23,7 @@ const CRON_TIME = 30_000;
 export function VideoMain() {
   const [paused, setPaused] = useState(true);
   const [openNoteComposer, setOpenNoteComposer] = useState(false);
+  const [noteComposerTimestamp, setNoteComposerTimestamp] = useState(0);
   const searchParams = useSearchParams();
 
   const libraryId = searchParams.get("libraryId");
@@ -187,16 +188,18 @@ export function VideoMain() {
     console.log("PAUSE");
   };
 
-  const currentTimestamp = videoRef.current?.currentTime ?? 0;
-
   return (
     <div className="relative w-full flex flex-col items-center sm:block">
       <div className="relative w-full flex flex-col sm:grid sm:grid-cols-4 sm:items-start gap-6">
 
 
         <NotePanel 
-        currTimestamp={currentTimestamp}
-        openNoteCreation={() => setOpenNoteComposer(true)} 
+        currTimestamp={noteComposerTimestamp}
+        getCurrentTimestamp={() => videoRef.current?.currentTime ?? null}
+        openNoteCreation={() => {
+          setNoteComposerTimestamp(videoRef.current?.currentTime ?? 0);
+          setOpenNoteComposer(true);
+        }}
         showComposer={openNoteComposer}
         iconColor={color}
         iconBg={bg}

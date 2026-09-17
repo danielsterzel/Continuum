@@ -3,7 +3,6 @@ from app.models.media import Media
 from app.models.libraries import Library
 
 from uuid import UUID
-from datetime import datetime, timezone
 
 from sqlalchemy import select, and_
 
@@ -11,7 +10,7 @@ from sqlalchemy import select, and_
 class MediaRepository(BaseRepository[Media]):
     model = Media
 
-    allowed_updates = {"filename", "thumbnail_url", "rating"}
+    allowed_updates = {"filename", "rating"}
 
     async def fetch_by_library(self, library_id: UUID) -> list[Media]:
 

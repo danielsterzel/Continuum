@@ -10,7 +10,7 @@ from sqlalchemy.orm import selectinload
 class LibraryRepository(BaseRepository[Library]):
     model = Library
 
-    allowed_updates = {"name", "description", "icon_url"}
+    allowed_updates = {"name", "description"}
 
     async def fetch_all_by_user(self, user_id: UUID) -> list[Library]:
         libraries = await self.db.execute(

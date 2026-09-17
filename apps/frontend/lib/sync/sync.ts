@@ -92,6 +92,12 @@ export async function batchAndSend(userId: string): Promise<void> {
 
   const changes = batch.map((change) => {
     const { id, createdAt, ...syncChange } = change;
+    if (syncChange.entityType === EntityType.Device && !syncChange.payload.updated_at) {
+      return {
+        ...syncChange,
+        payload: { ...syncChange.payload, updated_at: createdAt },
+      };
+    }
     return syncChange;
   });
 
