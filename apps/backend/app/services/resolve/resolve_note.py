@@ -5,11 +5,19 @@ from app.models.note import Note
 
 from typing import Any
 from uuid import UUID
-
+from app.models.sync_change import SyncOperation
 
 class ResolveNote(ResolveBase[NoteRepository]):
     repository_type = NoteRepository
     entity_type = "note"
+
+    async def get_current_entity(self, entity_id: UUID, sync_operation: SyncOperation) -> dict[str, Any]:
+        if sync_operation == SyncOperation.CREATE:
+            return {"object": "create"}
+
+        current_entity = await self.repository.fetch_by_user(note_id=entity_id, user_id=self.user_id)
+
+        return {"object": current_entity}
 
     @staticmethod
     def deserialize_payload_as_note(entity_id: UUID, payload: dict[str, Any]):

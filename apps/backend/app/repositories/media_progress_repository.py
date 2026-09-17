@@ -31,6 +31,19 @@ class MediaProgressRepository(BaseRepository[MediaProgress]):
 
         return result.scalar_one_or_none()
 
+    async def fetch_by_id_and_user(self, user_id: UUID, media_progress_id: UUID) -> MediaProgress | None:
+
+        query = (
+            select(self.model)
+            .join(Media, self.model.media_id == Media.id)
+            .join(Library, Media.library_id == Library.id)
+            .where(Library.user_id == user_id)
+        )
+
+        res = await self.db.execute(query)
+
+        return res.scalar_one_or_none()
+
     async def fetch_all_by_user(self, user_id: UUID) -> list[MediaProgress]:
 
         query = (

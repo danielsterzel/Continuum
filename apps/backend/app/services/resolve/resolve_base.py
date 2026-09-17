@@ -17,6 +17,9 @@ class ResolveBase[T](ABC):
         self.repository: T = self.repository_type(db)
 
     @abstractmethod
+    async def get_current_entity(self, entity_id: UUID, sync_operation: SyncOperation) -> dict[str, Any]:
+        ...
+    @abstractmethod
     async def sync_create(
         self, entity_id: UUID, payload: dict[str, Any]
     ) -> UUID | None: ...
@@ -53,3 +56,6 @@ class ResolveBase[T](ABC):
                 await self.sync_delete(entity_id=change.entity_id)
 
         return resolved_id or change.entity_id
+
+    async def resolve_conflict(self):
+        ...

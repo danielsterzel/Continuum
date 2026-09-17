@@ -4,12 +4,19 @@ from app.services.resolve.resolve_base import ResolveBase
 from app.models.libraries import Library
 from typing import Any
 from uuid import UUID
-
+from app.models.sync_change import  SyncOperation
 
 class ResolveLibrary(ResolveBase[LibraryRepository]):
     repository_type = LibraryRepository
     entity_type = "library"
 
+    async def get_current_entity(self, entity_id: UUID, sync_operation: SyncOperation) -> dict[str, Any]:
+        if sync_operation == SyncOperation.CREATE:
+            return {"object": "create"}
+
+        current_entity = await self.repository.fetch_single_by_user(library_id=entity_id, user_id=self.user_id)
+
+        return {"object": current_entity}
     @staticmethod
     def deserialize_library(entity_id: UUID, payload: dict[str, Any]):
 

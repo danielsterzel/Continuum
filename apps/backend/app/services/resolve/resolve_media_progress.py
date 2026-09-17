@@ -5,10 +5,18 @@ from app.repositories.media_progress_repository import MediaProgressRepository
 from app.schemas.media_progress_schema import MediaProgressSyncPayload
 from app.services.resolve.resolve_base import ResolveBase
 from app.models.media_progress import MediaProgress
-
+from app.models.sync_change import SyncOperation
 class ResolveMediaProgress(ResolveBase[MediaProgressRepository]):
     repository_type = MediaProgressRepository
     entity_type = "media_progress"
+
+    async def get_current_entity(self, entity_id: UUID, sync_operation: SyncOperation) -> dict[str, Any]:
+        if sync_operation == SyncOperation.CREATE:
+            return {"object": "create"}
+
+        current_entity = self.repository.fetch_by_id_and_user(media_progress_id=entity_id, user_id=self.user_id)
+
+        return {"object": current_entity}
 
     @staticmethod
     def deserialize_payload(entity_id: UUID, payload: dict[str, Any]):

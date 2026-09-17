@@ -67,7 +67,25 @@ class SyncService:
                     continue
 
                 resolver = self._get_resolver(change, user_id)
-                resolved_entity_id = await resolver.resolve(change)
+
+                current_response = await resolver.get_current_entity(
+                    entity_id=change.entity_id,
+                    sync_operation=change.operation,
+                )
+
+                current_entity = current_response["object"]
+
+                if current_entity == "create":
+                    resolved_entity_id = await resolver.resolve(change)
+
+                elif current_entity is None:
+                    raise ValueError("Entity not found and operation is not CREATE")
+
+                elif current_entity.version == change.expected_version:
+                    resolved_entity_id = await resolver.resolve(change)
+
+                else:
+                    resolved_entity_id = await resolver.resolve_conflict(change)
 
                 sync_data = change.model_dump()
                 sync_data["entity_id"] = resolved_entity_id

@@ -4,11 +4,19 @@ from app.services.resolve.resolve_base import ResolveBase
 from app.models.media import Media
 from uuid import UUID
 from typing import Any
-
+from app.models.sync_change import SyncOperation
 
 class ResolveMedia(ResolveBase[MediaRepository]):
     repository_type = MediaRepository
     entity_type = "media"
+
+    async def get_current_entity(self, entity_id: UUID, sync_operation: SyncOperation) -> dict[str, Any]:
+        if sync_operation == SyncOperation.CREATE:
+            return {"object": "create"}
+
+        current_entity = self.repository.fetch_one_by_user(media_id=entity_id, user_id=self.user_id)
+
+        return {"object": current_entity}
 
     @staticmethod
     def deserialize_payload(

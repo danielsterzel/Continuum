@@ -1,15 +1,22 @@
+from app.models.sync_change import SyncOperation
 from app.repositories.device_repository import DeviceRepository
 from app.schemas.device_schema import DeviceSyncWrite
 from app.services.resolve.resolve_base import ResolveBase
-from typing import Any
 from uuid import UUID
 from app.models.device import Device
-import datetime
-
+from typing import Any
 
 class ResolveDevice(ResolveBase[DeviceRepository]):
     repository_type = DeviceRepository
     entity_type = "device"
+
+    async def get_current_entity(self, entity_id: UUID, sync_operation: SyncOperation) -> dict[str, Any]:
+        if sync_operation == SyncOperation.CREATE:
+            return {"object": "create"}
+
+        current_entity = await self.repository.fetch_device_by_id_and_user_id(device_id=entity_id, user_id=self.user_id)
+
+        return {"object": current_entity}
 
     @staticmethod
     def deserialize_device(entity_id: UUID, payload: dict[str, Any]):
