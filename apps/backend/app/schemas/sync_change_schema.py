@@ -19,7 +19,7 @@ class SyncChangeWrite(BaseModel):
         validate_by_alias=True,
         validate_by_name=True,
     )
-
+    id: UUID
     device_id: UUID
 
     entity_type: EntityType

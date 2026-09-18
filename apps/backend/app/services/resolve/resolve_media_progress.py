@@ -77,23 +77,19 @@ class ResolveMediaProgress(ResolveBase[MediaProgressRepository]):
             raise ValueError("No such entity ID")
 
         if change.operation == SyncOperation.UPDATE:
-            payload_parsed = self.deserialize_payload(
-                change.entity_id,
-                change.payload
-            )
+            payload_parsed = self.deserialize_payload(change.entity_id, change.payload)
 
             allowed = {
-                field: value
-                for field, value in change.payload.items()
+                field: getattr(payload_parsed, field)
+                for field in change.payload
                 if field in self.repository.allowed_updates
             }
 
             if saved_entity.last_watched < payload_parsed.last_watched:
                 await self.repository.update_media_progress_validate(
-                    entity_id=saved_entity.id,
-                    user_id=self.user_id,
-                    **allowed
+                    entity_id=saved_entity.id, user_id=self.user_id, **allowed
                 )
             return saved_entity.id
 
-        else: raise ValueError("Incorrect operation")
+        else:
+            raise ValueError("Incorrect operation")

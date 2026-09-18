@@ -39,7 +39,10 @@ class MediaProgressRepository(BaseRepository[MediaProgress]):
             select(self.model)
             .join(Media, self.model.media_id == Media.id)
             .join(Library, Media.library_id == Library.id)
-            .where(Library.user_id == user_id)
+            .where(
+                Library.user_id == user_id,
+                self.model.id == media_progress_id,
+            )
         )
 
         res = await self.db.execute(query)

@@ -98,7 +98,7 @@ export class SyncQueueRepository {
   }
 
   async getPendingChanges(): Promise<SyncChange[]> {
-    const res = await this.db.query(`SELECT * FROM sync_changes`);
+    const res = await this.db.query(`SELECT * FROM sync_changes ORDER BY rowid ASC`);
     const rows = res.values ?? [];
 
     return rows.map((row) => ({

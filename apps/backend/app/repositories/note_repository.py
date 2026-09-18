@@ -5,6 +5,7 @@ from app.models.note import Note
 from app.repositories.base_repository import BaseRepository
 from sqlalchemy import select
 
+
 class NoteRepository(BaseRepository[Note]):
     model = Note
     allowed_updates = {"title", "content", "timestamp"}

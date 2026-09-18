@@ -5,7 +5,7 @@ from app.services.resolve.resolve_base import ResolveBase
 from app.models.note import Note
 
 from typing import Any
-from uuid import UUID, uuid4
+from uuid import UUID, uuid5
 from app.models.sync_change import SyncOperation
 
 
@@ -77,7 +77,9 @@ class ResolveNote(ResolveBase[NoteRepository]):
 
         match change.operation:
             case SyncOperation.UPDATE:
-                payload_parsed = self.deserialize_payload(change.entity_id, change.payload)
+                payload_parsed = self.deserialize_payload(
+                    change.entity_id, change.payload
+                )
 
                 for field in change.payload:
                     if field not in self.repository.allowed_updates:
@@ -101,20 +103,26 @@ class ResolveNote(ResolveBase[NoteRepository]):
                         conflict_title = "[CONFLICTED] " + saved_entity.title
 
                         await self.repository.update_note_validate(
-                            entity_id=saved_entity.id, user_id=self.user_id,
-                            **{"title": conflict_title}
+                            entity_id=saved_entity.id,
+                            user_id=self.user_id,
+                            **{"title": conflict_title},
                         )
-                        payload_parsed.id = uuid4()
+
+                        # uuid5 used for deterministic id
+                        # needed for idempotency -> needed for CRDT
+                        conflict_id = uuid5(change.entity_id, str(change.id))
+
+                        payload_parsed.id = conflict_id
                         await self.repository.save(payload_parsed)
 
                     elif field == "timestamp":
                         # LWW
                         if saved_entity.updated_at < payload_parsed.updated_at:
                             new_timestamp = payload_parsed.timestamp
-                            await  self.repository.update_note_validate(
+                            await self.repository.update_note_validate(
                                 entity_id=saved_entity.id,
                                 user_id=self.user_id,
-                                **{field: new_timestamp}
+                                **{field: new_timestamp},
                             )
 
                 return saved_entity.id

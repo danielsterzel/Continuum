@@ -7,8 +7,6 @@ from app.schemas.media_schema import MediaRead
 from datetime import datetime
 from pydantic.alias_generators import to_camel
 
-# Litery (w tym np. polskie znaki), cyfry, "-" i "_" — bez spacji i innych znakow specjalnych.
-# Ten sam pattern co po stronie frontu (\p{L}\p{N}_-).
 LIBRARY_NAME_PATTERN = regex.compile(r"^[\p{L}\p{N}_-]+$")
 
 

@@ -152,7 +152,6 @@ export function NoteItem({ note, onNoteUpdated, onNoteDeleted, getCurrentTimesta
           </span>
         </p>
         <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-text-tertiary">
-          <span>Video position: {note.timestamp === null ? "None" : formatTimestamp(note.timestamp)}</span>
           <button
             type="button"
             onClick={updateTimestampToCurrent}

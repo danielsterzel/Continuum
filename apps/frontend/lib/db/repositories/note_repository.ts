@@ -3,6 +3,7 @@ import { EntityType } from "@/lib/types/EntityType";
 import { SQLiteDBConnection } from "@capacitor-community/sqlite";
 
 import { persistDatabase } from "../database";
+import { SyncChange } from "@/lib/types/SyncChange";
 
 type NoteRow = {
   id: string;

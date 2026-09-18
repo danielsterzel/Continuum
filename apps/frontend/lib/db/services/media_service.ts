@@ -55,7 +55,7 @@ export async function createMedia(file: File, libraryId: string, deviceId: strin
         entityType: EntityType.Media,
         duration: duration,
         deletedAt: null,
-        version: 0
+        version: 1
     }
     await saveLocalFile(file, filepath);
     await repository.add(media);

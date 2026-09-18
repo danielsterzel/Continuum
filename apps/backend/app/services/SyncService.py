@@ -1,9 +1,11 @@
+from sqlalchemy import select
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import update
 
+from app.models import User
 from app.models.sync_change import EntityType, SyncChange, SyncOperation
 from app.repositories.device_repository import DeviceRepository
+from app.repositories.sync_repository import SyncRepository
 from app.schemas.sync_change_schema import SyncChangeWrite
 from app.services.resolve.resolve_base import ResolveBase
 from app.services.resolve.resolve_device import ResolveDevice
@@ -11,7 +13,7 @@ from app.services.resolve.resolve_media import ResolveMedia
 from app.services.resolve.resolve_note import ResolveNote
 from app.services.resolve.resolve_library import ResolveLibrary
 from app.services.resolve.resolve_media_progress import ResolveMediaProgress
-from app.services.EntityMapping import ENTITY_MAPPING, ENTITY_UNION
+from app.services.EntityMapping import ENTITY_MAPPING
 from uuid import UUID
 
 
@@ -24,25 +26,18 @@ class SyncService:
     version decides whether there is a conflict.
     """
 
-    # IMPLEMENT CREATE SYNC_CHANGE ROW
-
     def __init__(self, db: AsyncSession):
+        self.sync_repository = SyncRepository(db)
         self.db = db
 
-    async def __increment_version(
-        self, entity_type: type[ENTITY_UNION], entity_id: UUID
-    ):
+    async def prevent_race_condition(self, user_id: UUID):
 
-        query = (
-            update(entity_type)
-            .where(entity_type.id == entity_id)
-            .values(version=entity_type.version + 1)
-        )
+        lock = select(User.id).where(User.id == user_id).with_for_update()
 
-        res = await self.db.execute(query)
+        result = await self.db.execute(lock)
 
-        if res.rowcount != 1:
-            raise ValueError("SYNC - failed to increment entity version")
+        if result.scalar_one_or_none() is None:
+            raise ValueError("User not found")
 
     async def _validate_device(self, device_id: UUID, user_id: UUID) -> None:
 
@@ -57,7 +52,16 @@ class SyncService:
 
     async def sync(self, changes: list[SyncChangeWrite], user_id: UUID) -> None:
         try:
+            # A: version1, B: version1 -> A processed, B in parallel -> mno conflict detected despite
+            # conflict
+            await self.prevent_race_condition(user_id=user_id)
             for change in changes:
+                sync_push_id = change.id
+
+                exists = await self.sync_repository.fetch(entity_id=sync_push_id)
+                if exists:
+                    continue
+
                 is_device_registration = (
                     change.entity_type == EntityType.Device
                     and change.operation == SyncOperation.CREATE
@@ -99,9 +103,9 @@ class SyncService:
                 sync_data["entity_id"] = resolved_entity_id
                 sync_entity = SyncChange(**sync_data)
 
-                self.db.add(sync_entity)
+                await self.sync_repository.save(sync_entity)
 
-                await self.__increment_version(
+                await self.sync_repository.increment_version(
                     ENTITY_MAPPING[change.entity_type], resolved_entity_id
                 )
 

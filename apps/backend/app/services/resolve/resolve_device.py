@@ -49,8 +49,9 @@ class ResolveDevice(ResolveBase[DeviceRepository]):
 
         match change.operation:
             case SyncOperation.UPDATE:
-
-                payload_parsed = self.deserialize_device(change.entity_id, change.payload)
+                payload_parsed = self.deserialize_device(
+                    change.entity_id, change.payload
+                )
 
                 for field in change.payload:
                     if field not in self.repository.allowed_updates:
@@ -80,7 +81,9 @@ class ResolveDevice(ResolveBase[DeviceRepository]):
 
             case SyncOperation.DELETE:
                 # usun stare najwyzej nowy setup
-                await self.repository.soft_delete_one_by_id(entity_id=saved_entity.id, user_id=self.user_id)
+                await self.repository.soft_delete_one_by_id(
+                    entity_id=saved_entity.id, user_id=self.user_id
+                )
                 return saved_entity.id
 
             case _:

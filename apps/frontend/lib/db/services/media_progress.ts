@@ -70,8 +70,8 @@ export async function updateMediaProgress(
   currProgress.lastWatched = new Date().toISOString();
   currProgress.lastDeviceId = deviceId;
 
-  await repository.upsertMediaProgress(currProgress);
   await queueEntityChange(currProgress, SyncOperation.UPDATE, deviceId);
+  await repository.upsertMediaProgress(currProgress);
 
   return currProgress;
 }
@@ -89,7 +89,7 @@ function createMediaProgressObject(
     currentPosition: 0,
     lastWatched: new Date().toISOString(),
     lastDeviceId: deviceId,
-    version: 0,
+    version: 1,
     entityType: EntityType.MediaProgress,
   } as MediaProgress;
 }

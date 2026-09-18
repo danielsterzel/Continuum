@@ -2,15 +2,10 @@ from abc import ABC, abstractmethod
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.services.resolve.resolve_library import ResolveLibrary
-from app.services.resolve.resolve_media_progress import ResolveMediaProgress
 from app.schemas.sync_change_schema import SyncChangeWrite
 from uuid import UUID
 from typing import Any
-from app.models.sync_change import SyncOperation, EntityType
-from app.services.resolve.resolve_device import ResolveDevice
-from app.services.resolve.resolve_media import ResolveMedia
-from app.services.resolve.resolve_note import ResolveNote
+from app.models.sync_change import SyncOperation
 
 
 class ResolveBase[T](ABC):
@@ -34,7 +29,8 @@ class ResolveBase[T](ABC):
     async def sync_update(
         self, entity_id: UUID, payload: dict[str, Any]
     ) -> UUID | None: ...
-    # not abstract because of media_progress
+
+    # nie abstract bo nie definiuje metody delete dla media_progress
     async def sync_delete(self, entity_id: UUID) -> None: ...
 
     async def resolve(self, change: SyncChangeWrite) -> UUID:

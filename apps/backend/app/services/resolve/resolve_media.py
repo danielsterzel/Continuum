@@ -62,6 +62,7 @@ class ResolveMedia(ResolveBase[MediaRepository]):
         )
         if not db_res:
             raise ValueError("DELETE MEDIA - FAIL in sync")
+
     async def resolve_conflict(self, change: SyncChangeWrite) -> UUID:
 
         saved_entity = await self.repository.fetch_one_by_user(
@@ -73,18 +74,23 @@ class ResolveMedia(ResolveBase[MediaRepository]):
 
         match change.operation:
             case SyncOperation.UPDATE:
-
-                payload_parsed = self.deserialize_payload(change.entity_id, change.payload)
+                payload_parsed = self.deserialize_payload(
+                    change.entity_id, change.payload
+                )
 
                 # LWW for everything allowed
-                allowed = {field: value for field,value in change.payload.items() if field in self.repository.allowed_updates}
+                allowed = {
+                    field: getattr(payload_parsed, field)
+                    for field in change.payload
+                    if field in self.repository.allowed_updates
+                }
+
                 if saved_entity.updated_at < payload_parsed.updated_at:
-
                     await self.repository.update_media_validate(
-                        entity_id=saved_entity.id, user_id=self.user_id,
-                        **{field: value for field, value in allowed.items()}
+                        entity_id=saved_entity.id,
+                        user_id=self.user_id,
+                        **{field: value for field, value in allowed.items()},
                     )
-
 
                 return saved_entity.id
 

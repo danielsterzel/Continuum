@@ -54,7 +54,7 @@ export function NoteComposer({
       deletedAt: null,
       timestamp: currTimestamp,
       entityType: EntityType.Note,
-      version: 0
+      version: 1
     };
 
     const noteAddStatus = await saveNoteToDbAndPushToQueue(note, device!.id);

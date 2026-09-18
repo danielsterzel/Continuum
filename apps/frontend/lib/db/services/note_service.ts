@@ -55,8 +55,8 @@ export async function updateNoteService(
   };
 
   try {
-    await repository.update(userId, updatedNote);
     await queueEntityChange(updatedNote, SyncOperation.UPDATE, deviceId);
+    await repository.update(userId, updatedNote);
     return updatedNote;
   } catch {
     return null;

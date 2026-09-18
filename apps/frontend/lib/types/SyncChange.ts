@@ -14,6 +14,7 @@ export type SyncChange = {
 };
 
 export type SyncChangeWrite = {
+  id: string;
   deviceId: string;
   entityType: string;
   entityId: string;
@@ -23,6 +24,5 @@ export type SyncChangeWrite = {
 };
 
 export type SyncChangeRead = SyncChangeWrite & {
-  id: string;
-  createdAt: number;
+  createdAt: string;
 };

@@ -9,9 +9,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.staticfiles import StaticFiles
 
 from app.db.dependencies import get_db
-from app.api.library_api import router as lib_router
-from app.api.media_progress_api import router as progress_router
-from app.api.device_api import router as device_router
 from app.api.sync_api import router as sync_router
 from app.api.user_api import router as user_router
 from app.core.settings import settings
@@ -31,9 +28,6 @@ DbSession = Annotated[AsyncSession, Depends(get_db)]
 
 app.include_router(user_router)
 
-app.include_router(lib_router)
-app.include_router(device_router)
-app.include_router(progress_router)
 app.include_router(sync_router)
 
 OWNER_EMAIL = "owner@continuum.local"

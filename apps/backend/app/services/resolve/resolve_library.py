@@ -75,8 +75,9 @@ class ResolveLibrary(ResolveBase[LibraryRepository]):
 
         match change.operation:
             case SyncOperation.UPDATE:
-
-                payload_parsed = self.deserialize_payload(change.entity_id, change.payload)
+                payload_parsed = self.deserialize_payload(
+                    change.entity_id, change.payload
+                )
 
                 for field in change.payload:
                     if field not in self.repository.allowed_updates:
@@ -85,12 +86,12 @@ class ResolveLibrary(ResolveBase[LibraryRepository]):
                     if field == "name":
                         # LWW
                         if saved_entity.updated_at < payload_parsed.updated_at:
-
                             new_name = payload_parsed.name
 
                             await self.repository.update_library_validate(
-                                entity_id=saved_entity.id, user_id=self.user_id,
-                                **{field: new_name}
+                                entity_id=saved_entity.id,
+                                user_id=self.user_id,
+                                **{field: new_name},
                             )
 
                     elif field == "description":
@@ -104,15 +105,18 @@ class ResolveLibrary(ResolveBase[LibraryRepository]):
                         elif not payload_parsed.description:
                             new_description = saved_entity.description
                         else:
-                            new_description = (saved_entity.description
-                                               +
-                                               "\n\n=====[CONFLICTED BELOW]=====\n\n"
-                                               +
-                                               payload_parsed.description)
+                            values = {
+                                saved_entity.description,
+                                payload_parsed.description,
+                            }
+                            new_description = "\n\n======[CONFLICTED]======\n\n".join(
+                                sorted(values)
+                            )
 
                         await self.repository.update_library_validate(
-                            entity_id=saved_entity.id, user_id=self.user_id,
-                            **{"description": new_description}
+                            entity_id=saved_entity.id,
+                            user_id=self.user_id,
+                            **{"description": new_description},
                         )
 
                 return saved_entity.id
