@@ -4,6 +4,7 @@ Diagramy opisują aktualny stan kodu w repozytorium, a nie elementy zaplanowane 
 
 ## Diagramy
 
+- `continuum-sync-overview.svg` — skrócony, anglojęzyczny diagram synchronizacji używany w głównym README.
 - `continuum-architecture-readable.png` — topologia aplikacji i pełny przepływ synchronizacji local-first.
 - `continuum-data-model.png` — relacje encji oraz rola lokalnej kolejki i serwerowego dziennika zmian.
 - Pliki `.svg` są wersjami wektorowymi do powiększania.
@@ -22,7 +23,7 @@ Diagramy opisują aktualny stan kodu w repozytorium, a nie elementy zaplanowane 
 ## Istotne ograniczenia obecnej implementacji
 
 - PULL zwraca pełny snapshot, a nie zmiany od kursora.
-- `expected_version` jest przesyłane i zapisywane, ale nie jest jeszcze porównywane podczas rozwiązywania konfliktu.
+- `expected_version` jest porównywane z wersją encji; niezgodność kieruje zmianę do resolvera z polityką konfliktu właściwą dla danego typu encji.
 - Endpointy synchronizacji przyjmują `user_id`; nie ma jeszcze sesji ani JWT.
 - `MediaProgress` nie ma operacji DELETE; pozostałe synchronizowane encje używają tombstones/soft-delete po stronie serwera.
 
@@ -31,6 +32,8 @@ Diagramy opisują aktualny stan kodu w repozytorium, a nie elementy zaplanowane 
 Wymagany jest Graphviz (`dot`):
 
 ```bash
+dot -Tpng -Gdpi=180 continuum-sync-overview.dot -o continuum-sync-overview.png
+dot -Tsvg continuum-sync-overview.dot -o continuum-sync-overview.svg
 dot -Tpng -Gdpi=180 continuum-architecture.dot -o continuum-architecture-readable.png
 dot -Tsvg continuum-architecture.dot -o continuum-architecture-readable.svg
 dot -Tpng -Gdpi=180 continuum-data-model.dot -o continuum-data-model.png

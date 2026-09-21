@@ -1,0 +1,120 @@
+digraph ContinuumSyncOverview {
+  graph [
+    rankdir=TB,
+    bgcolor="#0B1220",
+    pad=0.35,
+    nodesep=0.42,
+    ranksep=0.95,
+    splines=spline,
+    compound=true,
+    newrank=true,
+    fontname="Helvetica",
+    fontcolor="#F8FAFC"
+  ];
+
+  node [
+    shape=box,
+    style="rounded,filled",
+    fontname="Helvetica",
+    fontsize=11,
+    fontcolor="#F8FAFC",
+    color="#334155",
+    fillcolor="#172033",
+    margin="0.18,0.12",
+    penwidth=1.2
+  ];
+
+  edge [
+    fontname="Helvetica",
+    fontsize=9,
+    fontcolor="#CBD5E1",
+    color="#64748B",
+    arrowsize=0.75,
+    penwidth=1.35
+  ];
+
+  subgraph cluster_device_a {
+    label="DEVICE A  •  LOCAL-FIRST WRITE PATH";
+    labeljust=l;
+    fontsize=14;
+    fontname="Helvetica Bold";
+    fontcolor="#93C5FD";
+    color="#3B82F6";
+    fillcolor="#101A30";
+    style="rounded,filled";
+    penwidth=1.5;
+
+    ui_a [label="Next.js / iOS UI", fillcolor="#1E3A5F", color="#60A5FA"];
+    services [label="Domain services\nlocal write orchestration"];
+    sqlite_a [label="Local SQLite\ninstant read-your-writes", shape=cylinder, fillcolor="#12372F", color="#34D399"];
+    files_a [label="Local file storage\nmedia + covers", shape=folder, fillcolor="#312842", color="#A78BFA"];
+    mapper [label="EntitySyncMapper\noperation + expected_version"];
+    outbox [label="Outbox queue\nordered batches ≤ 20", shape=cylinder, fillcolor="#3A2A16", color="#F59E0B"];
+
+    ui_a -> services;
+    services -> sqlite_a [color="#34D399"];
+    services -> files_a [color="#A78BFA"];
+    services -> mapper;
+    mapper -> outbox [color="#F59E0B"];
+
+    { rank=same; ui_a; services; mapper; outbox; }
+    { rank=same; sqlite_a; files_a; }
+  }
+
+  subgraph cluster_server {
+    label="SELF-HOSTED SYNC SERVER  •  CANONICAL STATE";
+    labeljust=l;
+    fontsize=14;
+    fontname="Helvetica Bold";
+    fontcolor="#6EE7B7";
+    color="#10B981";
+    fillcolor="#10231F";
+    style="rounded,filled";
+    penwidth=1.5;
+
+    api [label="FastAPI boundary\nJSON + multipart", fillcolor="#12372F", color="#34D399"];
+    guard [label="Per-user row lock\nownership + device validation"];
+    resolver [label="Entity-specific resolvers\nLWW • MVR • deterministic fork", fillcolor="#2F2A18", color="#FBBF24"];
+    postgres [label="PostgreSQL\nversions + tombstones", shape=cylinder, fillcolor="#12372F", color="#34D399"];
+    journal [label="Idempotency journal\nprocessed change UUIDs", shape=cylinder, fillcolor="#3A2A16", color="#F59E0B"];
+    blobs [label="Server media storage\nimmutable binaries", shape=folder, fillcolor="#312842", color="#A78BFA"];
+
+    api -> guard;
+    guard -> resolver;
+    resolver -> postgres [color="#34D399"];
+    resolver -> journal [color="#F59E0B"];
+    api -> blobs [color="#A78BFA"];
+
+    { rank=same; api; guard; resolver; postgres; }
+    { rank=same; blobs; journal; }
+  }
+
+  subgraph cluster_device_b {
+    label="DEVICE B  •  CONVERGING REPLICA";
+    labeljust=l;
+    fontsize=14;
+    fontname="Helvetica Bold";
+    fontcolor="#93C5FD";
+    color="#3B82F6";
+    fillcolor="#101A30";
+    style="rounded,filled";
+    penwidth=1.5;
+
+    apply [label="Apply canonical snapshot\nupsert + tombstones", fillcolor="#1E3A5F", color="#60A5FA"];
+    sqlite_b [label="Local SQLite", shape=cylinder, fillcolor="#12372F", color="#34D399"];
+    files_b [label="Missing files only", shape=folder, fillcolor="#312842", color="#A78BFA"];
+    ui_b [label="Next.js / iOS UI", fillcolor="#1E3A5F", color="#60A5FA"];
+
+    apply -> sqlite_b [color="#34D399"];
+    apply -> files_b [color="#A78BFA"];
+    sqlite_b -> ui_b;
+    files_b -> ui_b;
+
+    { rank=same; apply; sqlite_b; ui_b; }
+  }
+
+  outbox -> api [label="  1  PUSH metadata  ", color="#F59E0B", fontcolor="#FBBF24", penwidth=2.0];
+  files_a -> api [label="  2  upload binaries  ", color="#A78BFA", fontcolor="#C4B5FD", penwidth=2.0];
+  postgres -> apply [label="  3  PULL state  ", color="#60A5FA", fontcolor="#93C5FD", penwidth=2.0];
+  blobs -> files_b [label="  4  download missing  ", color="#A78BFA", fontcolor="#C4B5FD", penwidth=2.0];
+}
