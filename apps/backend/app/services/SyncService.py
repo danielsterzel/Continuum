@@ -17,13 +17,17 @@ from app.services.EntityMapping import ENTITY_MAPPING
 from uuid import UUID
 
 
+class InactiveDeviceError(ValueError):
+    pass
+
+
 class SyncService:
     """
     Synchronization: Receive SyncChange that includes operation, changed entity and it's fields,
     afterward use a resolver to apply changes in a way that does not yield any merge conflicts
 
-    Synchronization conflict: conflict is based on the version of the saved entity and incoming one
-    version decides whether there is a conflict.
+    Synchronization conflict: the incoming change version is compared with the
+    saved entity's expected version.
     """
 
     def __init__(self, db: AsyncSession):
@@ -48,13 +52,16 @@ class SyncService:
         )
 
         if not res:
-            raise ValueError(f"SYNC PERMISSION DENIED for : {user_id}")
+            raise InactiveDeviceError(f"SYNC PERMISSION DENIED for : {user_id}")
 
     async def sync(self, changes: list[SyncChangeWrite], user_id: UUID) -> None:
         try:
             # A: version1, B: version1 -> A processed, B in parallel -> mno conflict detected despite
             # conflict
             await self.prevent_race_condition(user_id=user_id)
+
+            # tranzakcje - sprawdzic.
+
             for change in changes:
                 sync_push_id = change.id
 
@@ -93,7 +100,7 @@ class SyncService:
                 elif current_entity is None:
                     raise ValueError("Entity not found and operation is not CREATE")
 
-                elif current_entity.version == change.expected_version:
+                elif current_entity.expected_version == change.version:
                     resolved_entity_id = await resolver.resolve(change)
 
                 else:
@@ -105,7 +112,7 @@ class SyncService:
 
                 await self.sync_repository.save(sync_entity)
 
-                await self.sync_repository.increment_version(
+                await self.sync_repository.increment_expected_version(
                     ENTITY_MAPPING[change.entity_type], resolved_entity_id
                 )
 

@@ -1,6 +1,19 @@
 import type { Library } from "@/lib/types/Library";
 import { EntityType } from "@/lib/types/EntityType";
 import { SQLiteDBConnection } from "@capacitor-community/sqlite";
+import { persistDatabase, renameColumnIfNeeded } from "../database";
+
+type LibraryRow = {
+  id: string;
+  user_id: string;
+  name: string;
+  description: string | null;
+  icon_url: string | null;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+  expected_version: number;
+};
 
 export class LibraryRepository {
   private db: SQLiteDBConnection;
@@ -9,7 +22,7 @@ export class LibraryRepository {
     this.db = dbConnection;
   }
 
-  private mapRowToLibrary(row: any): Library {
+  private mapRowToLibrary(row: LibraryRow): Library {
     return {
       id: row.id,
       userId: row.user_id,
@@ -20,7 +33,7 @@ export class LibraryRepository {
       createdAt: row.created_at,
       updatedAt: row.updated_at,
       deletedAt: row.deleted_at,
-      version: row.version,
+      expectedVersion: row.expected_version,
       entityType: EntityType.Library,
     };
   }
@@ -40,7 +53,7 @@ export class LibraryRepository {
             updated_at TEXT NOT NULL,
             deleted_at TEXT,
 
-            version INTEGER NOT NULL DEFAULT 0,
+            expected_version INTEGER NOT NULL DEFAULT 0,
 
             FOREIGN KEY (user_id)
             REFERENCES users(id)
@@ -52,10 +65,16 @@ export class LibraryRepository {
         CREATE INDEX IF NOT EXISTS ix_library_user_id
         ON libraries(user_id);
         `);
+
+    await renameColumnIfNeeded(
+      this.db,
+      "libraries",
+      "version",
+      "expected_version",
+    );
   }
 
   async upsertFromSync(library: Library): Promise<void> {
-
     await this.db.run(
       `
     INSERT INTO libraries (
@@ -67,7 +86,7 @@ export class LibraryRepository {
       created_at,
       updated_at,
       deleted_at,
-      version
+      expected_version
     )
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
 
@@ -79,7 +98,7 @@ export class LibraryRepository {
       created_at = excluded.created_at,
       updated_at = excluded.updated_at,
       deleted_at = excluded.deleted_at,
-      version = excluded.version;
+      expected_version = excluded.expected_version;
     `,
       [
         library.id,
@@ -90,7 +109,7 @@ export class LibraryRepository {
         library.createdAt,
         library.updatedAt,
         library.deletedAt,
-        library.version,
+        library.expectedVersion,
       ],
     );
   }
@@ -138,7 +157,7 @@ export class LibraryRepository {
       created_at,
       updated_at,
       deleted_at,
-      version
+      expected_version
     )
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
@@ -150,12 +169,46 @@ export class LibraryRepository {
         library.createdAt,
         library.updatedAt,
         library.deletedAt,
-        library.version,
+        library.expectedVersion,
       ],
     );
   }
-  async deleteLibraryById(userId: string, libraryId: string)
-  {
-    await this.db.run(`DELETE FROM libraries where libraries.user_id = ? AND libraries.id = ?`, [userId, libraryId]);
+
+  async update(userId: string, library: Library): Promise<void> {
+    const result = await this.db.run(
+      `
+      UPDATE libraries
+      SET name = ?,
+          description = ?,
+          icon_url = ?,
+          updated_at = ?,
+          deleted_at = ?,
+          expected_version = ?
+      WHERE id = ? AND user_id = ?;
+      `,
+      [
+        library.name,
+        library.description ?? null,
+        library.iconUrl,
+        library.updatedAt,
+        library.deletedAt,
+        library.expectedVersion,
+        library.id,
+        userId,
+      ],
+    );
+
+    if (result.changes?.changes !== 1) {
+      throw new Error(`Cannot update library ${library.id}`);
+    }
+
+    await persistDatabase();
+  }
+
+  async deleteLibraryById(userId: string, libraryId: string) {
+    await this.db.run(
+      `DELETE FROM libraries where libraries.user_id = ? AND libraries.id = ?`,
+      [userId, libraryId],
+    );
   }
 }

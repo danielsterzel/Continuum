@@ -15,8 +15,19 @@ class DeviceRead(BaseModel):
     user_id: UUID = Field(...)
     name: str
     last_seen: datetime
+    updated_at: datetime
     deleted_at: datetime | None
-    version: int
+    expected_version: int
+
+
+class DeviceDeleteRequest(BaseModel):
+    model_config = ConfigDict(
+        alias_generator=to_camel,
+        validate_by_alias=True,
+        validate_by_name=True,
+    )
+
+    requesting_device_id: UUID
 
 
 class DeviceWrite(BaseModel):

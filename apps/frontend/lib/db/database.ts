@@ -81,3 +81,22 @@ export async function persistDatabase(): Promise<void> {
 
   await sqlite.saveToStore("continuum");
 }
+
+export async function renameColumnIfNeeded(
+  connection: SQLiteDBConnection,
+  tableName: string,
+  oldColumnName: string,
+  newColumnName: string,
+): Promise<void> {
+  const result = await connection.query(`PRAGMA table_info(${tableName});`);
+  const columns = result.values ?? [];
+  const hasOldColumn = columns.some((column) => column.name === oldColumnName);
+  const hasNewColumn = columns.some((column) => column.name === newColumnName);
+
+  if (hasOldColumn && !hasNewColumn) {
+    await connection.execute(
+      `ALTER TABLE ${tableName} RENAME COLUMN ${oldColumnName} TO ${newColumnName};`,
+    );
+    await persistDatabase();
+  }
+}

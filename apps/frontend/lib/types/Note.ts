@@ -22,6 +22,6 @@ export type Note = {
   updatedAt: string;
 
   deletedAt: string | null;
-  version: number;
+  expectedVersion: number;
   entityType: EntityType.Note;
 };

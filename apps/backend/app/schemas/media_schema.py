@@ -26,7 +26,7 @@ class MediaRead(BaseModel):
     rating: int | None
     created_at: datetime
     updated_at: datetime
-    version: int
+    expected_version: int
     deleted_at: datetime | None
 
 

@@ -161,7 +161,7 @@ export function VideoMain() {
     createdAt: new Date().toISOString(),
     updatedAt: "",
     entityType: EntityType.Note,
-    version: 1,
+    expectedVersion: 1,
     deletedAt: null,
   };
 

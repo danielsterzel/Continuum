@@ -3,18 +3,38 @@
 // import { RecentlyUsedList } from "@/components/home_components/_recently_used/RecentlyUsedList";
 import { HomeTitle } from "@/components/home_components/title_shelf/HomeTitle";
 import { useState, useEffect } from "react";
-import { LibraryList } from "@/components/home_components/_library_list/LibraryList";
-import { PrimaryButton } from "@/components/buttons/PrimaryButton";
 import { LibraryModal } from "@/components/home_components/LibraryModal";
 import { useLibrary } from "@/app/context/LibraryContext";
 import { DeviceIcon } from "@/components/DeviceIcon";
-// import { list } from "@/lib/Hardcoded";
 import { useRouter } from "next/navigation";
-import { FolderOpen, Plus } from "lucide-react";
 import { useUser } from "../context/UserContext";
 import { useDevice } from "../context/DeviceContext";
 import { getLibraries } from "@/lib/db/services/library_service";
 import Link from "next/link";
+import {
+  ContinueWatchingSection,
+  DashboardOverview,
+  LibrarySection,
+  MediaMixSection,
+  NoteSection,
+} from "./DashboardComponents";
+import { getDashboardSnapshot } from "@/lib/db/services/dashboard_service";
+import type { DashboardSnapshot } from "@/lib/db/services/dashboard_service";
+import { Database } from "lucide-react";
+import {
+  getLastWatchedVideo,
+  type LastWatchedVideo,
+} from "@/lib/db/services/last_watched_service";
+import { getFullFilepath } from "@/lib/files/LocalFileStorage";
+import { updateMediaRating } from "@/lib/db/services/media_service";
+
+const EMPTY_SNAPSHOT: DashboardSnapshot = {
+  totalFiles: 0,
+  totalBytes: 0,
+  noteCount: 0,
+  recentNotes: [],
+  mediaTypes: [],
+};
 
 export default function Home() {
   const [showLibraryModal, setShowLibraryModal] = useState(false);
@@ -22,9 +42,17 @@ export default function Home() {
   const { user } = useUser();
   const { device } = useDevice();
   const router = useRouter();
+  const [snapshot, setSnapshot] = useState(EMPTY_SNAPSHOT);
+  const [isDashboardLoading, setIsDashboardLoading] = useState(true);
+  const [lastWatched, setLastWatched] = useState<LastWatchedVideo | null>(null);
+  const [lastWatchedSource, setLastWatchedSource] = useState<string | null>(
+    null,
+  );
+  const [isLastWatchedLoading, setIsLastWatchedLoading] = useState(true);
+  const [isLastWatchedRatingSaving, setIsLastWatchedRatingSaving] =
+    useState(false);
 
   useEffect(() => {
-    
     if (!user) {
       router.replace("/login");
       return;
@@ -39,10 +67,110 @@ export default function Home() {
     async function getLibs(userId: string) {
       setItems(await getLibraries(userId));
     }
-    
-
     getLibs(user.id);
   }, [device, items.length, router, setItems, user]);
+
+  useEffect(() => {
+    if (!user) return;
+
+    let cancelled = false;
+    getDashboardSnapshot(user.id)
+      .then((data) => {
+        if (!cancelled) setSnapshot(data);
+      })
+      .catch((error) => {
+        console.error("Could not load dashboard data", error);
+      })
+      .finally(() => {
+        if (!cancelled) setIsDashboardLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [items.length, user]);
+
+  useEffect(() => {
+    if (!user) return;
+
+    let cancelled = false;
+    let objectUrl: string | null = null;
+
+    const loadLastWatchedVideo = async () => {
+      setIsLastWatchedLoading(true);
+
+      try {
+        const video = await getLastWatchedVideo(user.id);
+        if (cancelled) return;
+
+        setLastWatched(video);
+        setLastWatchedSource(null);
+
+        if (!video) return;
+
+        const source = (await getFullFilepath(video.media.filepath)) ?? null;
+        if (source?.startsWith("blob:")) objectUrl = source;
+
+        if (cancelled) {
+          if (objectUrl) URL.revokeObjectURL(objectUrl);
+          return;
+        }
+
+        setLastWatchedSource(source);
+      } catch (error) {
+        console.error("Could not load the last watched video", error);
+        if (!cancelled) {
+          setLastWatched(null);
+          setLastWatchedSource(null);
+        }
+      } finally {
+        if (!cancelled) setIsLastWatchedLoading(false);
+      }
+    };
+
+    void loadLastWatchedVideo();
+
+    return () => {
+      cancelled = true;
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+  }, [user]);
+
+  const handleLastWatchedRatingChange = async (rating: number) => {
+    if (!user || !device || !lastWatched || isLastWatchedRatingSaving) return;
+
+    const previousVideo = lastWatched;
+    setLastWatched({
+      ...lastWatched,
+      media: { ...lastWatched.media, rating },
+    });
+    setIsLastWatchedRatingSaving(true);
+
+    try {
+      const updatedMedia = await updateMediaRating(
+        user.id,
+        lastWatched.media.libraryId,
+        lastWatched.media.id,
+        device.id,
+        rating,
+      );
+
+      setLastWatched((currentVideo) =>
+        currentVideo?.media.id === updatedMedia.id
+          ? { ...currentVideo, media: updatedMedia }
+          : currentVideo,
+      );
+    } catch (error) {
+      console.error("Could not update the last watched video rating", error);
+      setLastWatched((currentVideo) =>
+        currentVideo?.media.id === previousVideo.media.id
+          ? previousVideo
+          : currentVideo,
+      );
+    } finally {
+      setIsLastWatchedRatingSaving(false);
+    }
+  };
 
   return (
     <>
@@ -52,64 +180,48 @@ export default function Home() {
 
         <div className="relative mx-auto w-full max-w-6xl">
           <header className="animate-fade-in flex flex-col justify-between gap-6 rounded-3xl border border-card-border bg-card p-6 shadow-sm sm:p-8 md:flex-row md:items-center">
-            <HomeTitle />
-            <DeviceIcon device={device} />
-            <Link href={"/db_debug"}>DB_DEBUG</Link>
+            <HomeTitle displayName={user?.displayName} />
+            <div className="flex w-full flex-col items-stretch gap-2 sm:w-auto sm:items-end">
+              <DeviceIcon device={device} />
+              {process.env.NODE_ENV === "development" && (
+                <Link
+                  href="/db_debug"
+                  className="inline-flex items-center justify-end gap-1.5 text-xs text-text-tertiary transition-colors hover:text-primary-active"
+                >
+                  <Database className="h-3.5 w-3.5" />
+                  Database inspector
+                </Link>
+              )}
+            </div>
           </header>
 
-          {/* <section
-            className="mt-8 animate-fade-in-up rounded-3xl border border-card-border bg-card/70 p-5 shadow-sm sm:p-7"
-            style={{ animationDelay: "0.1s" }}
-          >
-            <div className="mb-5 flex items-end justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary-subtle text-primary-active">
-                  <Clock3 className="h-5 w-5" strokeWidth={1.7} />
-                </div>
-                <div>
-                  <span className="text-[0.65rem] uppercase tracking-[0.18em] text-emerald-400">
-                    Recent
-                  </span>
-                  <h2 className="mt-0.5 text-2xl font-semibold tracking-tight text-text-primary sm:text-3xl">
-                    Recently used
-                  </h2>
-                </div>
-              </div>
-              <span className="hidden rounded-full border border-card-border bg-card px-3 py-1.5 text-xs font-medium text-text-tertiary sm:block">
-                {list.length} items
-              </span>
-            </div>
-            <RecentlyUsedList recentlyUsedList={list} />
-          </section> */}
+          <DashboardOverview
+            libraryCount={items.length}
+            snapshot={snapshot}
+            loading={isDashboardLoading}
+          />
 
-          <section
-            className="mt-8 animate-fade-in-up rounded-3xl border border-card-border bg-card/70 p-5 shadow-sm sm:p-7"
-            style={{ animationDelay: "0.2s" }}
-          >
-            <div className="mb-5 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary-subtle text-primary-active">
-                  <FolderOpen className="h-5 w-5" strokeWidth={1.7} />
-                </div>
-                <div>
-                  <span className="text-[0.65rem] uppercase tracking-[0.18em] text-emerald-400">
-                    Collections
-                  </span>
-                  <h2 className="mt-0.5 text-2xl font-semibold tracking-tight text-text-primary sm:text-3xl">
-                    My libraries
-                  </h2>
-                </div>
-              </div>
+          <ContinueWatchingSection
+            item={lastWatched}
+            videoSource={lastWatchedSource}
+            loading={isLastWatchedLoading}
+            ratingSaving={isLastWatchedRatingSaving}
+            onRatingChange={handleLastWatchedRatingChange}
+          />
 
-              <PrimaryButton onClick={() => setShowLibraryModal(true)}>
-                <span className="flex items-center justify-center gap-2">
-                  <Plus className="h-4 w-4" />
-                  Create new library
-                </span>
-              </PrimaryButton>
-            </div>
-            <LibraryList />
-          </section>
+          <LibrarySection showLibraryModal={() => setShowLibraryModal(true)} />
+
+          <div className="mt-8 grid items-start gap-8 lg:grid-cols-[minmax(0,1.65fr)_minmax(17rem,0.75fr)]">
+            <NoteSection
+              notes={snapshot.recentNotes}
+              loading={isDashboardLoading}
+            />
+            <MediaMixSection
+              mediaTypes={snapshot.mediaTypes}
+              totalFiles={snapshot.totalFiles}
+              loading={isDashboardLoading}
+            />
+          </div>
         </div>
       </main>
 

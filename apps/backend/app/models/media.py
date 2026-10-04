@@ -14,7 +14,12 @@ from enum import Enum
 from datetime import timedelta
 from typing import TYPE_CHECKING
 
-from app.models.mixins import TimestampMixin, UUIDMixin, TombstoneMixin, VersionMixin
+from app.models.mixins import (
+    ExpectedVersionMixin,
+    TimestampMixin,
+    TombstoneMixin,
+    UUIDMixin,
+)
 
 if TYPE_CHECKING:
     from app.models.libraries import Library
@@ -38,7 +43,7 @@ MEDIA_TYPE_MAP = {
 }
 
 
-class Media(Base, UUIDMixin, TimestampMixin, TombstoneMixin, VersionMixin):
+class Media(Base, UUIDMixin, TimestampMixin, TombstoneMixin, ExpectedVersionMixin):
     __tablename__ = "media"
 
     __table_args__ = (

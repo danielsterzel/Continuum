@@ -1,34 +1,50 @@
+import type { DeviceRead } from "@/lib/types/Device";
 
-import { DeviceRead, DeviceWrite } from "../types/Device";
-
-
-export async function fetchDevice(deviceId: string): Promise<DeviceRead>
-{
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/device/fetch/${deviceId}`);
-
-    if(!res.ok)
-        {
-            throw new Error(`HTTP error : ${res.status}`)
-        }
-
-    return await res.json();
-
+async function getErrorMessage(
+  response: Response,
+  fallback: string,
+): Promise<string> {
+  try {
+    const body = (await response.json()) as { detail?: string };
+    return typeof body.detail === "string" ? body.detail : fallback;
+  } catch {
+    return fallback;
+  }
 }
 
-export async function createDevice(deviceWrite: DeviceWrite | null)
-{
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/device/create`, {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify(deviceWrite)
-    });
+export async function getRegisteredDevices(
+  userId: string,
+): Promise<DeviceRead[]> {
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/devices/${encodeURIComponent(userId)}`,
+  );
 
-    if(!res.ok)
-        
-        {
-            throw new Error(`HTTP error : ${res.status}`);
-        }
+  if (!response.ok) {
+    throw new Error(
+      await getErrorMessage(response, "Could not load registered devices"),
+    );
+  }
 
-    return res.json();
+  return response.json();
+}
 
+export async function removeRegisteredDevice(
+  userId: string,
+  deviceId: string,
+  requestingDeviceId: string,
+): Promise<void> {
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/devices/${encodeURIComponent(userId)}/${encodeURIComponent(deviceId)}`,
+    {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ requestingDeviceId }),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      await getErrorMessage(response, "Could not remove the device"),
+    );
+  }
 }

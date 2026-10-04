@@ -1,0 +1,75 @@
+%%{init: {
+  "theme": "base",
+  "look": "classic",
+  "flowchart": {
+    "useMaxWidth": false,
+    "htmlLabels": false,
+    "curve": "linear",
+    "nodeSpacing": 34,
+    "rankSpacing": 48
+  },
+  "themeVariables": {
+    "fontFamily": "Helvetica, Arial, sans-serif",
+    "fontSize": "15px",
+    "background": "#F8FAFC",
+    "primaryTextColor": "#0F172A",
+    "lineColor": "#64748B",
+    "clusterBkg": "#FFFFFF",
+    "clusterBorder": "#CBD5E1"
+  }
+}}%%
+flowchart TB
+    subgraph API["1. WARSTWA HTTP — FastAPI"]
+        direction LR
+        userApi["user_router<br/>setup + login"]:::api
+        pushApi["POST /sync/initiate/{user_id}<br/>PUSH metadanych"]:::api
+        pullApi["GET /sync/state/{user_id}<br/>PULL pełnego stanu"]:::api
+        fileApi["Upload + StaticFiles<br/>ikony i media"]:::files
+    end
+
+    subgraph APPLICATION["2. WARSTWA APLIKACYJNA"]
+        direction LR
+        userFlow["Obsługa użytkownika<br/>bcrypt + schematy Pydantic"]:::process
+        syncService["SyncService — jedna transakcja PUSH<br/>blokada wiersza użytkownika<br/>deduplikacja UUID zmiany<br/>walidacja urządzenia"]:::sync
+        stateBuilder["get_sync_state<br/>pobranie wszystkich encji<br/>mapowanie do SyncStateRead"]:::sync
+        fileFlow["Zapis strumieniowy / odczyt statyczny<br/>katalog użytkownika"]:::files
+    end
+
+    subgraph DOMAIN["3. ROZWIĄZYWANIE ZMIAN"]
+        direction LR
+        version["Porównanie<br/>change.version = expected_version"]:::sync
+        resolvers["Resolvery encji<br/>Device • Library • Media<br/>Note • MediaProgress"]:::sync
+        operations["CREATE • UPDATE • soft-delete<br/>polityka konfliktu per encja"]:::sync
+
+        version --> resolvers --> operations
+    end
+
+    subgraph PERSISTENCE["4. PERSISTENCJA"]
+        direction LR
+        repositories["Repozytoria SQLAlchemy async<br/>zapytania • ownership • zapis"]:::storage
+        journal["SyncRepository<br/>dziennik przyjętych zmian<br/>+ inkrementacja expected_version"]:::sync
+        postgres[("PostgreSQL 15 — źródło prawdy<br/>users • devices • libraries • media<br/>media_progresses • notes • sync_changes")]:::storage
+        mediaStorage["ContinuumData/media_storage<br/>ikony + pliki użytkowników"]:::files
+
+        repositories --> postgres
+        journal --> postgres
+    end
+
+    userApi --> userFlow --> repositories
+    pushApi --> syncService --> version
+    operations --> repositories
+    operations --> journal
+    pullApi --> stateBuilder --> repositories
+    fileApi --> fileFlow --> mediaStorage
+    syncService -->|"commit / rollback"| postgres
+
+    classDef api fill:#EDE9FE,stroke:#A78BFA,color:#0F172A,stroke-width:1.5px;
+    classDef process fill:#FFFFFF,stroke:#CBD5E1,color:#0F172A,stroke-width:1.25px;
+    classDef sync fill:#FEF3C7,stroke:#F59E0B,color:#0F172A,stroke-width:1.5px;
+    classDef storage fill:#DCFCE7,stroke:#22C55E,color:#0F172A,stroke-width:1.5px;
+    classDef files fill:#FFEDD5,stroke:#FB923C,color:#0F172A,stroke-width:1.5px;
+
+    style API fill:#F5F3FF,stroke:#C4B5FD,stroke-width:2px,color:#0F172A
+    style APPLICATION fill:#F8FAFC,stroke:#CBD5E1,stroke-width:2px,color:#0F172A
+    style DOMAIN fill:#FFFBEB,stroke:#FCD34D,stroke-width:2px,color:#0F172A
+    style PERSISTENCE fill:#F0FDF4,stroke:#86EFAC,stroke-width:2px,color:#0F172A

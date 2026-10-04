@@ -7,13 +7,18 @@ from sqlalchemy import String, ForeignKey, Interval
 from datetime import timedelta
 from typing import TYPE_CHECKING
 
-from app.models.mixins import TimestampMixin, UUIDMixin, TombstoneMixin, VersionMixin
+from app.models.mixins import (
+    ExpectedVersionMixin,
+    TimestampMixin,
+    TombstoneMixin,
+    UUIDMixin,
+)
 
 if TYPE_CHECKING:
     from app.models.media import Media
 
 
-class Note(Base, TimestampMixin, UUIDMixin, TombstoneMixin, VersionMixin):
+class Note(Base, TimestampMixin, UUIDMixin, TombstoneMixin, ExpectedVersionMixin):
     __tablename__ = "notes"
 
     __table_args__ = ()

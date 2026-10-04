@@ -58,7 +58,7 @@ model beneath it.
 | Instant offline writes | SQLite on each client, backed by IndexedDB on the web and native SQLite on iOS |
 | Reliable delivery | Local outbox-style `sync_changes` queue with batches of up to 20 operations |
 | Duplicate requests | Every change has a UUID; the server journal makes replay idempotent |
-| Concurrent devices | Optimistic `expected_version` checks plus a per-user PostgreSQL row lock |
+| Concurrent devices | Optimistic change `version` checks against entity `expected_version`, plus a per-user PostgreSQL row lock |
 | Conflicting edits | Entity-specific, CRDT-inspired resolvers instead of one global overwrite policy |
 | Deletions | Server-side soft deletes and tombstones preserve deletion history across sync cycles |
 | Large binary data | Metadata travels as JSON; media and covers use separate multipart transfers |
@@ -107,9 +107,9 @@ and redistributing those changes to the user's other devices.
    leaves the batch queued for the next cycle.
 4. The backend acquires a row lock for the user, rejects unknown devices, and ignores a
    change UUID that has already been committed.
-5. If `expected_version` matches, the operation follows the normal path. If it does not,
+5. If the change `version` matches the entity `expected_version`, the operation follows the normal path. If it does not,
    the appropriate entity resolver applies its field-level conflict policy.
-6. Domain changes, their new versions, and the server journal are committed in one
+6. Domain changes, their new expected versions, and the server journal are committed in one
    transaction. Binary files travel separately after their metadata is accepted.
 7. Only after the outbox is empty does the client pull the canonical state, apply local
    upserts/tombstones, and download files that are missing on that device.

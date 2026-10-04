@@ -22,6 +22,7 @@ class TombstoneMixin:
         DateTime(timezone=True), nullable=True
     )
 
-
-class VersionMixin:
-    version: Mapped[int] = mapped_column(Integer(), server_default=text("0"))
+class ExpectedVersionMixin:
+    expected_version: Mapped[int] = mapped_column(
+        Integer(), server_default=text("0")
+    )

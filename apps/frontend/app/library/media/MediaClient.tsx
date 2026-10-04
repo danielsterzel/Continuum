@@ -1,7 +1,7 @@
 "use client";
 
 import { useSearchParams, useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { GoBackButton } from "@/components/buttons/GoBackButton";
 import { getMediaIcon } from "@/components/library_components/MediaListItem";
 import { formatFileSize } from "@/lib/UxMedia";
@@ -11,22 +11,26 @@ import { PdfMain } from "./_variations/PdfMain";
 import { AudioMain } from "./_variations/AudioMain";
 import { MetaChip } from "@/components/library_components/MetaChip";
 import { formatDate } from "@/lib/Datetime";
-import { HardDrive, Tag, Calendar, CalendarClock, PenLine } from "lucide-react";
+import { HardDrive, Tag, Calendar, CalendarClock } from "lucide-react";
 import { useMedia } from "@/app/context/MediaContext";
 import { useUser } from "@/app/context/UserContext";
-import { getMediaById } from "@/lib/db/services/media_service";
-
+import {
+  getMediaById,
+  updateMediaRating,
+} from "@/lib/db/services/media_service";
+import { useDevice } from "@/app/context/DeviceContext";
+import { RatingStars } from "@/components/RatingStars";
 
 function formatName(name: string) {
   return name.split(".")[0];
 }
 
-function getMediaMain(type: string) {
+function renderMediaMain(type: string) {
   const t = type.toLowerCase();
-  if (t.includes("video")) return VideoMain;
-  if (t.includes("pdf")) return PdfMain;
-  if (t.includes("audio")) return AudioMain;
-  if (t.includes("image")) return ImageMain;
+  if (t.includes("video")) return <VideoMain />;
+  if (t.includes("pdf")) return <PdfMain />;
+  if (t.includes("audio")) return <AudioMain />;
+  if (t.includes("image")) return <ImageMain />;
 
   return null;
 }
@@ -74,7 +78,9 @@ export function MediaClient() {
 
   const { media, setMedia } = useMedia();
   const { user } = useUser();
+  const { device } = useDevice();
   const router = useRouter();
+  const [isSavingRating, setIsSavingRating] = useState(false);
 
   useEffect(() => {
     // TODO reaplce with on_mount: VerifyUserAndDevice.tsx
@@ -122,7 +128,31 @@ export function MediaClient() {
   };
 
   const pallete = getMediaPallete();
-  const Main = getMediaMain(media.mediaType);
+  const mediaMain = renderMediaMain(media.mediaType);
+
+  const handleRatingChange = async (rating: number) => {
+    if (!user || !device || isSavingRating) return;
+
+    const previousMedia = media;
+    setMedia({ ...media, rating });
+    setIsSavingRating(true);
+
+    try {
+      const updatedMedia = await updateMediaRating(
+        user.id,
+        media.libraryId,
+        media.id,
+        device.id,
+        rating,
+      );
+      setMedia(updatedMedia);
+    } catch (error) {
+      console.error("Could not update media rating", error);
+      setMedia(previousMedia);
+    } finally {
+      setIsSavingRating(false);
+    }
+  };
 
   return (
     <div className="min-h-screen w-full px-4 py-6">
@@ -141,9 +171,9 @@ export function MediaClient() {
           </p>
           <div className="mt-2 flex gap-4 items-center sm:mt-6">
             <h1 className="text-2xl sm:text-3xl md:text-5xl font-bold tracking-wide break-all">
-            {formatName(media.filename)}
+              {formatName(media.filename)}
             </h1>
-          {/* <button className="cursor-pointer p-2"><PenLine className="w-6 h-6" /></button> */}
+            {/* <button className="cursor-pointer p-2"><PenLine className="w-6 h-6" /></button> */}
           </div>
           <div className="flex flex-wrap gap-2 items-center justify-center sm:justify-start">
             <MetaChip
@@ -163,10 +193,21 @@ export function MediaClient() {
               label={`Updated ${formatDate(media.updatedAt)}`}
             />
           </div>
+          <div className="mt-2 flex flex-col items-center gap-1.5 sm:items-start">
+            <span className="text-xs font-medium uppercase tracking-wider text-text-tertiary">
+              Your rating
+            </span>
+            <RatingStars
+              value={media.rating}
+              onChange={handleRatingChange}
+              disabled={isSavingRating}
+              label={`Rating for ${media.filename}`}
+            />
+          </div>
         </div>
       </div>
       <div className="mt-8 sm:mt-12 flex items-center justify-center">
-        {Main && <Main />}
+        {mediaMain}
       </div>
     </div>
   );

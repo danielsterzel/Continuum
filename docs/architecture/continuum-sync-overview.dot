@@ -48,7 +48,7 @@ digraph ContinuumSyncOverview {
     services [label="Domain services\nlocal write orchestration"];
     sqlite_a [label="Local SQLite\ninstant read-your-writes", shape=cylinder, fillcolor="#12372F", color="#34D399"];
     files_a [label="Local file storage\nmedia + covers", shape=folder, fillcolor="#312842", color="#A78BFA"];
-    mapper [label="EntitySyncMapper\noperation + expected_version"];
+    mapper [label="EntitySyncMapper\noperation + version"];
     outbox [label="Outbox queue\nordered batches ≤ 20", shape=cylinder, fillcolor="#3A2A16", color="#F59E0B"];
 
     ui_a -> services;
@@ -75,7 +75,7 @@ digraph ContinuumSyncOverview {
     api [label="FastAPI boundary\nJSON + multipart", fillcolor="#12372F", color="#34D399"];
     guard [label="Per-user row lock\nownership + device validation"];
     resolver [label="Entity-specific resolvers\nLWW • MVR • deterministic fork", fillcolor="#2F2A18", color="#FBBF24"];
-    postgres [label="PostgreSQL\nversions + tombstones", shape=cylinder, fillcolor="#12372F", color="#34D399"];
+    postgres [label="PostgreSQL\nexpected versions + tombstones", shape=cylinder, fillcolor="#12372F", color="#34D399"];
     journal [label="Idempotency journal\nprocessed change UUIDs", shape=cylinder, fillcolor="#3A2A16", color="#F59E0B"];
     blobs [label="Server media storage\nimmutable binaries", shape=folder, fillcolor="#312842", color="#A78BFA"];
 

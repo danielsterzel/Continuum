@@ -1,5 +1,6 @@
 import { useLibrary } from "@/app/context/LibraryContext";
 import { LibraryListItem } from "./LibraryListItem";
+import { FolderPlus } from "lucide-react";
 
 export function LibraryList() {
   const { items, setItems } = useLibrary();
@@ -17,16 +18,31 @@ export function LibraryList() {
       </div>
 
       <div>
-        {items.map((item) => (
-          <li key={item.id}>
-            <LibraryListItem
-              library={item}
-              onDeleted={() =>
-                setItems((prev) => prev.filter((i) => i.id !== item.id))
-              }
-            />
-          </li>
-        ))}
+        {items.length === 0 ? (
+          <div className="flex flex-col items-center justify-center px-5 py-12 text-center">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary-subtle text-primary-active">
+              <FolderPlus className="h-6 w-6" strokeWidth={1.6} />
+            </div>
+            <p className="mt-3 font-medium text-text-primary">
+              A quiet space, ready for your first library
+            </p>
+            <p className="mt-1 max-w-sm text-sm text-text-tertiary">
+              Create a collection for a course, project, film archive, or
+              anything else you want to keep together.
+            </p>
+          </div>
+        ) : (
+          items.map((item) => (
+            <div key={item.id}>
+              <LibraryListItem
+                library={item}
+                onDeleted={() =>
+                  setItems((prev) => prev.filter((i) => i.id !== item.id))
+                }
+              />
+            </div>
+          ))
+        )}
       </div>
     </div>
   );

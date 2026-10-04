@@ -3,12 +3,17 @@ import { getDatabase } from "../database";
 import { NoteRepository } from "../repositories/note_repository";
 import { queueEntityChange } from "@/lib/sync/sync";
 import { SyncOperation } from "@/lib/types/SyncOperation";
+import { isValidNoteTitle } from "@/lib/validation/note";
 
 
 export async function saveNoteToDbAndPushToQueue(
   note: Note,
   deviceId: string,
 ): Promise<boolean> {
+  if (!isValidNoteTitle(note.title)) {
+    return false;
+  }
+
   const db = await getDatabase();
   const repository = new NoteRepository(db);
 
@@ -16,7 +21,7 @@ export async function saveNoteToDbAndPushToQueue(
     await repository.add(note);
     await queueEntityChange(note, SyncOperation.CREATE, deviceId);
     return true;
-  } catch (err) {
+  } catch {
     return false;
   }
 }
@@ -38,8 +43,7 @@ export async function updateNoteService(
   content?: string
 ): Promise<Note | null> {
 
-  if(title === "")
-  {
+  if (title !== undefined && !isValidNoteTitle(title)) {
     return null;
   }
 

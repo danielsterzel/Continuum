@@ -6,7 +6,6 @@ import { NoteRepository } from "../db/repositories/note_repository";
 import { MediaProgressRepository } from "../db/repositories/media_progress_repository";
 import { Library } from "../types/Library";
 import { deleteFileFromLocalStorage, fileExistsLocally, saveLocalFile } from "../files/LocalFileStorage";
-import { getMediaById } from "../db/services/media_service";
 
 export async function applySyncState(state: SyncState, userId: string): Promise<void> {
   const db = await getDatabase();
@@ -14,6 +13,19 @@ export async function applySyncState(state: SyncState, userId: string): Promise<
   const mediaRepository = new MediaRepository(db);
   const noteRepository = new NoteRepository(db);
   const mediaProgressRepository = new MediaProgressRepository(db);
+  const deletedLibraryIds = new Set(
+    state.libraries
+      .filter((library) => library.deletedAt)
+      .map((library) => library.id),
+  );
+  const unavailableMediaIds = new Set(
+    state.media
+      .filter(
+        (media) =>
+          media.deletedAt || deletedLibraryIds.has(media.libraryId),
+      )
+      .map((media) => media.id),
+  );
 
   for (const library of state.libraries) {
 
@@ -27,6 +39,10 @@ export async function applySyncState(state: SyncState, userId: string): Promise<
   }
 
   for (const media of state.media) {
+
+    if (deletedLibraryIds.has(media.libraryId)) {
+      continue;
+    }
 
     if(media.deletedAt)
     {
@@ -55,7 +71,7 @@ export async function applySyncState(state: SyncState, userId: string): Promise<
   }
 
   for (const note of state.notes) {
-    if(note.deletedAt) continue;
+    if(note.deletedAt || unavailableMediaIds.has(note.mediaId)) continue;
 
     try
     {
@@ -69,11 +85,13 @@ export async function applySyncState(state: SyncState, userId: string): Promise<
 
   for (const progress of state.mediaProgress) {
 
+    if (unavailableMediaIds.has(progress.mediaId)) continue;
+
     const relatedMedia = state.media.find(
       (media) => media.id === progress.mediaId
     );
 
-    if (relatedMedia?.deletedAt) continue;
+    if (!relatedMedia || relatedMedia.deletedAt) continue;
     try
     {
       await mediaProgressRepository.upsertFromSync(progress);
@@ -81,7 +99,7 @@ export async function applySyncState(state: SyncState, userId: string): Promise<
     catch(err)
     {
       const mediaProgress = await mediaProgressRepository.getMediaProgressById(
-        userId, relatedMedia!?.libraryId, relatedMedia!.id
+        userId, relatedMedia.libraryId, relatedMedia.id
       );
 
       console.log("Server body: ", JSON.stringify(progress));
@@ -93,6 +111,11 @@ export async function applySyncState(state: SyncState, userId: string): Promise<
 }
 
 export async function applyFileSync(state: SyncState, userId: string) {
+  const deletedLibraryIds = new Set(
+    state.libraries
+      .filter((library) => library.deletedAt)
+      .map((library) => library.id),
+  );
 
   for (const library of state.libraries) {
 
@@ -106,6 +129,8 @@ export async function applyFileSync(state: SyncState, userId: string) {
 
   for (const media of state.media)
   {
+    if (deletedLibraryIds.has(media.libraryId)) continue;
+
     // do not resurrect dead media
     if(media.deletedAt) continue;
 

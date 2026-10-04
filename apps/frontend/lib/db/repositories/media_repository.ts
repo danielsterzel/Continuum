@@ -1,14 +1,31 @@
 import { Media } from "@/lib/types/Media";
 import { SQLiteDBConnection } from "@capacitor-community/sqlite";
-import { persistDatabase } from "../database";
+import { persistDatabase, renameColumnIfNeeded } from "../database";
 import { EntityType } from "@/lib/types/EntityType";
+
+type MediaRow = {
+  id: string;
+  library_id: string;
+  filename: string;
+  filepath: string;
+  file_size: number;
+  media_type: string;
+  duration: number | null;
+  thumbnail_url: string | null;
+  rating: number | null;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+  expected_version: number;
+};
+
 export class MediaRepository {
   private db: SQLiteDBConnection;
 
   constructor(dbConnection: SQLiteDBConnection) {
     this.db = dbConnection;
   }
-  mapRowsToMedia(row: any): Media {
+  mapRowsToMedia(row: MediaRow): Media {
     return {
       id: row.id,
       libraryId: row.library_id,
@@ -22,7 +39,7 @@ export class MediaRepository {
       createdAt: row.created_at,
       updatedAt: row.updated_at,
       deletedAt: row.deleted_at,
-      version: row.version,
+      expectedVersion: row.expected_version,
       entityType: EntityType.Media,
       filepath: row.filepath,
     };
@@ -49,7 +66,7 @@ export class MediaRepository {
             updated_at TEXT NOT NULL,
             deleted_at TEXT,
 
-            version INTEGER NOT NULL DEFAULT 0,
+            expected_version INTEGER NOT NULL DEFAULT 0,
 
             FOREIGN KEY (library_id)
             REFERENCES libraries(id)
@@ -70,6 +87,8 @@ export class MediaRepository {
             )
         );
     `);
+
+    await renameColumnIfNeeded(this.db, "media", "version", "expected_version");
   }
   async upsertFromSync(media: Media): Promise<void> {
     await this.db.run(
@@ -87,7 +106,7 @@ export class MediaRepository {
       created_at,
       updated_at,
       deleted_at,
-      version
+      expected_version
     )
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 
@@ -105,7 +124,7 @@ export class MediaRepository {
       created_at = excluded.created_at,
       updated_at = excluded.updated_at,
       deleted_at = excluded.deleted_at,
-      version = excluded.version;
+      expected_version = excluded.expected_version;
     `,
       [
         media.id,
@@ -120,7 +139,7 @@ export class MediaRepository {
         media.createdAt,
         media.updatedAt,
         media.deletedAt,
-        media.version,
+        media.expectedVersion,
       ],
     );
 
@@ -142,7 +161,7 @@ export class MediaRepository {
 created_at,
       updated_at,
       deleted_at,
-      version
+      expected_version
     )
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
@@ -158,9 +177,39 @@ created_at,
         media.createdAt,
         media.updatedAt,
         media.deletedAt ?? null,
-        media.version,
+        media.expectedVersion,
       ],
     );
+  }
+  async update(userId: string, media: Media): Promise<void> {
+    const result = await this.db.run(
+      `
+      UPDATE media
+      SET rating = ?, updated_at = ?, expected_version = ?
+      WHERE id = ?
+        AND library_id = ?
+        AND EXISTS (
+          SELECT 1
+          FROM libraries
+          WHERE libraries.id = media.library_id
+            AND libraries.user_id = ?
+        );
+      `,
+      [
+        media.rating,
+        media.updatedAt,
+        media.expectedVersion,
+        media.id,
+        media.libraryId,
+        userId,
+      ],
+    );
+
+    if (result.changes?.changes !== 1) {
+      throw new Error(`Could not update media: ${media.id}`);
+    }
+
+    await persistDatabase();
   }
   async getAllByLibraryId(userId: string, libraryId: string) {
     const res = await this.db.query(
@@ -169,7 +218,7 @@ created_at,
     );
     const rows = res.values ?? [];
 
-    return rows.map((row, _) => this.mapRowsToMedia(row));
+    return rows.map((row) => this.mapRowsToMedia(row));
   }
   async getById(
     userId: string,

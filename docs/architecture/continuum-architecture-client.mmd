@@ -1,0 +1,76 @@
+%%{init: {
+  "theme": "base",
+  "look": "classic",
+  "flowchart": {
+    "useMaxWidth": false,
+    "htmlLabels": false,
+    "curve": "linear",
+    "nodeSpacing": 32,
+    "rankSpacing": 46
+  },
+  "themeVariables": {
+    "fontFamily": "Helvetica, Arial, sans-serif",
+    "fontSize": "15px",
+    "background": "#F8FAFC",
+    "primaryTextColor": "#0F172A",
+    "lineColor": "#64748B",
+    "clusterBkg": "#FFFFFF",
+    "clusterBorder": "#CBD5E1"
+  }
+}}%%
+flowchart LR
+    subgraph PRESENTATION["1. PREZENTACJA I STAN"]
+        direction TB
+        ui["App Router<br/>start • logowanie • konfiguracja<br/>dashboard • biblioteka • media"]:::ui
+        worker["SyncService (React worker)<br/>start po logowaniu + interwał 30 s"]:::sync
+    end
+
+    subgraph DOMAIN["2. LOGIKA KLIENTA"]
+        direction TB
+        services["Serwisy domenowe<br/>library • media • media_progress<br/>note • user"]:::process
+        mapper["EntitySyncMapper<br/>encja → payload snake_case<br/>operacja + version"]:::process
+        cycle["syncCycle<br/>najpierw PUSH, potem PULL"]:::sync
+        apply["applySyncState<br/>upsert • tombstones • brakujące pliki"]:::sync
+
+        services --> mapper
+        cycle --> apply
+    end
+
+    subgraph LOCAL["3. PAMIĘĆ LOKALNA"]
+        direction TB
+        repos["Repozytoria SQLite<br/>User • LocalUser • Device • Library<br/>Media • MediaProgress • Note • SyncQueue"]:::storage
+        queue[("sync_changes — OUTBOX<br/>id • device_id • entity • operation<br/>version • payload • created_at")]:::sync
+        db[("SQLite «continuum»<br/>natywnie: SQLite<br/>Web: trwałość w IndexedDB")]:::storage
+        files["Capacitor Filesystem / Directory.Data<br/>Web: magazyn przeglądarki<br/>iOS: prywatny katalog aplikacji"]:::files
+
+        repos <--> db
+        queue --- db
+    end
+
+    subgraph PORTS["4. STYK Z GRANICĄ SIECIOWĄ"]
+        direction TB
+        network["HTTP<br/>PUSH JSON ≤ 20 zmian + multipart<br/>PULL pełnego SyncState + brakujące pliki"]:::api
+    end
+
+    ui --> services
+    services --> repos
+    services --> files
+    mapper --> queue
+    worker --> cycle
+    queue --> cycle
+    cycle --> network
+    network --> apply
+    apply --> repos
+    apply --> files
+
+    classDef ui fill:#DBEAFE,stroke:#60A5FA,color:#0F172A,stroke-width:1.5px;
+    classDef process fill:#FFFFFF,stroke:#CBD5E1,color:#0F172A,stroke-width:1.25px;
+    classDef sync fill:#FEF3C7,stroke:#F59E0B,color:#0F172A,stroke-width:1.5px;
+    classDef api fill:#F3E8FF,stroke:#C084FC,color:#0F172A,stroke-width:1.5px;
+    classDef storage fill:#DCFCE7,stroke:#22C55E,color:#0F172A,stroke-width:1.5px;
+    classDef files fill:#FFEDD5,stroke:#FB923C,color:#0F172A,stroke-width:1.5px;
+
+    style PRESENTATION fill:#EFF6FF,stroke:#93C5FD,stroke-width:2px,color:#0F172A
+    style DOMAIN fill:#F8FAFC,stroke:#CBD5E1,stroke-width:2px,color:#0F172A
+    style LOCAL fill:#F0FDF4,stroke:#86EFAC,stroke-width:2px,color:#0F172A
+    style PORTS fill:#F5F3FF,stroke:#C4B5FD,stroke-width:2px,color:#0F172A

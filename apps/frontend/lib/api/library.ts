@@ -1,49 +1,13 @@
-import { Library, LibraryCreate, LibraryRead } from "../types/Library";
+import { LibraryRead } from "../types/Library";
 import { Media, MediaRead } from "../types/Media";
 
-import { v4 } from "uuid";
-import { saveLocalFile } from "../files/LocalFileStorage";
 import { EntityType } from "../types/EntityType";
-
-
-const API_ORIGIN = "http://127.0.0.1:8000";
-const API_PREFIX = `${API_ORIGIN}/library`;
-
 
 
 export function getAssetUrl(path?: string | null): string | undefined {
     if (!path) return undefined;
     return `${process.env.NEXT_PUBLIC_API_URL}/${path.replace(/^\/+/, "")}`;
 }
-
-
-// export async function fetchLibraries()
-// {
-//     const res = await fetch(
-//           `${process.env.NEXT_PUBLIC_API_URL}/library/collection`,
-//           {
-//             method: "GET",
-//             headers: {
-//               "Content-Type": "application/json",
-//             },
-//           },
-//         );
-//     return res;
-// }
-
-
-// export async function deleteLibrary(libraryId: string)
-// {
-//     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/library/collection/${libraryId}`, {
-//         method: "DELETE"   
-//     });
-
-//     if(!res.ok)
-//         {
-//             console.log(res.statusText)
-//             throw new Error(`HTTP error ${res.status}`);
-//         }
-// }
 
 export async function fetchSingleLibByWeb(libraryId: string): Promise<LibraryRead>
 {
@@ -102,18 +66,6 @@ export async function fetchSingleMedia(libraryId: string, mediaId: string): Prom
         }
 
     const data = await res.json();
-    return {...data, deletedAt: null, version: 1, entityType: EntityType.Media, filepath: ""};
+    return {...data, deletedAt: null, expectedVersion: 1, entityType: EntityType.Media, filepath: ""};
 
 }
-
-// export async function deleteMediaFromLibrary(libraryId: string, mediaId: string)
-// {
-//     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/library/collection/delete_media/${libraryId}/${mediaId}`, {
-//         method: "DELETE"
-//     });
-//     if(!res.ok )
-//         {
-//             throw new Error(`HTTP error when deleting: ${res.status}`); 
-//         }
-    
-// }

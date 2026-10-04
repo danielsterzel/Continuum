@@ -6,7 +6,7 @@ import { BlackOverlay } from "@/components/ux/BlackOverlay";
 import { OpenMenuButton } from "./OpenMenuButton";
 import { MenuBody } from "./MenuBody";
 
-const ALLOWED_PATHS = ["/dashboard", "/library", "/profile"];
+const ALLOWED_PATHS = ["/dashboard", "/library", "/profile", "/settings"];
 
 export function SlideMenu() {
   const [isOpen, setIsOpen] = useState(false);

@@ -30,7 +30,6 @@ export type Media = {
   updatedAt: string;
   deletedAt: string | null;
 
-  version: number;
+  expectedVersion: number;
   entityType: EntityType.Media;
 };
-

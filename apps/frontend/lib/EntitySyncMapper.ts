@@ -25,12 +25,15 @@ export function mapNoteToSyncChange(
 ): SyncAndEntity {
   const syncId = v4();
 
-  let { id, version, entityType, ...originalPayload } = entity;
+  const { id, entityType, ...entityWithoutIdentity } = entity;
+  const { expectedVersion: currentExpectedVersion, ...originalPayload } =
+    entityWithoutIdentity;
+  let expectedVersion = currentExpectedVersion;
 
   const payload = snakecaseKeys(originalPayload);
 
   if (operation == SyncOperation.CREATE) {
-    version = 0;
+    expectedVersion = 0;
   }
 
   const syncChange = {
@@ -39,12 +42,12 @@ export function mapNoteToSyncChange(
     entityType: entityType,
     entityId: id,
     operation: operation,
-    expectedVersion: version,
+    version: expectedVersion,
     payload: payload,
     createdAt: new Date().toISOString(),
   };
 
-  entity.version = version + 1;
+  entity.expectedVersion = expectedVersion + 1;
   return { syncChange, entity };
 }
 
@@ -54,12 +57,15 @@ export function mapLibraryToSyncChange(
   deviceId: string,
 ): SyncAndEntity {
   const syncId = v4();
-  let { id, version, entityType, ...originalPayload } = entity;
+  const { id, entityType, ...entityWithoutIdentity } = entity;
+  const { expectedVersion: currentExpectedVersion, ...originalPayload } =
+    entityWithoutIdentity;
+  let expectedVersion = currentExpectedVersion;
 
   const payload = snakecaseKeys(originalPayload);
 
   if (operation === SyncOperation.CREATE) {
-    version = 0;
+    expectedVersion = 0;
   }
 
   const syncChange = {
@@ -68,12 +74,12 @@ export function mapLibraryToSyncChange(
     entityType: entityType,
     entityId: id,
     operation: operation,
-    expectedVersion: version,
+    version: expectedVersion,
     payload: payload,
     createdAt: new Date().toISOString(),
   };
 
-  entity.version = version + 1;
+  entity.expectedVersion = expectedVersion + 1;
 
   return { syncChange, entity };
 }
@@ -84,12 +90,15 @@ export function mapMediaToSyncChange(
   deviceId: string,
 ): SyncAndEntity {
   const syncId = v4();
-  let { id, version, entityType, ...originalPayload } = entity;
+  const { id, entityType, ...entityWithoutIdentity } = entity;
+  const { expectedVersion: currentExpectedVersion, ...originalPayload } =
+    entityWithoutIdentity;
+  let expectedVersion = currentExpectedVersion;
 
   const payload = snakecaseKeys(originalPayload);
 
   if (operation === SyncOperation.CREATE) {
-    version = 0;
+    expectedVersion = 0;
   }
   const syncChange = {
     id: syncId,
@@ -97,12 +106,12 @@ export function mapMediaToSyncChange(
     entityType: entityType,
     entityId: id,
     operation: operation,
-    expectedVersion: version,
+    version: expectedVersion,
     payload: payload,
     createdAt: new Date().toISOString(),
   };
 
-  entity.version = version + 1;
+  entity.expectedVersion = expectedVersion + 1;
 
   return { syncChange, entity };
 }
@@ -113,11 +122,14 @@ export function mapMediaProgressToSyncChange(
   deviceId: string,
 ): SyncAndEntity {
   const syncId = v4();
-  let { id, version, entityType, ...originalPayload } = entity;
+  const { id, entityType, ...entityWithoutIdentity } = entity;
+  const { expectedVersion: currentExpectedVersion, ...originalPayload } =
+    entityWithoutIdentity;
+  let expectedVersion = currentExpectedVersion;
   const payload = snakecaseKeys(originalPayload);
 
   if (operation === SyncOperation.CREATE) {
-    version = 0;
+    expectedVersion = 0;
   }
 
   if (operation === SyncOperation.DELETE) {
@@ -132,12 +144,12 @@ export function mapMediaProgressToSyncChange(
     entityType: entityType,
     entityId: id,
     operation: operation,
-    expectedVersion: version,
+    version: expectedVersion,
     payload: payload,
     createdAt: new Date().toISOString(),
   };
 
-  entity.version = version + 1;
+  entity.expectedVersion = expectedVersion + 1;
 
   return { syncChange, entity };
 }
@@ -147,12 +159,15 @@ export function deviceToSyncChange(
   operation: SyncOperation,
 ) {
   const syncId = v4();
-  let { id, version, entityType, ...originalPayload } = entity;
+  const { id, entityType, ...entityWithoutIdentity } = entity;
+  const { expectedVersion: currentExpectedVersion, ...originalPayload } =
+    entityWithoutIdentity;
+  let expectedVersion = currentExpectedVersion;
 
   const payload = snakecaseKeys(originalPayload);
 
   if (operation === SyncOperation.CREATE) {
-    version = 0;
+    expectedVersion = 0;
   }
   const syncChange = {
     id: syncId,
@@ -160,12 +175,12 @@ export function deviceToSyncChange(
     entityType: entityType,
     entityId: id,
     operation: operation,
-    expectedVersion: version,
+    version: expectedVersion,
     payload: payload,
     createdAt: new Date().toISOString(),
   };
 
-  entity.version = version + 1;
+  entity.expectedVersion = expectedVersion + 1;
 
   return { syncChange, entity };
 }

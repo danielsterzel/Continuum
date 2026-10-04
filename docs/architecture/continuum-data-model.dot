@@ -48,11 +48,11 @@ digraph ContinuumDataModel {
     penwidth=1.5;
 
     users [label="{users|id : UUID / TEXT (PK)\lemail : UNIQUE\ldisplay_name\lpassword_hash : tylko serwer\lcreated_at, updated_at\l}", fillcolor="#ECFDF5", color="#4ADE80"];
-    devices [label="{devices|id (PK)\luser_id (FK)\lname, last_seen\lversion\ldeleted_at\l}"];
-    libraries [label="{libraries|id (PK)\luser_id (FK)\lname, description, icon_url\lcreated_at, updated_at\lversion\ldeleted_at\l}"];
-    media [label="{media|id (PK)\llibrary_id (FK)\lfilename, filepath, file_size\lmedia_type, duration, thumbnail_url, rating\lcreated_at, updated_at\lversion\ldeleted_at\l}"];
-    progress [label="{media_progresses|id (PK)\lmedia_id (FK, UNIQUE)\lcurrent_position, last_watched\llast_device_id (FK, nullable)\lversion\l}"];
-    notes [label="{notes|id (PK)\lmedia_id (FK)\ltitle, content, timestamp\lcreated_at, updated_at\lversion\ldeleted_at\l}"];
+    devices [label="{devices|id (PK)\luser_id (FK)\lname, last_seen\lexpected_version\ldeleted_at\l}"];
+    libraries [label="{libraries|id (PK)\luser_id (FK)\lname, description, icon_url\lcreated_at, updated_at\lexpected_version\ldeleted_at\l}"];
+    media [label="{media|id (PK)\llibrary_id (FK)\lfilename, filepath, file_size\lmedia_type, duration, thumbnail_url, rating\lcreated_at, updated_at\lexpected_version\ldeleted_at\l}"];
+    progress [label="{media_progresses|id (PK)\lmedia_id (FK, UNIQUE)\lcurrent_position, last_watched\llast_device_id (FK, nullable)\lexpected_version\l}"];
+    notes [label="{notes|id (PK)\lmedia_id (FK)\ltitle, content, timestamp\lcreated_at, updated_at\lexpected_version\ldeleted_at\l}"];
     local_replica [label="lokalna replika SQLite\n5 typów encji", shape=cylinder, fillcolor="#DBEAFE", color="#60A5FA"];
 
     users -> devices [label="1 — N"];
@@ -73,8 +73,8 @@ digraph ContinuumDataModel {
     style="rounded,filled";
     penwidth=1.5;
 
-    local_outbox [label="{lokalne sync_changes (OUTBOX)|id (PK)\ldevice_id (FK)\lentity_type + entity_id\loperation: create/update/delete\lexpected_version\lpayload JSON (tekst)\lcreated_at\l}", fillcolor="#FEF3C7", color="#F59E0B"];
-    server_log [label="{serwerowe sync_changes (dziennik)|id (PK)\ldevice_id (FK)\lentity_type + entity_id\loperation\lexpected_version\lpayload JSONB\lcreated_at\l}", fillcolor="#FEF3C7", color="#F59E0B"];
+    local_outbox [label="{lokalne sync_changes (OUTBOX)|id (PK)\ldevice_id (FK)\lentity_type + entity_id\loperation: create/update/delete\lversion\lpayload JSON (tekst)\lcreated_at\l}", fillcolor="#FEF3C7", color="#F59E0B"];
+    server_log [label="{serwerowe sync_changes (dziennik)|id (PK)\ldevice_id (FK)\lentity_type + entity_id\loperation\lversion\lpayload JSONB\lcreated_at\l}", fillcolor="#FEF3C7", color="#F59E0B"];
     postgres_state [label="PostgreSQL / repozytoria\naktualny stan encji", shape=cylinder, fillcolor="#DCFCE7", color="#22C55E"];
     snapshot [label="{SyncState (PULL)|devices[]\llibraries[]\lmedia[]\lnotes[]\lmedia_progress[]\l}", fillcolor="#DBEAFE", color="#60A5FA"];
     local_outbox -> server_log [label="PUSH: partie ≤ 20", dir=forward, arrowhead=normal, color="#D97706", fontcolor="#B45309", penwidth=1.7];

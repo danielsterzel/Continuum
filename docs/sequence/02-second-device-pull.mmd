@@ -33,7 +33,7 @@ sequenceDiagram
     opt W paczce znajduje się CREATE Device
         Worker->>API: POST /sync/initiate/{user_id}
         API->>PG: Rejestracja urządzenia i zapis sync_changes
-        API->>PG: Zwiększenie version, COMMIT
+        API->>PG: Zwiększenie expected_version, COMMIT
         PG-->>API: Zatwierdzenie transakcji
         API-->>Worker: 200 OK
         Worker->>Queue: removeFromQueue(id)

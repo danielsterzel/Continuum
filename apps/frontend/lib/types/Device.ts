@@ -4,7 +4,10 @@ export type DeviceRead = {
   id: string;
   userId: string;
   name: string | null;
-  lastSeen: number;
+  lastSeen: string;
+  updatedAt: string;
+  deletedAt: string | null;
+  expectedVersion: number;
 };
 
 export type DeviceWrite = {
@@ -18,6 +21,6 @@ export type Device = {
   lastSeen: string;
   updatedAt: string;
   deletedAt: string | null;
-  version: number;
+  expectedVersion: number;
   entityType: EntityType.Device;
 };

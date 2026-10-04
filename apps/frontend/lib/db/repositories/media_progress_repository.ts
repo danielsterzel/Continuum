@@ -1,6 +1,6 @@
 import { MediaProgress } from "@/lib/types/MediaProgress";
 import { SQLiteDBConnection } from "@capacitor-community/sqlite";
-import { persistDatabase } from "../database";
+import { persistDatabase, renameColumnIfNeeded } from "../database";
 import { EntityType } from "@/lib/types/EntityType";
 
 type MediaProgressRow = {
@@ -9,7 +9,7 @@ type MediaProgressRow = {
   current_position: number | null;
   last_watched: string;
   last_device_id: string | null;
-  version: number;
+  expected_version: number;
 };
 
 export class MediaProgressRepository {
@@ -28,7 +28,7 @@ export class MediaProgressRepository {
             last_watched TEXT NOT NULL,
             last_device_id TEXT,
 
-            version INTEGER NOT NULL DEFAULT 0,
+            expected_version INTEGER NOT NULL DEFAULT 0,
 
             FOREIGN KEY (media_id)
             REFERENCES media(id)
@@ -37,6 +37,13 @@ export class MediaProgressRepository {
             UNIQUE (media_id)
         );
         `);
+
+    await renameColumnIfNeeded(
+      this.db,
+      "media_progresses",
+      "version",
+      "expected_version",
+    );
   }
 
   async upsertFromSync(progress: MediaProgress): Promise<void> {
@@ -48,7 +55,7 @@ export class MediaProgressRepository {
       current_position,
       last_watched,
       last_device_id,
-      version
+      expected_version
     )
     VALUES (?, ?, ?, ?, ?, ?)
 
@@ -57,7 +64,7 @@ export class MediaProgressRepository {
       current_position = excluded.current_position,
       last_watched = excluded.last_watched,
       last_device_id = excluded.last_device_id,
-      version = excluded.version;
+      expected_version = excluded.expected_version;
     `,
       [
         progress.id,
@@ -65,7 +72,7 @@ export class MediaProgressRepository {
         progress.currentPosition,
         progress.lastWatched,
         progress.lastDeviceId,
-        progress.version,
+        progress.expectedVersion,
       ],
     );
 
@@ -104,7 +111,7 @@ export class MediaProgressRepository {
       current_position,
       last_watched,
       last_device_id,
-      version
+      expected_version
     )
     VALUES (?, ?, ?, ?, ?, ?)
     `,
@@ -114,7 +121,7 @@ export class MediaProgressRepository {
         progress.currentPosition,
         progress.lastWatched,
         progress.lastDeviceId,
-        progress.version,
+        progress.expectedVersion,
       ],
     );
 
@@ -130,7 +137,7 @@ export class MediaProgressRepository {
       current_position,
       last_watched,
       last_device_id,
-      version
+      expected_version
     )
     VALUES (?, ?, ?, ?, ?, ?)
 
@@ -138,7 +145,7 @@ export class MediaProgressRepository {
       current_position = excluded.current_position,
       last_watched = excluded.last_watched,
       last_device_id = excluded.last_device_id,
-      version = excluded.version
+      expected_version = excluded.expected_version
     `,
       [
         progress.id,
@@ -146,7 +153,7 @@ export class MediaProgressRepository {
         progress.currentPosition,
         progress.lastWatched,
         progress.lastDeviceId,
-        progress.version,
+        progress.expectedVersion,
       ],
     );
 
@@ -159,7 +166,7 @@ export class MediaProgressRepository {
       currentPosition: row.current_position,
       lastWatched: row.last_watched,
       lastDeviceId: row.last_device_id,
-      version: row.version,
+      expectedVersion: row.expected_version,
       entityType: EntityType.MediaProgress,
     } as MediaProgress;
   }

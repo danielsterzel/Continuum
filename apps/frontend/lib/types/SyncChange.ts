@@ -8,8 +8,8 @@ export type SyncChange = {
   entityType: EntityType;
   entityId: string;
   operation: SyncOperation;
-  expectedVersion: number;
-  payload: Record<string, any>;
+  version: number;
+  payload: Record<string, unknown>;
   createdAt: string;
 };
 
@@ -19,8 +19,8 @@ export type SyncChangeWrite = {
   entityType: string;
   entityId: string;
   operation: string;
-  expectedVersion: number;
-  payload: Record<string, any>;
+  version: number;
+  payload: Record<string, unknown>;
 };
 
 export type SyncChangeRead = SyncChangeWrite & {

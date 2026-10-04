@@ -3,12 +3,34 @@ import { SyncOperation } from "../types/SyncOperation";
 import { enqueueChange, getPendingChanges, removeFromQueue } from "./queue";
 import { EntityUnionType } from "../types/EntityUnion";
 import { mapEntityToSync } from "../EntitySyncMapper";
-import { fetchSyncState, pushIconFileData, pushMediaData } from "../api/sync";
+import {
+  DeviceNotActiveError,
+  fetchSyncState,
+  pushIconFileData,
+  pushMediaData,
+} from "../api/sync";
 import { applySyncState } from "./apply_sync_state";
 import { EntityType } from "../types/EntityType";
 import { getLibrary } from "../db/services/library_service";
+import { getMediaById } from "../db/services/media_service";
 import { getFullFile } from "../files/LocalFileStorage";
+import { getDatabase } from "../db/database";
+import { DeviceRepository } from "../db/repositories/device_repository";
 const BATCH_SIZE = 20;
+
+function hasLaterEntityChange(
+  changes: SyncChangeWrite[],
+  currentIndex: number,
+): boolean {
+  const current = changes[currentIndex];
+  return changes
+    .slice(currentIndex + 1)
+    .some(
+      (change) =>
+        change.entityType === current.entityType &&
+        change.entityId === current.entityId,
+    );
+}
 
 async function postSyncChanges(
   syncChangeWrites: SyncChangeWrite[],
@@ -26,36 +48,51 @@ async function postSyncChanges(
   );
 
   if (!res.ok) {
+    if (res.status === 403) {
+      throw new DeviceNotActiveError();
+    }
     throw new Error(`SYNC: HTTP error ${res.status}`);
   }
 
   // TODO: Change so that icon is not downloaded everytime there is a change to library
-  for (const syncChangeWrite of syncChangeWrites) {
-    if (syncChangeWrite.entityType === EntityType.Library) {
-      const lib = await getLibrary(userId, syncChangeWrite.entityId);
-      console.log("LIB ICON URL: ", lib?.iconUrl);
-      if (!lib?.iconUrl) {
-        continue;
-      }
-      const localFile = await getFullFile(lib.iconUrl);
+  for (const [index, syncChangeWrite] of syncChangeWrites.entries()) {
+    if (
+      syncChangeWrite.entityType === EntityType.Library &&
+      syncChangeWrite.operation !== SyncOperation.DELETE
+    ) {
+      if (hasLaterEntityChange(syncChangeWrites, index)) continue;
 
-      if (!localFile ) {
-        console.log("FAILED TO PUSH");
-        continue;
-      }
-      await pushIconFileData(localFile, lib.iconUrl, userId);
+      const iconUrl = syncChangeWrite.payload.icon_url;
+      if (typeof iconUrl !== "string" || !iconUrl) continue;
+
+      const lib = await getLibrary(userId, syncChangeWrite.entityId);
+      if (lib?.iconUrl !== iconUrl) continue;
+
+      const localFile = await getFullFile(iconUrl);
+      if (!localFile) continue;
+
+      await pushIconFileData(localFile, iconUrl, userId);
     }
 
     if (
       syncChangeWrite.entityType === EntityType.Media &&
       syncChangeWrite.operation !== SyncOperation.DELETE
     ) {
+      if (hasLaterEntityChange(syncChangeWrites, index)) continue;
+
       const filepath = syncChangeWrite.payload.filepath;
       const libraryId = syncChangeWrite.payload.library_id;
 
       if (typeof filepath !== "string" || typeof libraryId !== "string") {
         throw new Error("Media sync payload is missing filepath or library_id");
       }
+
+      const currentMedia = await getMediaById(
+        userId,
+        libraryId,
+        syncChangeWrite.entityId,
+      );
+      if (!currentMedia || currentMedia.filepath !== filepath) continue;
 
       const localFile = await getFullFile(filepath);
       if (!localFile) {
@@ -76,7 +113,9 @@ export async function syncCycle(userId: string): Promise<void> {
     return;
   }
 
-  const state = await fetchSyncState(userId);
+  const db = await getDatabase();
+  const currentDevice = await new DeviceRepository(db).get();
+  const state = await fetchSyncState(userId, currentDevice?.id);
 
   await applySyncState(state, userId);
 }
@@ -90,10 +129,15 @@ export async function batchAndSend(userId: string): Promise<void> {
 
   const batch = pendingChanges.slice(0, BATCH_SIZE);
 
-  const changes = batch.map((change) => {
-    const { createdAt, ...syncChange } = change;
-    return syncChange;
-  });
+  const changes: SyncChangeWrite[] = batch.map((change) => ({
+    id: change.id,
+    deviceId: change.deviceId,
+    entityType: change.entityType,
+    entityId: change.entityId,
+    operation: change.operation,
+    version: change.version,
+    payload: change.payload,
+  }));
 
   await postSyncChanges(changes, userId);
 
@@ -107,8 +151,12 @@ export async function queueEntityChange(
   operation: SyncOperation,
   deviceId: string,
 ): Promise<void> {
-  const { syncChange, entity } = mapEntityToSync(entityArg, operation, deviceId);
-  console.log("Mapped sync change procedding with adding to queue")
+  const { syncChange, entity } = mapEntityToSync(
+    entityArg,
+    operation,
+    deviceId,
+  );
+  console.log("Mapped sync change procedding with adding to queue");
   console.log("Entity body: ", JSON.stringify(entity));
   console.log("SyncChange body: ", JSON.stringify(syncChange));
   await enqueueChange(syncChange);

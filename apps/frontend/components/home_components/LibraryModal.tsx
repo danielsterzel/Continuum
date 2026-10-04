@@ -65,7 +65,7 @@ export function LibraryModal({ show, onClose }: LibraryModalProps) {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       deletedAt: null,
-      version: 1,
+      expectedVersion: 1,
       entityType: EntityType.Library,
     };
 

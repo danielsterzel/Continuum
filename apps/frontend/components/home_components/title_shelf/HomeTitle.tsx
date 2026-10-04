@@ -1,13 +1,17 @@
-import { StepForward } from "lucide-react";
+type HomeTitleProps = {
+  displayName?: string;
+};
 
-export function HomeTitle() {
+export function HomeTitle({ displayName }: Readonly<HomeTitleProps>) {
+  const firstName = displayName?.trim().split(/\s+/)[0];
+
   return (
     <div className="flex max-w-xl origin-bottom flex-col gap-2">
       <div className="text-xs uppercase tracking-[0.2em] text-emerald-400">
         Your space
       </div>
       <h1 className="text-3xl font-semibold tracking-tight text-text-primary sm:text-5xl">
-        Welcome back 
+        Welcome back{firstName ? `, ${firstName}` : ""}
       </h1>
       <p className="text-sm leading-6 text-text-secondary sm:text-base">
         Pick up right where you left off.

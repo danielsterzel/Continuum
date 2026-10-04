@@ -51,7 +51,7 @@ export default function SetupDevice() {
       lastSeen: now,
       updatedAt: now,
       deletedAt: null,
-      version: 1,
+      expectedVersion: 1,
       entityType: EntityType.Device,
     };
 

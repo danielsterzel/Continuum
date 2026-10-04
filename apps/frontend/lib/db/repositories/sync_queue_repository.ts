@@ -1,6 +1,6 @@
 import { SyncChange } from "@/lib/types/SyncChange";
 import { SQLiteDBConnection } from "@capacitor-community/sqlite";
-import { persistDatabase } from "../database";
+import { persistDatabase, renameColumnIfNeeded } from "../database";
 
 export class SyncQueueRepository {
   private db: SQLiteDBConnection;
@@ -21,7 +21,7 @@ export class SyncQueueRepository {
 
         operation TEXT NOT NULL,
 
-        expected_version INTEGER NOT NULL,
+        version INTEGER NOT NULL,
 
         payload TEXT,
 
@@ -56,6 +56,13 @@ export class SyncQueueRepository {
       CREATE INDEX IF NOT EXISTS ix_sync_changes_device
       ON sync_changes(device_id);
     `);
+
+    await renameColumnIfNeeded(
+      this.db,
+      "sync_changes",
+      "expected_version",
+      "version",
+    );
   }
 
   async remove(syncId: string) {
@@ -67,6 +74,12 @@ export class SyncQueueRepository {
 
     await persistDatabase();
   }
+
+  async clear(): Promise<void> {
+    await this.db.run("DELETE FROM sync_changes;");
+    await persistDatabase();
+  }
+
   async add(syncChange: SyncChange): Promise<void> {
     const payload = JSON.stringify(syncChange.payload);
     await this.db.run(
@@ -77,7 +90,7 @@ export class SyncQueueRepository {
       entity_type,
       entity_id,
       operation,
-      expected_version,
+      version,
       payload,
       created_at
     )
@@ -89,7 +102,7 @@ export class SyncQueueRepository {
         syncChange.entityType,
         syncChange.entityId,
         syncChange.operation,
-        syncChange.expectedVersion,
+        syncChange.version,
         payload,
         syncChange.createdAt,
       ],
@@ -107,7 +120,7 @@ export class SyncQueueRepository {
       entityType: row.entity_type,
       entityId: row.entity_id,
       operation: row.operation,
-      expectedVersion: row.expected_version,
+      version: row.version,
       payload: JSON.parse(row.payload),
       createdAt: row.created_at,
     }));

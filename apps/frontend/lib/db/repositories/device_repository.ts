@@ -1,7 +1,7 @@
 import { SQLiteDBConnection } from "@capacitor-community/sqlite";
 import type { Device } from "@/lib/types/Device";
 import { EntityType } from "@/lib/types/EntityType";
-import { persistDatabase } from "../database";
+import { persistDatabase, renameColumnIfNeeded } from "../database";
 
 export class DeviceRepository {
   private db: SQLiteDBConnection;
@@ -20,13 +20,20 @@ export class DeviceRepository {
                 last_seen TEXT NOT NULL,
                 updated_at TEXT NOT NULL,
                 deleted_at TEXT,
-                version INTEGER NOT NULL DEFAULT 0,
+                expected_version INTEGER NOT NULL DEFAULT 0,
 
                 FOREIGN KEY (user_id)
                     REFERENCES users(id)
                     ON DELETE CASCADE
             );
         `,
+    );
+
+    await renameColumnIfNeeded(
+      this.db,
+      "devices",
+      "version",
+      "expected_version",
     );
 
     const columns = await this.db.query("PRAGMA table_info(devices);");
@@ -46,7 +53,7 @@ export class DeviceRepository {
       last_seen,
       updated_at,
       deleted_at,
-      version
+      expected_version
     )
     VALUES (?, ?, ?, ?, ?, ?, ?);
     `,
@@ -57,7 +64,7 @@ export class DeviceRepository {
         device.lastSeen,
         device.updatedAt,
         device.deletedAt,
-        device.version,
+        device.expectedVersion,
       ],
     );
     await persistDatabase();
@@ -84,8 +91,13 @@ export class DeviceRepository {
       lastSeen: row.last_seen,
       updatedAt: row.updated_at,
       deletedAt: row.deleted_at,
-      version: row.version,
+      expectedVersion: row.expected_version,
       entityType: EntityType.Device,
     };
+  }
+
+  async remove(deviceId: string): Promise<void> {
+    await this.db.run("DELETE FROM devices WHERE id = ?;", [deviceId]);
+    await persistDatabase();
   }
 }

@@ -27,7 +27,7 @@ sequenceDiagram
     Worker->>Worker: Wybór paczki do 20 zmian
     Worker->>API: POST /sync/initiate/{user_id}<br/>JSON z metadanymi zmian
     API->>PG: Walidacja urządzenia i wykonanie resolverów
-    API->>PG: Zapis encji i sync_changes,<br/>zwiększenie version, COMMIT
+    API->>PG: Zapis encji i sync_changes,<br/>zwiększenie expected_version, COMMIT
     PG-->>API: Zatwierdzenie transakcji
     API-->>Worker: 200 OK
 

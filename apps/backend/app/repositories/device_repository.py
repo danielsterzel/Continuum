@@ -3,6 +3,7 @@ from app.models.device import Device
 from uuid import UUID
 from sqlalchemy import select, and_
 from sqlalchemy.orm import selectinload
+from datetime import datetime
 
 
 class DeviceRepository(BaseRepository):
@@ -60,3 +61,27 @@ class DeviceRepository(BaseRepository):
         devices = list(res.scalars().all())
 
         return devices
+
+    async def active_devices(self, user_id: UUID) -> list[Device]:
+        query = (
+            select(self.model)
+            .where(
+                self.model.user_id == user_id,
+                self.model.deleted_at.is_(None),
+            )
+            .order_by(self.model.last_seen.desc())
+        )
+        res = await self.db.execute(query)
+
+        return list(res.scalars().all())
+
+    async def mark_seen(
+        self, device_id: UUID, user_id: UUID, seen_at: datetime
+    ) -> Device | None:
+        device = await self.fetch_device_by_id_and_user_id(device_id, user_id)
+        if not device:
+            return None
+
+        device.last_seen = seen_at
+        await self.db.flush([device])
+        return device

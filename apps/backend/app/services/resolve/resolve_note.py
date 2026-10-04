@@ -94,6 +94,12 @@ class ResolveNote(ResolveBase[NoteRepository]):
                                 user_id=self.user_id,
                                 **{field: new_title},
                             )
+                    #     Set, Register, List, Map, MultiValue Preserver
+                    #  dla kazdego field sotsujemy LWW  vs raz LWW, MVR,
+
+                    # state - wysylamy caly stan (nie ma zadnych operacji)
+                    # operation - per operacja
+                    #  semi hybrid state-operation-based CRDT
 
                     elif field == "content":
                         # MultiValue Preserver - moj wlasny typ CRDT bazujacy na MVR

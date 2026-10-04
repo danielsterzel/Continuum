@@ -5,7 +5,12 @@ if TYPE_CHECKING:
     from app.models.media import Media
     from app.models.user import User
 
-from app.models.mixins import TimestampMixin, UUIDMixin, TombstoneMixin, VersionMixin
+from app.models.mixins import (
+    ExpectedVersionMixin,
+    TimestampMixin,
+    TombstoneMixin,
+    UUIDMixin,
+)
 
 from sqlalchemy import (
     ForeignKey,
@@ -19,7 +24,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.db.base import Base
 
 
-class Library(Base, UUIDMixin, TimestampMixin, TombstoneMixin, VersionMixin):
+class Library(Base, UUIDMixin, TimestampMixin, TombstoneMixin, ExpectedVersionMixin):
     __tablename__ = "libraries"
 
     __table_args__ = (

@@ -1,0 +1,67 @@
+%%{init: {
+  "theme": "base",
+  "look": "classic",
+  "flowchart": {
+    "useMaxWidth": false,
+    "htmlLabels": false,
+    "curve": "linear",
+    "nodeSpacing": 34,
+    "rankSpacing": 48
+  },
+  "themeVariables": {
+    "fontFamily": "Helvetica, Arial, sans-serif",
+    "fontSize": "15px",
+    "background": "#F8FAFC",
+    "primaryTextColor": "#0F172A",
+    "lineColor": "#64748B",
+    "clusterBkg": "#FFFFFF",
+    "clusterBorder": "#CBD5E1"
+  }
+}}%%
+flowchart LR
+    subgraph CLIENT["KLIENT"]
+        direction TB
+        cAuth["Ekrany konta"]:::ui
+        cPush["syncCycle — PUSH"]:::sync
+        cPull["syncCycle — PULL"]:::sync
+        cFiles["Lokalny magazyn plików"]:::files
+    end
+
+    subgraph BOUNDARY["GRANICA SIECIOWA — HTTP"]
+        direction TB
+        auth["POST /user/setup<br/>POST /user/login<br/>JSON"]:::auth
+        push["POST /sync/initiate/{user_id}<br/>JSON: lista SyncChangeWrite<br/>maks. 20 zmian z klienta"]:::meta
+        pull["GET /sync/state/{user_id}<br/>JSON: SyncStateRead<br/>pełny snapshot użytkownika"]:::meta
+        upload["POST /sync/icon/{user_id}<br/>POST /sync/media/file/<br/>multipart/form-data"]:::files
+        download["GET /media_storage/{user_id}/{path}<br/>plik statyczny"]:::files
+    end
+
+    subgraph SERVER["PUNKTY WEJŚCIA FASTAPI"]
+        direction TB
+        sUser["user_router<br/>rejestracja + weryfikacja hasła"]:::server
+        sPush["sync_router.sync<br/>transakcja zmian metadanych"]:::server
+        sPull["sync_router.get_sync_state<br/>budowa pełnego stanu"]:::server
+        sUpload["sync_router.sync_icon / sync_file<br/>zapis strumieniowy po 1 MiB"]:::server
+        sStatic["StaticFiles<br/>/media_storage"]:::server
+    end
+
+    cAuth -->|"żądanie JSON"| auth --> sUser
+    cPush -->|"PUSH metadanych"| push --> sPush
+    cPull -->|"GET; odpowiedź SyncStateRead"| pull --> sPull
+    cFiles -->|"wysłanie bajtów po metadanych"| upload --> sUpload
+    cFiles -->|"GET tylko brakujących; odpowiedź binarna"| download --> sStatic
+
+    note["Stan obecny: identyfikator user_id jest przekazywany<br/>w ścieżce lub formularzu; sesje i JWT nie są jeszcze używane."]:::note
+    push -.-> note
+
+    classDef ui fill:#DBEAFE,stroke:#60A5FA,color:#0F172A,stroke-width:1.5px;
+    classDef sync fill:#FEF3C7,stroke:#F59E0B,color:#0F172A,stroke-width:1.5px;
+    classDef auth fill:#F3E8FF,stroke:#C084FC,color:#0F172A,stroke-width:1.5px;
+    classDef meta fill:#FEF3C7,stroke:#F59E0B,color:#0F172A,stroke-width:1.5px;
+    classDef files fill:#FFEDD5,stroke:#FB923C,color:#0F172A,stroke-width:1.5px;
+    classDef server fill:#EDE9FE,stroke:#A78BFA,color:#0F172A,stroke-width:1.5px;
+    classDef note fill:#FFFFFF,stroke:#94A3B8,color:#475569,stroke-width:1.25px,stroke-dasharray:5 4;
+
+    style CLIENT fill:#EFF6FF,stroke:#93C5FD,stroke-width:2px,color:#0F172A
+    style BOUNDARY fill:#F1F5F9,stroke:#CBD5E1,stroke-width:2px,color:#0F172A
+    style SERVER fill:#F5F3FF,stroke:#C4B5FD,stroke-width:2px,color:#0F172A

@@ -7,6 +7,7 @@ import { GoBackButton } from "@/components/buttons/GoBackButton";
 import { getDatabase } from "@/lib/db/database";
 import { initializeDatabase } from "@/lib/db/initialize";
 import { resetDatabaseConnection } from "@/lib/db/database";
+import { SyncQueueRepository } from "@/lib/db/repositories/sync_queue_repository";
 
 const TABLES = [
   "users",
@@ -39,6 +40,22 @@ export default function DatabaseDebugPage() {
 
       setData(result);
       setError(null);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    }
+  }
+
+  async function clearSyncChanges() {
+    if (!window.confirm("Clear every pending sync change?")) {
+      return;
+    }
+
+    try {
+      const db = await getDatabase();
+      const syncQueueRepository = new SyncQueueRepository(db);
+
+      await syncQueueRepository.clear();
+      await loadDatabase();
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     }
@@ -93,7 +110,19 @@ export default function DatabaseDebugPage() {
             key={table}
             className="rounded-xl border border-card-border bg-card p-5"
           >
-            <h2 className="mb-4 text-xl font-semibold">{table}</h2>
+            <div className="mb-4 flex items-center justify-between gap-4">
+              <h2 className="text-xl font-semibold">{table}</h2>
+
+              {table === "sync_changes" && (
+                <button
+                  type="button"
+                  onClick={() => void clearSyncChanges()}
+                  className="rounded-lg border border-red-500 px-4 py-2 text-red-500"
+                >
+                  Clear sync changes
+                </button>
+              )}
+            </div>
 
             <pre className="overflow-x-auto text-sm">
               {JSON.stringify(data[table] ?? [], null, 2)}

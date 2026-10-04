@@ -6,13 +6,13 @@ from sqlalchemy import Interval, DateTime, ForeignKey, UniqueConstraint, func
 from datetime import datetime, timedelta
 from typing import TYPE_CHECKING
 
-from app.models.mixins import UUIDMixin, VersionMixin
+from app.models.mixins import ExpectedVersionMixin, UUIDMixin
 
 if TYPE_CHECKING:
     from app.models.media import Media
 
 
-class MediaProgress(Base, UUIDMixin, VersionMixin):
+class MediaProgress(Base, UUIDMixin, ExpectedVersionMixin):
     __tablename__ = "media_progresses"
 
     __table_args__ = (

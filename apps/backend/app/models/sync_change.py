@@ -46,7 +46,7 @@ class SyncChange(Base, UUIDMixin):
             values_callable=lambda enum: [item.value for item in enum],
         )
     )
-    expected_version: Mapped[int] = mapped_column(Integer, server_default=text("1"))
+    version: Mapped[int] = mapped_column(Integer, server_default=text("1"))
     payload: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()

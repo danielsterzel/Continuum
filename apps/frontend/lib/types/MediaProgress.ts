@@ -20,6 +20,6 @@ export type MediaProgress = {
   lastWatched: string;
   lastDeviceId: string | null;
 
-  version: number;
+  expectedVersion: number;
   entityType: EntityType.MediaProgress;
 };

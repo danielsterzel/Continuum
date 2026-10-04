@@ -89,7 +89,7 @@ function createMediaProgressObject(
     currentPosition: 0,
     lastWatched: new Date().toISOString(),
     lastDeviceId: deviceId,
-    version: 1,
+    expectedVersion: 1,
     entityType: EntityType.MediaProgress,
   } as MediaProgress;
 }

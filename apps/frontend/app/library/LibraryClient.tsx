@@ -33,10 +33,9 @@ export function LibraryClient() {
     const activeLibraryId = libraryId;
 
     async function fetchLibraryAndMedia() {
-      
       const lib = await getLibrary(userId, activeLibraryId);
       setLibrary(lib);
-      
+
       if (lib) {
         const media = await getAllMediaForLibrary(userId, lib.id);
         setMedia(media);
@@ -69,8 +68,15 @@ export function LibraryClient() {
         <LibraryHero
           library={library}
           mediaCount={media.length}
+          onLibraryUpdated={(updatedLibrary) => {
+            setLibrary(updatedLibrary);
+            setItems((prev) =>
+              prev.map((item) =>
+                item.id === updatedLibrary.id ? updatedLibrary : item,
+              ),
+            );
+          }}
           onMediaUploaded={(uploaded) => {
-
             setMedia((prev) => [...prev, ...uploaded]);
             touchUpdatedAt();
           }}

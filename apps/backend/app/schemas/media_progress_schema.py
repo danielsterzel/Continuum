@@ -17,7 +17,7 @@ class MediaProgressRead(BaseModel):
     current_position: timedelta | None
     last_watched: datetime
     last_device_id: UUID | None
-    version: int
+    expected_version: int
 
 
 class MediaProgressWrite(BaseModel):

@@ -6,13 +6,13 @@ from uuid import UUID
 
 from app.db.base import Base
 from app.models import TimestampMixin
-from app.models.mixins import TombstoneMixin, UUIDMixin, VersionMixin
+from app.models.mixins import ExpectedVersionMixin, TombstoneMixin, UUIDMixin
 
 if TYPE_CHECKING:
     from app.models.user import User
 
 
-class Device(Base, UUIDMixin, TombstoneMixin, VersionMixin, TimestampMixin):
+class Device(Base, UUIDMixin, TombstoneMixin, ExpectedVersionMixin, TimestampMixin):
     __tablename__ = "devices"
 
     __table_args__ = (Index("ix_devices_user_id", "user_id"),)

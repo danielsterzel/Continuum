@@ -26,14 +26,14 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={montserrat.className}>
-        <BootstrapDb >
+        <BootstrapDb>
           <UserProvider>
-        <SyncService />
-        <Provider>
-          <SlideMenu />
-          {children}
-        </Provider>
-        </UserProvider>
+            <Provider>
+              <SyncService />
+              <SlideMenu />
+              {children}
+            </Provider>
+          </UserProvider>
         </BootstrapDb>
       </body>
     </html>

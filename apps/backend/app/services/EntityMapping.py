@@ -8,10 +8,9 @@ ENTITY_UNION = Union[
     models.Media,
     models.MediaProgress,
     models.Device,
-    models.User,
 ]
 
-ENTITY_MAPPING = {
+ENTITY_MAPPING: dict[EntityType, type[ENTITY_UNION]] = {
     EntityType.Note: models.Note,
     EntityType.Library: models.Library,
     EntityType.Media: models.Media,

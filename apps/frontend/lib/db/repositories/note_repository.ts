@@ -2,7 +2,7 @@ import type { Note } from "@/lib/types/Note";
 import { EntityType } from "@/lib/types/EntityType";
 import { SQLiteDBConnection } from "@capacitor-community/sqlite";
 
-import { persistDatabase } from "../database";
+import { persistDatabase, renameColumnIfNeeded } from "../database";
 import { SyncChange } from "@/lib/types/SyncChange";
 
 type NoteRow = {
@@ -14,7 +14,7 @@ type NoteRow = {
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
-  version: number;
+  expected_version: number;
 };
 
 export class NoteRepository {
@@ -34,7 +34,7 @@ export class NoteRepository {
       createdAt: row.created_at,
       updatedAt: row.updated_at,
       deletedAt: row.deleted_at,
-      version: row.version,
+      expectedVersion: row.expected_version,
       entityType: EntityType.Note,
     };
   }
@@ -50,7 +50,7 @@ export class NoteRepository {
         created_at TEXT NOT NULL,
         updated_at TEXT NOT NULL,
         deleted_at TEXT,
-        version INTEGER NOT NULL DEFAULT 0,
+        expected_version INTEGER NOT NULL DEFAULT 0,
 
         FOREIGN KEY (media_id)
           REFERENCES media(id)
@@ -60,6 +60,13 @@ export class NoteRepository {
       CREATE INDEX IF NOT EXISTS ix_notes_media_id
       ON notes(media_id);
     `);
+
+    await renameColumnIfNeeded(
+      this.db,
+      "notes",
+      "version",
+      "expected_version",
+    );
   }
 
   async add(note: Note): Promise<void> {
@@ -74,7 +81,7 @@ export class NoteRepository {
         created_at,
         updated_at,
         deleted_at,
-        version
+        expected_version
       )
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
       `,
@@ -87,7 +94,7 @@ export class NoteRepository {
         note.createdAt,
         note.updatedAt,
         note.deletedAt,
-        note.version,
+        note.expectedVersion,
       ],
     );
 
@@ -141,7 +148,7 @@ export class NoteRepository {
           timestamp = ?,
           updated_at = ?,
           deleted_at = ?,
-          version = ?
+          expected_version = ?
       WHERE id = ?
         AND EXISTS (
           SELECT 1
@@ -157,7 +164,7 @@ export class NoteRepository {
         note.timestamp,
         note.updatedAt,
         note.deletedAt,
-        note.version,
+        note.expectedVersion,
         note.id,
         userId,
       ],
@@ -205,7 +212,7 @@ export class NoteRepository {
         created_at,
         updated_at,
         deleted_at,
-        version
+        expected_version
       )
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(id) DO UPDATE SET
@@ -216,7 +223,7 @@ export class NoteRepository {
         created_at = excluded.created_at,
         updated_at = excluded.updated_at,
         deleted_at = excluded.deleted_at,
-        version = excluded.version;
+        expected_version = excluded.expected_version;
       `,
       [
         note.id,
@@ -227,7 +234,7 @@ export class NoteRepository {
         note.createdAt,
         note.updatedAt,
         note.deletedAt,
-        note.version,
+        note.expectedVersion,
       ],
     );
 

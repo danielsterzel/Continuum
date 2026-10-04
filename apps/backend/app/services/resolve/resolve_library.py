@@ -83,17 +83,27 @@ class ResolveLibrary(ResolveBase[LibraryRepository]):
                     if field not in self.repository.allowed_updates:
                         continue
 
-                    if field == "name":
+                    if field in {"name", "icon_url"}:
                         # LWW
-                        if saved_entity.updated_at < payload_parsed.updated_at:
-                            new_name = payload_parsed.name
+                        new_value = getattr(payload_parsed, field)
+                        if new_value == getattr(saved_entity, field):
+                            continue
 
+                        if saved_entity.updated_at < payload_parsed.updated_at:
                             await self.repository.update_library_validate(
                                 entity_id=saved_entity.id,
                                 user_id=self.user_id,
-                                **{field: new_name},
+                                **{field: new_value},
                             )
 
+                    # potencjalnie nie jest to w pelni crdt poniewaz
+                    # niekoniecznie (A u B) u C = A u (B u C)
+                    # rozwiazanie to moze byc np set textu w bazie danych
+                    # set oczywiscie jako ARRAY ktore przed zapisem
+                    # ma usuwane duplikaty
+                    # A u A = A
+                    # A u B = B u A
+                    # (A u B) u C = A u (B u C)
                     elif field == "description":
                         # MVR
 
