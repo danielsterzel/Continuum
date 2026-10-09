@@ -1,0 +1,28 @@
+base:
+- Library description: "Biblioteka filmów science-fiction."
+- iconUrl: "/icons/scifi.png"
+- version: 1
+
+change A:
+- Library description: "Biblioteka filmów science-fiction, głównie cyberpunk i space opera."
+- iconUrl: "/icons/scifi.png"
+- version: 1
+
+change B:
+- Library description: "Biblioteka filmów science-fiction. Filmy do obejrzenia wspólnie z Martą."
+- iconUrl: "/icons/scifi.png"
+- version: 1
+
+expected result:
+- Library description:
+  "Biblioteka filmów science-fiction, głównie cyberpunk i space opera.
+   Filmy do obejrzenia wspólnie z Martą."
+- iconUrl: "/icons/scifi.png"
+
+required information:
+- biblioteka dotyczy science-fiction
+- główne gatunki to cyberpunk i space opera
+- filmy są przeznaczone do wspólnego oglądania z Martą
+
+information to discard:
+- none

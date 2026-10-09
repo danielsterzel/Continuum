@@ -17,8 +17,12 @@ import {
   LibrarySection,
   MediaMixSection,
   NoteSection,
+  TopRatedSection,
 } from "./DashboardComponents";
-import { getDashboardSnapshot } from "@/lib/db/services/dashboard_service";
+import {
+  getDashboardSnapshot,
+  getTopRatedMedia,
+} from "@/lib/db/services/dashboard_service";
 import type { DashboardSnapshot } from "@/lib/db/services/dashboard_service";
 import { Database } from "lucide-react";
 import {
@@ -34,6 +38,7 @@ const EMPTY_SNAPSHOT: DashboardSnapshot = {
   noteCount: 0,
   recentNotes: [],
   mediaTypes: [],
+  topRatedMedia: [],
 };
 
 export default function Home() {
@@ -160,6 +165,13 @@ export default function Home() {
           ? { ...currentVideo, media: updatedMedia }
           : currentVideo,
       );
+
+      try {
+        const topRatedMedia = await getTopRatedMedia(user.id);
+        setSnapshot((current) => ({ ...current, topRatedMedia }));
+      } catch (refreshError) {
+        console.error("Could not refresh top-rated media", refreshError);
+      }
     } catch (error) {
       console.error("Could not update the last watched video rating", error);
       setLastWatched((currentVideo) =>
@@ -178,49 +190,78 @@ export default function Home() {
         <div className="pointer-events-none absolute -left-32 top-20 h-80 w-80 rounded-full bg-primary/8 blur-3xl" />
         <div className="pointer-events-none absolute -right-32 top-96 h-96 w-96 rounded-full bg-primary-subtle/60 blur-3xl" />
 
-        <div className="relative mx-auto w-full max-w-6xl">
-          <header className="animate-fade-in flex flex-col justify-between gap-6 rounded-3xl border border-card-border bg-card p-6 shadow-sm sm:p-8 md:flex-row md:items-center">
-            <HomeTitle displayName={user?.displayName} />
-            <div className="flex w-full flex-col items-stretch gap-2 sm:w-auto sm:items-end">
-              <DeviceIcon device={device} />
-              {process.env.NODE_ENV === "development" && (
-                <Link
-                  href="/db_debug"
-                  className="inline-flex items-center justify-end gap-1.5 text-xs text-text-tertiary transition-colors hover:text-primary-active"
-                >
-                  <Database className="h-3.5 w-3.5" />
-                  Database inspector
-                </Link>
-              )}
+        <div className="relative mx-auto w-full max-w-[96rem] xl:grid xl:grid-cols-[18rem_minmax(0,72rem)] xl:items-start xl:gap-8">
+          <div aria-label="Dashboard insights" className="hidden xl:block">
+            <div className="sticky top-8 space-y-6">
+              <NoteSection
+                notes={snapshot.recentNotes}
+                loading={isDashboardLoading}
+                compact
+              />
+              <TopRatedSection
+                media={snapshot.topRatedMedia}
+                loading={isDashboardLoading}
+              />
+              <MediaMixSection
+                mediaTypes={snapshot.mediaTypes}
+                totalFiles={snapshot.totalFiles}
+                loading={isDashboardLoading}
+              />
             </div>
-          </header>
+          </div>
 
-          <DashboardOverview
-            libraryCount={items.length}
-            snapshot={snapshot}
-            loading={isDashboardLoading}
-          />
+          <div className="min-w-0">
+            <header className="animate-fade-in flex flex-col justify-between gap-6 rounded-3xl border border-card-border bg-card p-6 shadow-sm sm:p-8 md:flex-row md:items-center">
+              <HomeTitle displayName={user?.displayName} />
+              <div className="flex w-full flex-col items-stretch gap-2 sm:w-auto sm:items-end">
+                <DeviceIcon device={device} />
+                {process.env.NODE_ENV === "development" && (
+                  <Link
+                    href="/db_debug"
+                    className="inline-flex items-center justify-end gap-1.5 text-xs text-text-tertiary transition-colors hover:text-primary-active"
+                  >
+                    <Database className="h-3.5 w-3.5" />
+                    Database inspector
+                  </Link>
+                )}
+              </div>
+            </header>
 
-          <ContinueWatchingSection
-            item={lastWatched}
-            videoSource={lastWatchedSource}
-            loading={isLastWatchedLoading}
-            ratingSaving={isLastWatchedRatingSaving}
-            onRatingChange={handleLastWatchedRatingChange}
-          />
-
-          <LibrarySection showLibraryModal={() => setShowLibraryModal(true)} />
-
-          <div className="mt-8 grid items-start gap-8 lg:grid-cols-[minmax(0,1.65fr)_minmax(17rem,0.75fr)]">
-            <NoteSection
-              notes={snapshot.recentNotes}
+            <DashboardOverview
+              libraryCount={items.length}
+              snapshot={snapshot}
               loading={isDashboardLoading}
             />
-            <MediaMixSection
-              mediaTypes={snapshot.mediaTypes}
-              totalFiles={snapshot.totalFiles}
-              loading={isDashboardLoading}
+
+            <ContinueWatchingSection
+              item={lastWatched}
+              videoSource={lastWatchedSource}
+              loading={isLastWatchedLoading}
+              ratingSaving={isLastWatchedRatingSaving}
+              onRatingChange={handleLastWatchedRatingChange}
             />
+
+            <LibrarySection
+              showLibraryModal={() => setShowLibraryModal(true)}
+            />
+
+            <div className="mt-8 grid items-start gap-8 lg:grid-cols-[minmax(0,1.65fr)_minmax(17rem,0.75fr)] xl:hidden">
+              <NoteSection
+                notes={snapshot.recentNotes}
+                loading={isDashboardLoading}
+              />
+              <div className="space-y-8 xl:hidden">
+                <MediaMixSection
+                  mediaTypes={snapshot.mediaTypes}
+                  totalFiles={snapshot.totalFiles}
+                  loading={isDashboardLoading}
+                />
+                <TopRatedSection
+                  media={snapshot.topRatedMedia}
+                  loading={isDashboardLoading}
+                />
+              </div>
+            </div>
           </div>
         </div>
       </main>

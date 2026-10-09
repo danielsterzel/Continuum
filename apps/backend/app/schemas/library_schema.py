@@ -55,8 +55,6 @@ class LibrarySyncPayload(BaseModel):
         validate_by_alias=True,
         validate_by_name=True,
     )
-    user_id: UUID
-
     name: str
     description: str | None
     icon_url: str | None

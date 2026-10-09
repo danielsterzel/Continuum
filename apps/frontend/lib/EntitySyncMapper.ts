@@ -1,4 +1,3 @@
-
 import type { SyncChange } from "@/lib/types/SyncChange";
 import { v4 } from "uuid";
 
@@ -57,9 +56,16 @@ export function mapLibraryToSyncChange(
   deviceId: string,
 ): SyncAndEntity {
   const syncId = v4();
-  const { id, entityType, ...entityWithoutIdentity } = entity;
-  const { expectedVersion: currentExpectedVersion, ...originalPayload } =
-    entityWithoutIdentity;
+  const { id, entityType } = entity;
+  const currentExpectedVersion = entity.expectedVersion;
+  const originalPayload = {
+    name: entity.name,
+    description: entity.description ?? null,
+    iconUrl: entity.iconUrl,
+    createdAt: entity.createdAt,
+    updatedAt: entity.updatedAt,
+    deletedAt: entity.deletedAt,
+  };
   let expectedVersion = currentExpectedVersion;
 
   const payload = snakecaseKeys(originalPayload);

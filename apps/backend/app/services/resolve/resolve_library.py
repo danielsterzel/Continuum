@@ -24,17 +24,15 @@ class ResolveLibrary(ResolveBase[LibraryRepository]):
 
         return {"object": current_entity}
 
-    @staticmethod
-    def deserialize_payload(entity_id: UUID, payload: dict[str, Any]):
+    def deserialize_payload(self, entity_id: UUID, payload: dict[str, Any]):
 
         return Library(
-            id=entity_id, **LibrarySyncPayload.model_validate(payload).model_dump()
+            id=entity_id,
+            user_id=self.user_id,
+            **LibrarySyncPayload.model_validate(payload).model_dump(),
         )
 
     async def sync_create(self, entity_id: UUID, payload: dict[str, Any]) -> None:
-
-        if payload["user_id"] != str(self.user_id):
-            raise ValueError("Library owner does not match sync user")
 
         library = self.deserialize_payload(
             entity_id=entity_id,
@@ -49,8 +47,14 @@ class ResolveLibrary(ResolveBase[LibraryRepository]):
         await self.repository.save(library)
 
     async def sync_update(self, entity_id: UUID, payload: dict[str, Any]) -> None:
+        payload_parsed = LibrarySyncPayload.model_validate(payload)
+        allowed = {
+            field: getattr(payload_parsed, field)
+            for field in payload
+            if field in self.repository.allowed_updates
+        }
         db_res = await self.repository.update_library_validate(
-            entity_id=entity_id, user_id=self.user_id, **payload
+            entity_id=entity_id, user_id=self.user_id, **allowed
         )
         if not db_res:
             raise ValueError("UPDATE SYNC LIBRARY - failure")

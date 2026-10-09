@@ -18,12 +18,23 @@ export type MediaTypeCount = {
   count: number;
 };
 
+export type TopRatedMedia = {
+  id: string;
+  libraryId: string;
+  libraryName: string;
+  filename: string;
+  mediaType: string;
+  rating: number;
+  createdAt: string;
+};
+
 export type DashboardSnapshot = {
   totalFiles: number;
   totalBytes: number;
   noteCount: number;
   recentNotes: DashboardNote[];
   mediaTypes: MediaTypeCount[];
+  topRatedMedia: TopRatedMedia[];
 };
 
 type AggregateRow = {
@@ -50,22 +61,71 @@ type MediaTypeRow = {
   item_count: number | string;
 };
 
+type TopRatedMediaRow = {
+  id: string;
+  library_id: string;
+  library_name: string;
+  filename: string;
+  media_type: string;
+  rating: number | string;
+  created_at: string;
+};
+
 const EMPTY_SNAPSHOT: DashboardSnapshot = {
   totalFiles: 0,
   totalBytes: 0,
   noteCount: 0,
   recentNotes: [],
   mediaTypes: [],
+  topRatedMedia: [],
 };
+
+export async function getTopRatedMedia(
+  userId: string,
+): Promise<TopRatedMedia[]> {
+  const db = await getDatabase();
+  const result = await db.query(
+    `
+      SELECT
+        m.id,
+        m.library_id,
+        l.name AS library_name,
+        m.filename,
+        m.media_type,
+        m.rating,
+        m.created_at
+      FROM media m
+      JOIN libraries l ON l.id = m.library_id
+      WHERE l.user_id = ?
+        AND l.deleted_at IS NULL
+        AND m.deleted_at IS NULL
+        AND m.rating IS NOT NULL
+      ORDER BY m.rating DESC, m.created_at DESC
+      LIMIT 5;
+    `,
+    [userId],
+  );
+
+  return ((result.values ?? []) as TopRatedMediaRow[]).map((row) => ({
+    id: row.id,
+    libraryId: row.library_id,
+    libraryName: row.library_name,
+    filename: row.filename,
+    mediaType: row.media_type,
+    rating: Number(row.rating),
+    createdAt: row.created_at,
+  }));
+}
 
 export async function getDashboardSnapshot(
   userId: string,
 ): Promise<DashboardSnapshot> {
   const db = await getDatabase();
 
-  const [aggregateResult, notesResult, mediaTypesResult] = await Promise.all([
-    db.query(
-      `
+  const [aggregateResult, notesResult, mediaTypesResult, topRatedMedia] =
+    await Promise.all([
+      db.query(
+        `
       WITH user_libraries AS (
         SELECT id
         FROM libraries
@@ -93,10 +153,10 @@ export async function getDashboardSnapshot(
             AND n.deleted_at IS NULL
         ) AS note_count;
       `,
-      [userId],
-    ),
-    db.query(
-      `
+        [userId],
+      ),
+      db.query(
+        `
       SELECT
         n.id,
         n.title,
@@ -118,10 +178,10 @@ export async function getDashboardSnapshot(
       ORDER BY n.updated_at DESC
       LIMIT 6;
       `,
-      [userId],
-    ),
-    db.query(
-      `
+        [userId],
+      ),
+      db.query(
+        `
       SELECT m.media_type, COUNT(*) AS item_count
       FROM media m
       JOIN libraries l ON l.id = m.library_id
@@ -131,9 +191,10 @@ export async function getDashboardSnapshot(
       GROUP BY m.media_type
       ORDER BY item_count DESC;
       `,
-      [userId],
-    ),
-  ]);
+        [userId],
+      ),
+      getTopRatedMedia(userId),
+    ]);
 
   const aggregate = aggregateResult.values?.[0] as AggregateRow | undefined;
   if (!aggregate) return EMPTY_SNAPSHOT;
@@ -160,5 +221,6 @@ export async function getDashboardSnapshot(
         count: Number(row.item_count),
       }),
     ),
+    topRatedMedia,
   };
 }

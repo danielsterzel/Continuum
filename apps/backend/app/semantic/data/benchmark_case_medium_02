@@ -1,0 +1,42 @@
+base:
+- Note title: "Release backendu"
+- Note content:
+  "Release backendu planowany jest na środę.
+   Przed releasem trzeba wykonać testy integracyjne oraz przygotować migrację bazy."
+- timestamp: 8:41
+- version: 5
+
+change A:
+- Note title: "Release backendu"
+- Note content:
+  "Release backendu planowany jest na środę.
+   Przed releasem trzeba wykonać testy integracyjne oraz przygotować migrację bazy.
+   Po wdrożeniu trzeba jeszcze sprawdzić logi produkcyjne."
+- timestamp: 8:41
+- version: 5
+
+change B:
+- Note title: "Release backendu - czwartek"
+- Note content:
+  "Release został przesunięty na czwartek.
+   Migracja bazy nie będzie potrzebna, ponieważ schemat się nie zmienił.
+   Trzeba natomiast wykonać testy integracyjne i sprawdzić endpoint logowania."
+- timestamp: 8:41
+- version: 5
+
+expected result:
+- Note title: "Release backendu - czwartek"
+- Note content:
+  "Release backendu jest zaplanowany na czwartek.
+   Przed releasem trzeba wykonać testy integracyjne i sprawdzić endpoint logowania.
+   Po wdrożeniu trzeba sprawdzić logi produkcyjne."
+
+required information:
+- release jest w czwartek
+- trzeba wykonać testy integracyjne
+- trzeba sprawdzić endpoint logowania
+- po wdrożeniu trzeba sprawdzić logi produkcyjne
+
+information to discard:
+- release jest w środę
+- trzeba przygotować migrację bazy

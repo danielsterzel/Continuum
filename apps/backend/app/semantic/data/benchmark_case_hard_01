@@ -1,0 +1,64 @@
+base:
+- Note content: "Spotkanie z Markiem w środę o 16:00 na platformie Microsoft Teams.
+    Muszę przygotować prezentację odnośnie feature'a Synchronized LLM answers
+    oraz spis tego, co dana osoba w zespole przygotowała."
+- Note title: "Spotkanie z Markiem + przygotowanie"
+- createdAt: poniedziałek, 15:32
+- updatedAt: poniedziałek, 15:32
+- timestamp: 2:32 na wideo
+- mediaId: 1
+- noteId: 1
+
+- deletedAt: None
+- version: 2
+
+change A:
+Note update resolution:
+- Note content: "Spotkanie z Markiem w środę o 16:00 na platformie Microsoft Teams. Muszę przygotować
+prezentację odnośnie feature'a Synchronized LLM answers oraz
+spis tego co dana osoba w zespole przygotowała. No i jeszcze musze to ogarnac przed spotkaniem
+z Darkiem w środę o 15:00"
+- Note title: Spotkanie z Markiem + przygotowanie
+- createdAt: poniedziałek godzina 15:32
+- updatedAt: poniedziałek godzina 15:32
+- timestamp: 2:32 na wideo
+- mediaId: 1
+- id zmiany: zmiana1
+- deletedAt: None
+- version: 2
+
+change B:
+Note update resolution:
+- Note content: "Spotkanie z Markiem nie w środę ale w czwartek o 13:00 na google meet.
+Dodatkowo okazało się że nie potrzeba prezentacji ale potrzeba natomiast dokończyć logikę
+wysyłania odpowiedzi w naszym feature. No i tak samo ten spis."
+- Note title: Spotkanie z Markiem + przygotowanie
+- createdAt: poniedziałek godzina 15:32
+- updatedAt: wtorek godzina 9:21
+- timestamp: 2:32 na wideo
+- mediaId: 1
+- id zmiany: zmiana1
+- deletedAt: None
+- version: 3
+
+
+expected result of merge(A, B) == merge(B,A) and:
+Note content: "Spotkanie z Markiem w czwartek o 13:00 na google meet. Przygotować:
+spis co dana osoba w zespole zrobiła + dokończenie logiki wysyłania odpowiedzi w feature
+Synchronized LLM answers. Trzeba to ogarnąć przed spotkaniem z Darkiem w środę o 15:00"
+- Note title: Spotkanie z Markiem + przygotowanie
+- createdAt: poniedziałek godzina 15:32
+- updatedAt: wtorek godzina 9:21
+- timestmap: 2:32 na wideo
+- mediaId: 1
+- id zmiany: 1
+- deletedAt: None
+-version: 3
+
+information that can be missed and that makes the merge "passable":
+- konkretna nazwa featurea: czlowiek bedzie pamietac raczej
+
+information to discard:
+- spotkanie w środę o 16:00
+- zrobienie prezentacji odnośnie featurea
+- spotkanie na platformie Microsoft Teams

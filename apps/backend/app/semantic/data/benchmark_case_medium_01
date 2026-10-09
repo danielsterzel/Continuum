@@ -1,0 +1,41 @@
+base:
+- Note title: "Demo projektu"
+- Note content:
+  "Demo projektu odbędzie się w piątek o 12:00.
+   Trzeba przygotować slajdy z wynikami benchmarków."
+- timestamp: 5:14
+- version: 3
+
+change A:
+- Note title: "Demo projektu"
+- Note content:
+  "Demo projektu odbędzie się w piątek o 12:00.
+   Trzeba przygotować slajdy z wynikami benchmarków.
+   Kuba ma dodatkowo przygotować wykres czasu odpowiedzi."
+- timestamp: 5:14
+- version: 3
+
+change B:
+- Note title: "Demo projektu - poniedziałek"
+- Note content:
+  "Demo zostało przełożone z piątku na poniedziałek na 10:30.
+   Slajdy z benchmarkami nadal są potrzebne."
+- timestamp: 5:14
+- version: 3
+
+expected result:
+- Note title: "Demo projektu - poniedziałek"
+- Note content:
+  "Demo projektu odbędzie się w poniedziałek o 10:30.
+   Trzeba przygotować slajdy z wynikami benchmarków.
+   Kuba ma dodatkowo przygotować wykres czasu odpowiedzi."
+
+required information:
+- demo jest w poniedziałek
+- demo jest o 10:30
+- potrzebne są slajdy z benchmarkami
+- Kuba przygotowuje wykres czasu odpowiedzi
+
+information to discard:
+- demo jest w piątek
+- demo jest o 12:00

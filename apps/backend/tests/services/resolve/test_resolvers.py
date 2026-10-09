@@ -6,6 +6,7 @@ from uuid import UUID, uuid4, uuid5
 import pytest
 
 from app.models.device import Device
+from app.models.libraries import Library
 from app.models.note import Note
 from app.models.sync_change import SyncOperation
 from app.schemas.sync_change_schema import SyncChangeWrite
@@ -63,9 +64,8 @@ def device_payload(user_id: UUID, updated_at: datetime) -> dict:
     }
 
 
-def library_payload(user_id: UUID, updated_at: datetime) -> dict:
+def library_payload(updated_at: datetime) -> dict:
     return {
-        "user_id": str(user_id),
         "name": "Filmy",
         "description": "opis z klienta",
         "icon_url": None,
@@ -140,8 +140,10 @@ async def test_device_create_saves_deserialized_device(
 
 async def test_library_update_forwards_payload(user_id: UUID, device_id: UUID) -> None:
     entity_id = uuid4()
+    now = datetime.now(timezone.utc)
     resolver = ResolveLibrary(user_id, AsyncMock())
     resolver.repository = SimpleNamespace(
+        allowed_updates={"name", "description", "icon_url"},
         update_library_validate=AsyncMock(return_value=True)
     )
     change = make_change(
@@ -149,7 +151,12 @@ async def test_library_update_forwards_payload(user_id: UUID, device_id: UUID) -
         entity_type="library",
         entity_id=entity_id,
         operation=SyncOperation.UPDATE,
-        payload={"name": "Nowa_nazwa"},
+        payload={
+            **library_payload(now),
+            "name": "Nowa_nazwa",
+            # A queued payload produced by an older client may still contain it.
+            "user_id": str(uuid4()),
+        },
     )
 
     resolved_id = await resolver.resolve(change)
@@ -159,7 +166,35 @@ async def test_library_update_forwards_payload(user_id: UUID, device_id: UUID) -
         entity_id=entity_id,
         user_id=user_id,
         name="Nowa_nazwa",
+        description="opis z klienta",
+        icon_url=None,
     )
+
+
+async def test_library_create_takes_owner_from_resolver(
+    user_id: UUID, device_id: UUID
+) -> None:
+    entity_id = uuid4()
+    repository = SimpleNamespace(
+        fetch_single_by_user=AsyncMock(return_value=None),
+        save=AsyncMock(),
+    )
+    resolver = ResolveLibrary(user_id, AsyncMock())
+    resolver.repository = repository
+    change = make_change(
+        device_id=device_id,
+        entity_type="library",
+        entity_id=entity_id,
+        operation=SyncOperation.CREATE,
+        payload=library_payload(datetime.now(timezone.utc)),
+    )
+
+    await resolver.resolve(change)
+
+    repository.save.assert_awaited_once()
+    saved_library = repository.save.await_args.args[0]
+    assert isinstance(saved_library, Library)
+    assert saved_library.user_id == user_id
 
 
 async def test_media_delete_soft_deletes_entity(user_id: UUID, device_id: UUID) -> None:
@@ -322,7 +357,7 @@ async def test_library_conflict_merges_different_descriptions(
         entity_type="library",
         entity_id=entity_id,
         operation=SyncOperation.UPDATE,
-        payload=library_payload(user_id, now - timedelta(hours=1)),
+        payload=library_payload(now - timedelta(hours=1)),
     )
 
     resolved_id = await resolver.resolve_conflict(change)
@@ -355,7 +390,7 @@ async def test_library_conflict_updates_icon_from_newer_payload(
     )
     resolver = ResolveLibrary(user_id, AsyncMock())
     resolver.repository = repository
-    payload = library_payload(user_id, incoming_at)
+    payload = library_payload(incoming_at)
     payload["description"] = saved.description
     payload["icon_url"] = "new/icon.webp"
     change = make_change(

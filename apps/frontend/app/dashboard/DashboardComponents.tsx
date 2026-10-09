@@ -8,11 +8,13 @@ import type {
   DashboardNote,
   DashboardSnapshot,
   MediaTypeCount,
+  TopRatedMedia,
 } from "@/lib/db/services/dashboard_service";
 import type { LastWatchedVideo } from "@/lib/db/services/last_watched_service";
 import {
   ArrowRight,
   ArrowUpRight,
+  ChevronDown,
   Clock3,
   FileImage,
   Files,
@@ -28,10 +30,12 @@ import {
   Plus,
   ShieldCheck,
   Sparkles,
+  Star,
   StickyNote,
+  Trophy,
 } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useId, useState } from "react";
 import { RatingStars } from "@/components/RatingStars";
 
 type LibraryPanelProps = {
@@ -329,7 +333,73 @@ export function LibrarySection({
 export function NoteSection({
   notes,
   loading,
-}: Readonly<{ notes: DashboardNote[]; loading: boolean }>) {
+  compact = false,
+}: Readonly<{
+  notes: DashboardNote[];
+  loading: boolean;
+  compact?: boolean;
+}>) {
+  const [expanded, setExpanded] = useState(false);
+  const contentId = useId();
+
+  if (compact) {
+    const visibleNotes = notes.slice(0, 3);
+
+    return (
+      <aside
+        className="animate-fade-in-up overflow-hidden rounded-3xl border border-card-border bg-card/75 shadow-sm backdrop-blur-sm"
+        style={{ animationDelay: "0.5s" }}
+      >
+        <button
+          type="button"
+          onClick={() => setExpanded((current) => !current)}
+          aria-expanded={expanded}
+          aria-controls={contentId}
+          className="flex w-full cursor-pointer items-center gap-3 p-5 text-left transition-colors hover:bg-card-hover sm:p-6"
+        >
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sky-100 text-sky-600 ring-1 ring-sky-200/70">
+            <Notebook className="h-5 w-5" strokeWidth={1.7} />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-[0.65rem] uppercase tracking-[0.18em] text-sky-600">
+              Scribbles
+            </p>
+            <h2 className="mt-0.5 text-xl font-semibold tracking-tight text-text-primary">
+              Recent notes
+            </h2>
+          </div>
+          <span className="rounded-full bg-background-subtle px-2.5 py-1 text-[0.65rem] font-semibold uppercase tracking-wide text-text-tertiary">
+            Latest 3
+          </span>
+          <ChevronDown
+            className={`h-5 w-5 shrink-0 text-text-tertiary transition-transform duration-300 ${expanded ? "rotate-180" : ""}`}
+          />
+        </button>
+
+        <div
+          id={contentId}
+          className={`grid transition-[grid-template-rows] duration-300 ease-out ${expanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}
+        >
+          <div className="overflow-hidden">
+            <div className="grid gap-3 border-t border-card-border px-4 pb-4 pt-3 sm:px-5 sm:pb-5">
+              {loading &&
+                Array.from({ length: 3 }).map((_, index) => (
+                  <NoteSkeleton key={index} compact />
+                ))}
+
+              {!loading && visibleNotes.length === 0 && <EmptyNotes compact />}
+
+              {!loading &&
+                visibleNotes.map((note) => (
+                  <NoteCard key={note.id} note={note} compact />
+                ))}
+            </div>
+          </div>
+        </div>
+      </aside>
+    );
+  }
+
   return (
     <section
       className="animate-fade-in-up rounded-3xl border border-card-border bg-card/75 p-5 shadow-sm backdrop-blur-sm sm:p-7"
@@ -357,13 +427,16 @@ export function NoteSection({
   );
 }
 
-function NoteCard({ note }: Readonly<{ note: DashboardNote }>) {
+function NoteCard({
+  note,
+  compact = false,
+}: Readonly<{ note: DashboardNote; compact?: boolean }>) {
   const href = `/library/media?libraryId=${note.libraryId}&mediaId=${note.mediaId}`;
 
   return (
     <Link
       href={href}
-      className="group relative flex min-h-44 flex-col overflow-hidden rounded-2xl border border-card-border bg-background-subtle/55 p-4 transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/35 hover:bg-card hover:shadow-md"
+      className={`group relative flex flex-col overflow-hidden rounded-2xl border border-card-border bg-background-subtle/55 p-4 transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/35 hover:bg-card hover:shadow-md ${compact ? "min-h-36" : "min-h-44"}`}
     >
       <div className="absolute -right-7 -top-7 h-20 w-20 rounded-full bg-primary/8 transition-transform duration-500 group-hover:scale-150" />
       <div className="relative flex items-start justify-between gap-3">
@@ -398,9 +471,11 @@ function NoteCard({ note }: Readonly<{ note: DashboardNote }>) {
   );
 }
 
-function NoteSkeleton() {
+function NoteSkeleton({ compact = false }: Readonly<{ compact?: boolean }>) {
   return (
-    <div className="min-h-44 animate-pulse rounded-2xl border border-card-border bg-background-subtle/50 p-4">
+    <div
+      className={`animate-pulse rounded-2xl border border-card-border bg-background-subtle/50 p-4 ${compact ? "min-h-36" : "min-h-44"}`}
+    >
       <div className="h-8 w-8 rounded-lg bg-card-border" />
       <div className="mt-4 h-4 w-2/3 rounded bg-card-border" />
       <div className="mt-3 h-3 w-full rounded bg-card-border/80" />
@@ -409,9 +484,11 @@ function NoteSkeleton() {
   );
 }
 
-function EmptyNotes() {
+function EmptyNotes({ compact = false }: Readonly<{ compact?: boolean }>) {
   return (
-    <div className="relative col-span-full overflow-hidden rounded-2xl border border-dashed border-primary/30 bg-primary-subtle/30 px-6 py-10 text-center">
+    <div
+      className={`relative col-span-full overflow-hidden rounded-2xl border border-dashed border-primary/30 bg-primary-subtle/30 px-6 text-center ${compact ? "py-7" : "py-10"}`}
+    >
       <Sparkles className="mx-auto h-6 w-6 text-primary-active" />
       <h3 className="mt-3 font-semibold text-text-primary">
         Your best ideas will land here
@@ -479,6 +556,166 @@ export function MediaMixSection({
         </div>
       </div>
     </aside>
+  );
+}
+
+export function TopRatedSection({
+  media,
+  loading,
+}: Readonly<{
+  media: TopRatedMedia[];
+  loading: boolean;
+}>) {
+  const [expanded, setExpanded] = useState(false);
+  const contentId = useId();
+
+  return (
+    <aside
+      className="animate-fade-in-up overflow-hidden rounded-3xl border border-card-border bg-card/75 shadow-sm backdrop-blur-sm"
+      style={{ animationDelay: "0.44s" }}
+    >
+      <button
+        type="button"
+        onClick={() => setExpanded((current) => !current)}
+        aria-expanded={expanded}
+        aria-controls={contentId}
+        className="flex w-full cursor-pointer items-center gap-3 p-5 text-left transition-colors hover:bg-card-hover sm:p-6"
+      >
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-600 ring-1 ring-amber-200/70">
+          <Trophy className="h-5 w-5" strokeWidth={1.7} />
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-[0.65rem] uppercase tracking-[0.18em] text-amber-600">
+            Your favorites
+          </p>
+          <h2 className="mt-0.5 text-xl font-semibold tracking-tight text-text-primary">
+            Top rated
+          </h2>
+        </div>
+        <span className="rounded-full bg-background-subtle px-2.5 py-1 text-[0.65rem] font-semibold uppercase tracking-wide text-text-tertiary">
+          Top 5
+        </span>
+        <ChevronDown
+          className={`h-5 w-5 shrink-0 text-text-tertiary transition-transform duration-300 ${expanded ? "rotate-180" : ""}`}
+        />
+      </button>
+
+      <div
+        id={contentId}
+        className={`grid transition-[grid-template-rows] duration-300 ease-out ${expanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}
+      >
+        <div className="overflow-hidden">
+          <div className="border-t border-card-border px-4 pb-4 pt-3 sm:px-5 sm:pb-5">
+            {loading ? (
+              <TopRatedSkeleton />
+            ) : media.length === 0 ? (
+              <div className="rounded-2xl border border-dashed border-amber-200 bg-amber-50/60 px-4 py-7 text-center">
+                <Star className="mx-auto h-6 w-6 text-amber-400" />
+                <p className="mt-2 text-sm font-medium text-text-primary">
+                  No ratings yet
+                </p>
+                <p className="mt-1 text-xs leading-5 text-text-secondary">
+                  Rate some media and your favorites will appear here.
+                </p>
+              </div>
+            ) : (
+              <ol className="space-y-2">
+                {media.map((item, index) => (
+                  <TopRatedItem
+                    key={item.id}
+                    item={item}
+                    position={index + 1}
+                  />
+                ))}
+              </ol>
+            )}
+          </div>
+        </div>
+      </div>
+    </aside>
+  );
+}
+
+function TopRatedItem({
+  item,
+  position,
+}: Readonly<{ item: TopRatedMedia; position: number }>) {
+  const presentation = getMediaTypePresentation(item.mediaType);
+  const Icon = presentation.icon;
+  const href = `/library/media?libraryId=${item.libraryId}&mediaId=${item.id}`;
+
+  return (
+    <li>
+      <Link
+        href={href}
+        className="group flex items-center gap-3 rounded-2xl border border-transparent p-2.5 transition-all hover:border-amber-200 hover:bg-amber-50/60"
+      >
+        <span
+          className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-xs font-bold ${getRankBadgeStyle(position)}`}
+        >
+          {position}
+        </span>
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-background-subtle">
+          <Icon className={`h-4 w-4 ${presentation.text}`} />
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-semibold text-text-primary">
+            {item.filename}
+          </p>
+          <div className="mt-1 flex items-center gap-2">
+            <span className="truncate text-[0.68rem] text-text-tertiary">
+              {item.libraryName}
+            </span>
+            <span className="flex shrink-0 items-center gap-0.5">
+              {Array.from({ length: 5 }).map((_, index) => (
+                <Star
+                  key={index}
+                  className={`h-3 w-3 ${
+                    index < item.rating
+                      ? "fill-amber-400 text-amber-400"
+                      : "fill-transparent text-zinc-300"
+                  }`}
+                />
+              ))}
+            </span>
+          </div>
+        </div>
+        <ArrowUpRight className="h-4 w-4 shrink-0 text-text-tertiary transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-amber-600" />
+      </Link>
+    </li>
+  );
+}
+
+function getRankBadgeStyle(position: number): string {
+  if (position === 1) {
+    return "bg-amber-400 text-white ring-1 ring-amber-500/30";
+  }
+  if (position === 2) {
+    return "bg-slate-300 text-slate-700 ring-1 ring-slate-400/40";
+  }
+  if (position === 3) {
+    return "bg-orange-700 text-white ring-1 ring-orange-800/30";
+  }
+  return "bg-background-subtle text-text-tertiary";
+}
+
+function TopRatedSkeleton() {
+  return (
+    <div className="space-y-2">
+      {Array.from({ length: 3 }).map((_, index) => (
+        <div
+          key={index}
+          className="flex animate-pulse items-center gap-3 rounded-2xl p-2.5"
+        >
+          <div className="h-8 w-8 rounded-lg bg-background-subtle" />
+          <div className="h-9 w-9 rounded-lg bg-background-subtle" />
+          <div className="flex-1">
+            <div className="h-3.5 w-3/4 rounded bg-background-subtle" />
+            <div className="mt-2 h-2.5 w-1/2 rounded bg-background-subtle" />
+          </div>
+        </div>
+      ))}
+    </div>
   );
 }
 

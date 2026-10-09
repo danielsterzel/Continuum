@@ -1,0 +1,22 @@
+base:
+- Media title: "Raport Q3"
+- version: 4
+
+change A:
+- Media title: "Raport Q3 2026"
+- version: 4
+
+change B:
+- Media title: "Raport Q3 - wersja finalna"
+- version: 4
+
+expected result:
+- Media title: "Raport Q3 2026 - wersja finalna"
+
+required information:
+- raport dotyczy Q3
+- raport dotyczy roku 2026
+- jest to wersja finalna
+
+information to discard:
+- none
