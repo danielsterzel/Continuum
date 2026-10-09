@@ -1,36 +1,58 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Continuum frontend
 
-## Getting Started
+Local-first Next.js 16 / React 19 client targeting the browser and a Capacitor iOS
+container. See the [project README](../../README.md) for the product tour,
+architecture, synchronization protocol, and complete local setup.
 
-First, run the development server:
+## Start the web client
+
+```bash
+npm install
+printf 'NEXT_PUBLIC_API_URL=http://localhost:8000\n' > .env.local
+npm run dev
+```
+
+Open <http://localhost:3000>.
+
+## Commands
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm run build
+npm run start
+npm run lint
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## iOS
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+On macOS with Xcode:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run build
+npx cap sync ios
+npx cap open ios
+```
 
-## Learn More
+For a physical device, `NEXT_PUBLIC_API_URL` must point to an API address reachable
+from the phone rather than `localhost`.
 
-To learn more about Next.js, take a look at the following resources:
+## Local data
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- Web: SQLite through `jeep-sqlite` / SQL.js, persisted in IndexedDB.
+- iOS: native SQLite.
+- Files: Capacitor Filesystem under `Directory.Data`.
+- Pending operations: the local `sync_changes` outbox.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Module map
 
-## Deploy on Vercel
+- `app` — routes, contexts, and background sync worker;
+- `components` — product UI;
+- `lib/db` — repositories and domain services;
+- `lib/files` — web/iOS file abstraction;
+- `lib/sync` — outbox, PUSH, PULL, and snapshot application;
+- `lib/api` — HTTP client;
+- `lib/types` — TypeScript contracts;
+- `ios` — generated Capacitor/Xcode project.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The current lint configuration includes generated output under `ios/App/App/public`.
+Exclude generated artifacts before treating lint as a strict CI gate.

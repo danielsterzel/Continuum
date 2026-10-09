@@ -1,35 +1,59 @@
-## Backend
+# Continuum backend
 
-### Requirements
+FastAPI synchronization server backed by async SQLAlchemy and PostgreSQL.
+See the [project README](../../README.md) for the architecture, consistency model,
+conflict strategies, API surface, and complete local setup.
 
-- Python 3.12+
-- uv
+## Start the server
 
-### Installation
+Requires Python 3.12+, `uv`, and PostgreSQL.
 
 ```bash
-cd apps/backend
-
-uv venv --python 3.12
-source .venv/bin/activate
-
+cp .env.example .env
 uv sync
-```
-
-### Running
-
-```bash
+uv run alembic upgrade head
 uv run uvicorn app.main:app --reload
 ```
 
-The API will be available at:
+- API: <http://localhost:8000>
+- OpenAPI: <http://localhost:8000/docs>
 
-```
-http://localhost:8000
+## Configuration
+
+```dotenv
+DATABASE_URL=postgresql+asyncpg://postgres:postgres@localhost:5432/continuum
+FRONTEND_URL=http://localhost:3000
+MEDIA_STORAGE_DIR=./media_storage
 ```
 
-Swagger documentation:
+## Tests and quality
 
+```bash
+PYTHONPATH=. uv run pytest -q
+uv run ruff check .
+uv run ruff format .
+uv run mypy app
 ```
-http://localhost:8000/docs
+
+## Migrations
+
+```bash
+uv run alembic current
+uv run alembic upgrade head
+uv run alembic revision --autogenerate -m "describe the change"
+uv run alembic downgrade -1
 ```
+
+## Module map
+
+- `app/api` — account, device, sync, and file endpoints;
+- `app/models` — PostgreSQL domain model;
+- `app/schemas` — Pydantic contracts;
+- `app/repositories` — ownership-aware persistence;
+- `app/services/SyncService.py` — transaction and change routing;
+- `app/services/resolve` — per-entity conflict policies;
+- `alembic` — schema migrations;
+- `tests` — API and resolver tests.
+
+> The API does not yet issue authenticated sessions or JWTs. Do not expose it
+> publicly without authentication and file-delivery authorization.
